@@ -1,0 +1,22 @@
+[project]
+name = "code-explorer"
+version = "0.1.0"
+description = "Python dependency analysis tool with fine-grained impact tracking"
+readme = "README.md"
+authors = [
+    { name = "Thomas PEDOT", email = "thomas.pedot@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.0",
+    "rich>=13.0",
+    "astroid>=3.0",
+    "kuzu>=0.0.1",
+]
+
+[project.scripts]
+code-explorer = "code_explorer:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

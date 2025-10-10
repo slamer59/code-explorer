@@ -42,25 +42,44 @@ class DependencyGraph:
     database that persists to disk. Supports incremental updates and efficient queries.
     """
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Optional[Path] = None, read_only: bool = False):
         """Initialize KuzuDB connection and create schema if needed.
 
         Args:
             db_path: Path to KuzuDB database directory.
                     Defaults to .code-explorer/graph.db
+            read_only: If True, opens database in read-only mode for safe parallel
+                      reads without risk of accidental writes. Default is False.
+                      In read-only mode, schema creation is skipped and all write
+                      methods will raise exceptions if called.
         """
         if db_path is None:
             db_path = Path.cwd() / ".code-explorer" / "graph.db"
 
-        # Ensure parent directory exists
-        db_path.parent.mkdir(parents=True, exist_ok=True)
+        # Ensure parent directory exists (only in read-write mode)
+        if not read_only:
+            db_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.db_path = db_path
-        self.db = kuzu.Database(str(db_path))
+        self.read_only = read_only
+        self.db = kuzu.Database(str(db_path), read_only=read_only)
         self.conn = kuzu.Connection(self.db)
 
-        # Create schema if tables don't exist
-        self._create_schema()
+        # Create schema if tables don't exist (only in read-write mode)
+        if not self.read_only:
+            self._create_schema()
+
+    def _check_read_only(self) -> None:
+        """Raise exception if database is in read-only mode.
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        if self.read_only:
+            raise RuntimeError(
+                "Cannot perform write operation: database is in read-only mode. "
+                "Create a new DependencyGraph instance with read_only=False to enable writes."
+            )
 
     def _create_schema(self) -> None:
         """Create KuzuDB schema with node and edge tables."""
@@ -164,7 +183,11 @@ class DependencyGraph:
             start_line: Starting line number
             end_line: Ending line number
             is_public: Whether function is public (not starting with _)
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         func_id = self._make_function_id(file, name)
 
         try:
@@ -234,7 +257,11 @@ class DependencyGraph:
             file: File path where variable is defined
             definition_line: Line number where variable is defined
             scope: Scope of the variable (e.g., "module", "function:func_name")
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         var_id = self._make_variable_id(file, name, definition_line)
 
         try:
@@ -296,7 +323,11 @@ class DependencyGraph:
             callee_file: File where callee is defined
             callee_function: Name of called function
             call_line: Line number where call occurs
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         caller_id = self._make_function_id(caller_file, caller_function)
         callee_id = self._make_function_id(callee_file, callee_function)
 
@@ -334,7 +365,11 @@ class DependencyGraph:
             var_definition_line: Line where variable is defined
             usage_line: Line where variable is used
             is_definition: True if function defines the variable
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         func_id = self._make_function_id(function_file, function_name)
         var_id = self._make_variable_id(var_file, var_name, var_definition_line)
 
@@ -606,7 +641,11 @@ class DependencyGraph:
             file_path: Path to file
             language: Programming language
             content_hash: Hash of file contents
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         try:
             # Check if file exists
             result = self.conn.execute("""
@@ -650,7 +689,11 @@ class DependencyGraph:
 
         Args:
             file_path: Path to file
+
+        Raises:
+            RuntimeError: If database is in read-only mode
         """
+        self._check_read_only()
         try:
             # Delete functions from this file
             self.conn.execute("""
@@ -674,7 +717,12 @@ class DependencyGraph:
             print(f"Error deleting file data for {file_path}: {e}")
 
     def clear_all(self) -> None:
-        """Clear all data from the database."""
+        """Clear all data from the database.
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
         try:
             # Delete all edges first
             self.conn.execute("MATCH ()-[r:CALLS]->() DELETE r")

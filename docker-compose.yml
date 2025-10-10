@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  kuzu-explorer:
+    image: kuzudb/explorer:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.code-explorer:/database
+    environment:
+      - KUZU_FILE=graph.db
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped

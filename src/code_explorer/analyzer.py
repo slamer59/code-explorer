@@ -29,6 +29,20 @@ class FunctionInfo:
     end_line: int
     is_public: bool
     source_code: Optional[str] = None
+    parent_class: Optional[str] = None
+
+
+@dataclass
+class ClassInfo:
+    """Information about a class."""
+    name: str
+    file: str
+    start_line: int
+    end_line: int
+    bases: List[str]  # Base class names
+    methods: List[str]  # Method names
+    is_public: bool
+    source_code: Optional[str] = None
 
 
 @dataclass
@@ -70,6 +84,7 @@ class FileAnalysis:
     file_path: str
     content_hash: str
     functions: List[FunctionInfo] = field(default_factory=list)
+    classes: List[ClassInfo] = field(default_factory=list)
     function_calls: List[FunctionCall] = field(default_factory=list)
     variables: List[VariableInfo] = field(default_factory=list)
     variable_usage: List[VariableUsage] = field(default_factory=list)
@@ -129,6 +144,9 @@ class CodeAnalyzer:
             # Extract functions using ast
             self._extract_functions_ast(tree, result)
 
+            # Extract classes using ast (after functions so we can link methods)
+            self._extract_classes_ast(tree, result)
+
             # Extract imports using ast
             self._extract_imports_ast(tree, result)
 
@@ -187,9 +205,72 @@ class CodeAnalyzer:
                     start_line=node.lineno,
                     end_line=node.end_lineno or node.lineno,
                     is_public=not node.name.startswith('_'),
-                    source_code=source_code
+                    source_code=source_code,
+                    parent_class=None  # Will be updated by _extract_classes_ast
                 )
                 result.functions.append(func_info)
+
+    def _extract_classes_ast(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Extract class definitions using ast.
+
+        Args:
+            tree: AST tree
+            result: FileAnalysis to populate
+        """
+        # Read file to extract source code
+        source_lines = None
+        try:
+            with open(result.file_path, 'r', encoding='utf-8') as f:
+                source_lines = f.readlines()
+        except Exception as e:
+            logger.warning(f"Could not read source for {result.file_path}: {e}")
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                # Extract base class names
+                bases = []
+                for base in node.bases:
+                    if isinstance(base, ast.Name):
+                        bases.append(base.id)
+                    else:
+                        # For complex base expressions, use unparse
+                        try:
+                            bases.append(ast.unparse(base))
+                        except Exception:
+                            bases.append("<complex>")
+
+                # Extract method names
+                methods = []
+                for item in node.body:
+                    if isinstance(item, ast.FunctionDef):
+                        methods.append(item.name)
+                        # Update the corresponding FunctionInfo with parent_class
+                        for func_info in result.functions:
+                            if (func_info.name == item.name and
+                                func_info.start_line == item.lineno):
+                                func_info.parent_class = node.name
+
+                # Extract source code if available
+                source_code = None
+                if source_lines and node.lineno and node.end_lineno:
+                    try:
+                        # Extract lines (1-indexed to 0-indexed)
+                        class_lines = source_lines[node.lineno - 1:node.end_lineno]
+                        source_code = ''.join(class_lines)
+                    except Exception as e:
+                        logger.warning(f"Could not extract source for class {node.name}: {e}")
+
+                class_info = ClassInfo(
+                    name=node.name,
+                    file=result.file_path,
+                    start_line=node.lineno,
+                    end_line=node.end_lineno or node.lineno,
+                    bases=bases,
+                    methods=methods,
+                    is_public=not node.name.startswith('_'),
+                    source_code=source_code
+                )
+                result.classes.append(class_info)
 
     def _extract_imports_ast(self, tree: ast.AST, result: FileAnalysis) -> None:
         """Extract import statements using ast.

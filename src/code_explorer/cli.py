@@ -59,12 +59,25 @@ def cli() -> None:
     is_flag=True,
     help="Force full re-analysis (clears existing database)",
 )
+@click.option(
+    "--no-source",
+    is_flag=True,
+    help="Don't store function/class source code in database (saves space)",
+)
+@click.option(
+    "--source-lines",
+    type=int,
+    default=None,
+    help="Store only first N lines of source code (preview mode)",
+)
 def analyze(
     path: str,
     exclude: tuple[str, ...],
     workers: int,
     db_path: Optional[str],
     refresh: bool,
+    no_source: bool,
+    source_lines: Optional[int],
 ) -> None:
     """Analyze Python codebase and build dependency graph.
 
@@ -74,9 +87,15 @@ def analyze(
 
     PATH: Directory containing Python code to analyze
 
+    Source code storage options:
+        --no-source: Don't store source code (saves space)
+        --source-lines N: Store only first N lines (preview mode)
+
     Examples:
         code-explorer analyze ./src
         code-explorer analyze /path/to/project --exclude tests --exclude migrations
+        code-explorer analyze ./src --no-source
+        code-explorer analyze ./src --source-lines 10
     """
     try:
         from .analyzer import CodeAnalyzer
@@ -117,6 +136,16 @@ def analyze(
     # Initialize analyzer
     analyzer = CodeAnalyzer()
 
+    # Helper function to prepare source code based on flags
+    def prepare_source(source_code: Optional[str]) -> Optional[str]:
+        """Process source code according to storage flags."""
+        if no_source:
+            return None
+        if source_lines and source_code:
+            lines = source_code.split('\n')
+            return '\n'.join(lines[:source_lines])
+        return source_code
+
     # Analyze directory
     try:
         results = analyzer.analyze_directory(
@@ -150,6 +179,18 @@ def analyze(
                 graph.add_file(result.file_path, "python", file_hash)
                 files_processed += 1
 
+            # Add classes to graph
+            for cls in result.classes:
+                graph.add_class(
+                    name=cls.name,
+                    file=cls.file,
+                    start_line=cls.start_line,
+                    end_line=cls.end_line,
+                    bases=cls.bases,
+                    is_public=cls.is_public,
+                    source_code=prepare_source(cls.source_code)
+                )
+
             # Add functions to graph
             for func in result.functions:
                 graph.add_function(
@@ -158,7 +199,8 @@ def analyze(
                     start_line=func.start_line,
                     end_line=func.end_line,
                     is_public=func.is_public,
-                    source_code=func.source_code
+                    source_code=prepare_source(func.source_code),
+                    parent_class=func.parent_class
                 )
 
             # Add variables to graph
@@ -205,6 +247,7 @@ def analyze(
 
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)
+        total_classes = sum(len(r.classes) for r in results)
         total_functions = sum(len(r.functions) for r in results)
         total_variables = sum(len(r.variables) for r in results)
 
@@ -221,6 +264,7 @@ def analyze(
             table.add_row("Files skipped (unchanged)", str(files_skipped))
         if error_files > 0:
             table.add_row("Files with errors", str(error_files))
+        table.add_row("Total classes", str(total_classes))
         table.add_row("Total functions", str(total_functions))
         table.add_row("Total variables", str(total_variables))
 
@@ -521,6 +565,7 @@ def stats(db_path: Optional[str], top: int) -> None:
         table.add_column("Count", justify="right", style="green")
 
         table.add_row("Total files", str(stats_data.get("total_files", 0)))
+        table.add_row("Total classes", str(stats_data.get("total_classes", 0)))
         table.add_row("Total functions", str(stats_data.get("total_functions", 0)))
         table.add_row("Total variables", str(stats_data.get("total_variables", 0)))
         table.add_row("Total edges", str(stats_data.get("total_edges", 0)))

@@ -6,6 +6,7 @@ dependencies. Data persists to disk using KuzuDB for fast incremental analysis.
 """
 
 import hashlib
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -33,6 +34,18 @@ class VariableNode:
     file: str
     definition_line: int
     scope: str
+
+
+@dataclass
+class ClassNode:
+    """Represents a class in the dependency graph."""
+
+    name: str
+    file: str
+    start_line: int
+    end_line: int
+    bases: List[str]
+    is_public: bool = True
 
 
 class DependencyGraph:
@@ -123,6 +136,21 @@ class DependencyGraph:
                 )
             """)
 
+            # Create Class node table
+            self.conn.execute("""
+                CREATE NODE TABLE IF NOT EXISTS Class(
+                    id STRING,
+                    name STRING,
+                    file STRING,
+                    start_line INT64,
+                    end_line INT64,
+                    bases STRING,
+                    is_public BOOLEAN,
+                    source_code STRING,
+                    PRIMARY KEY(id)
+                )
+            """)
+
             # Create edge tables
             self.conn.execute("""
                 CREATE REL TABLE IF NOT EXISTS CALLS(
@@ -155,6 +183,20 @@ class DependencyGraph:
                     FROM File TO File,
                     line_number INT64,
                     is_direct BOOLEAN
+                )
+            """)
+
+            # INHERITS edge: Class inherits from Class
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS INHERITS(
+                    FROM Class TO Class
+                )
+            """)
+
+            # METHOD_OF edge: Function is method of Class
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS METHOD_OF(
+                    FROM Function TO Class
                 )
             """)
 
@@ -213,6 +255,23 @@ class DependencyGraph:
         hash_digest = hashlib.sha256(content.encode()).hexdigest()[:12]
         return f"var_{hash_digest}"
 
+    def _make_class_id(self, file: str, name: str, start_line: int) -> str:
+        """Create stable hash-based ID for a class.
+
+        Args:
+            file: File path
+            name: Class name
+            start_line: Starting line number
+
+        Returns:
+            Hash-based identifier (e.g., 'cls_a1b2c3d4e5f6')
+        """
+        # Use relative path for stability
+        rel_path = self._to_relative_path(file)
+        content = f"{rel_path}::{name}::{start_line}"
+        hash_digest = hashlib.sha256(content.encode()).hexdigest()[:12]
+        return f"cls_{hash_digest}"
+
     def add_function(
         self,
         name: str,
@@ -220,7 +279,8 @@ class DependencyGraph:
         start_line: int,
         end_line: int,
         is_public: bool = True,
-        source_code: Optional[str] = None
+        source_code: Optional[str] = None,
+        parent_class: Optional[str] = None
     ) -> None:
         """Add a function to the graph.
 
@@ -231,6 +291,7 @@ class DependencyGraph:
             end_line: Ending line number
             is_public: Whether function is public (not starting with _)
             source_code: Source code of the function (optional)
+            parent_class: Name of parent class if this is a method (optional)
 
         Raises:
             RuntimeError: If database is in read-only mode
@@ -292,6 +353,13 @@ class DependencyGraph:
                     MATCH (file:File {path: $file}), (func:Function {id: $func_id})
                     CREATE (file)-[:CONTAINS]->(func)
                 """, {"file": rel_file, "func_id": func_id})
+
+            # If parent_class provided, create METHOD_OF edge
+            if parent_class:
+                self.conn.execute("""
+                    MATCH (func:Function {id: $func_id}), (cls:Class {file: $file, name: $class_name})
+                    CREATE (func)-[:METHOD_OF]->(cls)
+                """, {"func_id": func_id, "file": rel_file, "class_name": parent_class})
 
         except Exception as e:
             print(f"Error adding function {name} in {file}: {e}")
@@ -360,6 +428,98 @@ class DependencyGraph:
 
         except Exception as e:
             print(f"Error adding variable {name} in {file}: {e}")
+
+    def add_class(
+        self,
+        name: str,
+        file: str,
+        start_line: int,
+        end_line: int,
+        bases: List[str],
+        is_public: bool = True,
+        source_code: Optional[str] = None
+    ) -> None:
+        """Add a class to the graph.
+
+        Args:
+            name: Class name
+            file: File path where class is defined
+            start_line: Starting line number
+            end_line: Ending line number
+            bases: List of base class names
+            is_public: Whether class is public (not starting with _)
+            source_code: Source code of the class (optional)
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+        class_id = self._make_class_id(file, name, start_line)
+        rel_file = self._to_relative_path(file)
+        bases_json = json.dumps(bases)
+
+        try:
+            # Check if class already exists
+            result = self.conn.execute("""
+                MATCH (c:Class {id: $id})
+                RETURN c.id
+            """, {"id": class_id})
+
+            if result.has_next():
+                # Update existing class
+                self.conn.execute("""
+                    MATCH (c:Class {id: $id})
+                    SET c.name = $name,
+                        c.file = $file,
+                        c.start_line = $start_line,
+                        c.end_line = $end_line,
+                        c.bases = $bases,
+                        c.is_public = $is_public,
+                        c.source_code = $source_code
+                """, {
+                    "id": class_id,
+                    "name": name,
+                    "file": rel_file,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "bases": bases_json,
+                    "is_public": is_public,
+                    "source_code": source_code or ""
+                })
+            else:
+                # Create new class
+                self.conn.execute("""
+                    CREATE (c:Class {
+                        id: $id,
+                        name: $name,
+                        file: $file,
+                        start_line: $start_line,
+                        end_line: $end_line,
+                        bases: $bases,
+                        is_public: $is_public,
+                        source_code: $source_code
+                    })
+                """, {
+                    "id": class_id,
+                    "name": name,
+                    "file": rel_file,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "bases": bases_json,
+                    "is_public": is_public,
+                    "source_code": source_code or ""
+                })
+
+            # Create INHERITS edges for each base class
+            for base_name in bases:
+                # Try to find base class in the same file first, then in other files
+                self.conn.execute("""
+                    MATCH (child:Class {id: $child_id}), (parent:Class {name: $base_name})
+                    CREATE (child)-[:INHERITS]->(parent)
+                """, {"child_id": class_id, "base_name": base_name})
+
+        except Exception as e:
+            print(f"Error adding class {name} in {file}: {e}")
 
     def add_call(
         self,
@@ -611,6 +771,73 @@ class DependencyGraph:
             print(f"Error getting functions in file {file}: {e}")
             return []
 
+    def get_class(self, file: str, name: str) -> Optional[ClassNode]:
+        """Get class node by file and name.
+
+        Args:
+            file: File path
+            name: Class name
+
+        Returns:
+            ClassNode if found, None otherwise
+        """
+        rel_file = self._to_relative_path(file)
+
+        try:
+            result = self.conn.execute("""
+                MATCH (c:Class {file: $file, name: $name})
+                RETURN c.name, c.file, c.start_line, c.end_line, c.bases, c.is_public
+            """, {"file": rel_file, "name": name})
+
+            if result.has_next():
+                row = result.get_next()
+                bases = json.loads(row[4]) if row[4] else []
+                return ClassNode(
+                    name=row[0],
+                    file=row[1],
+                    start_line=row[2],
+                    end_line=row[3],
+                    bases=bases,
+                    is_public=row[5]
+                )
+            return None
+        except Exception as e:
+            print(f"Error getting class {name} in {file}: {e}")
+            return None
+
+    def get_all_classes_in_file(self, file: str) -> List[ClassNode]:
+        """Get all classes defined in a file.
+
+        Args:
+            file: File path
+
+        Returns:
+            List of ClassNode objects
+        """
+        try:
+            result = self.conn.execute("""
+                MATCH (c:Class {file: $file})
+                RETURN c.name, c.file, c.start_line, c.end_line, c.bases, c.is_public
+            """, {"file": file})
+
+            classes = []
+            while result.has_next():
+                row = result.get_next()
+                bases = json.loads(row[4]) if row[4] else []
+                classes.append(ClassNode(
+                    name=row[0],
+                    file=row[1],
+                    start_line=row[2],
+                    end_line=row[3],
+                    bases=bases,
+                    is_public=row[5]
+                ))
+
+            return classes
+        except Exception as e:
+            print(f"Error getting classes in file {file}: {e}")
+            return []
+
     def get_statistics(self) -> Dict[str, any]:
         """Get statistics about the graph.
 
@@ -625,6 +852,10 @@ class DependencyGraph:
             # Count functions
             result = self.conn.execute("MATCH (f:Function) RETURN COUNT(*)")
             total_functions = result.get_next()[0] if result.has_next() else 0
+
+            # Count classes
+            result = self.conn.execute("MATCH (c:Class) RETURN COUNT(*)")
+            total_classes = result.get_next()[0] if result.has_next() else 0
 
             # Count variables
             result = self.conn.execute("MATCH (v:Variable) RETURN COUNT(*)")
@@ -654,6 +885,7 @@ class DependencyGraph:
             return {
                 "total_files": total_files,
                 "total_functions": total_functions,
+                "total_classes": total_classes,
                 "total_variables": total_variables,
                 "total_edges": total_call_edges,
                 "function_calls": total_call_edges,
@@ -664,6 +896,7 @@ class DependencyGraph:
             return {
                 "total_files": 0,
                 "total_functions": 0,
+                "total_classes": 0,
                 "total_variables": 0,
                 "total_edges": 0,
                 "function_calls": 0,
@@ -761,6 +994,12 @@ class DependencyGraph:
                 DETACH DELETE f
             """, {"path": file_path})
 
+            # Delete classes from this file
+            self.conn.execute("""
+                MATCH (c:Class {file: $path})
+                DETACH DELETE c
+            """, {"path": file_path})
+
             # Delete variables from this file
             self.conn.execute("""
                 MATCH (v:Variable {file: $path})
@@ -790,9 +1029,12 @@ class DependencyGraph:
             self.conn.execute("MATCH ()-[r:CONTAINS]->() DELETE r")
             self.conn.execute("MATCH ()-[r:DEFINES]->() DELETE r")
             self.conn.execute("MATCH ()-[r:IMPORTS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:INHERITS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:METHOD_OF]->() DELETE r")
 
             # Delete all nodes
             self.conn.execute("MATCH (f:Function) DELETE f")
+            self.conn.execute("MATCH (c:Class) DELETE c")
             self.conn.execute("MATCH (v:Variable) DELETE v")
             self.conn.execute("MATCH (f:File) DELETE f")
 

@@ -236,22 +236,31 @@ class DependencyGraph:
                 )
             """)
 
+            # Consolidated USES + DEFINES → REFERENCES with context property
             self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS USES(
+                CREATE REL TABLE IF NOT EXISTS REFERENCES(
                     FROM Function TO Variable,
-                    usage_line INT64
+                    line_number INT64,
+                    context STRING
                 )
             """)
 
+            # CONTAINS now supports File -> Function, File -> Class, File -> Variable
             self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS CONTAINS(
+                CREATE REL TABLE IF NOT EXISTS CONTAINS_FUNCTION(
                     FROM File TO Function
                 )
             """)
 
             self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS DEFINES(
-                    FROM Function TO Variable
+                CREATE REL TABLE IF NOT EXISTS CONTAINS_CLASS(
+                    FROM File TO Class
+                )
+            """)
+
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS CONTAINS_VARIABLE(
+                    FROM File TO Variable
                 )
             """)
 
@@ -267,6 +276,15 @@ class DependencyGraph:
             self.conn.execute("""
                 CREATE REL TABLE IF NOT EXISTS INHERITS(
                     FROM Class TO Class
+                )
+            """)
+
+            # DEPENDS_ON edge: Class depends on Class (composition, dependency injection)
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS DEPENDS_ON(
+                    FROM Class TO Class,
+                    dependency_type STRING,
+                    line_number INT64
                 )
             """)
 
@@ -363,12 +381,7 @@ class DependencyGraph:
                 )
             """)
 
-            # Create DECORATOR_RESOLVES_TO edge: Decorator resolves to Function
-            self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS DECORATOR_RESOLVES_TO(
-                    FROM Decorator TO Function
-                )
-            """)
+            # DECORATOR_RESOLVES_TO removed - redundant with DECORATED_BY
 
             # Create HAS_ATTRIBUTE edge: Class has Attribute
             self.conn.execute("""
@@ -377,35 +390,21 @@ class DependencyGraph:
                 )
             """)
 
-            # Create ACCESSES edge: Function accesses Attribute
+            # Consolidated ACCESSES + MODIFIES → ACCESSES with access_type property
             self.conn.execute("""
                 CREATE REL TABLE IF NOT EXISTS ACCESSES(
                     FROM Function TO Attribute,
-                    line_number INT64
+                    line_number INT64,
+                    access_type STRING
                 )
             """)
 
-            # Create MODIFIES edge: Function modifies Attribute
+            # Consolidated RAISES + CATCHES → HANDLES_EXCEPTION with context property
             self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS MODIFIES(
-                    FROM Function TO Attribute,
-                    line_number INT64
-                )
-            """)
-
-            # Create RAISES edge: Function raises Exception
-            self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS RAISES(
+                CREATE REL TABLE IF NOT EXISTS HANDLES_EXCEPTION(
                     FROM Function TO Exception,
-                    line_number INT64
-                )
-            """)
-
-            # Create CATCHES edge: Function catches Exception
-            self.conn.execute("""
-                CREATE REL TABLE IF NOT EXISTS CATCHES(
-                    FROM Function TO Exception,
-                    line_number INT64
+                    line_number INT64,
+                    context STRING
                 )
             """)
 
@@ -659,11 +658,11 @@ class DependencyGraph:
                     },
                 )
 
-                # Add CONTAINS edge from file to function if file exists
+                # Add CONTAINS_FUNCTION edge from file to function if file exists
                 self.conn.execute(
                     """
                     MATCH (file:File {path: $file}), (func:Function {id: $func_id})
-                    CREATE (file)-[:CONTAINS]->(func)
+                    CREATE (file)-[:CONTAINS_FUNCTION]->(func)
                 """,
                     {"file": rel_file, "func_id": func_id},
                 )
@@ -747,6 +746,20 @@ class DependencyGraph:
                         "scope": scope,
                     },
                 )
+
+            # Add CONTAINS_VARIABLE edge from file for module-level variables (after node creation)
+            if scope == "module":
+                try:
+                    self.conn.execute(
+                        """
+                        MATCH (file:File {path: $file}), (var:Variable {id: $var_id})
+                        MERGE (file)-[:CONTAINS_VARIABLE]->(var)
+                    """,
+                        {"file": rel_file, "var_id": var_id},
+                    )
+                except Exception as e:
+                    # File might not exist yet
+                    pass
 
         except Exception as e:
             print(f"Error adding variable {name} in {file}: {e}")
@@ -839,6 +852,15 @@ class DependencyGraph:
                         "is_public": is_public,
                         "source_code": source_code or "",
                     },
+                )
+
+                # Add CONTAINS_CLASS edge from file to class if file exists
+                self.conn.execute(
+                    """
+                    MATCH (file:File {path: $file}), (cls:Class {id: $class_id})
+                    CREATE (file)-[:CONTAINS_CLASS]->(cls)
+                """,
+                    {"file": rel_file, "class_id": class_id},
                 )
 
             # Create INHERITS edges for each base class
@@ -1297,6 +1319,151 @@ class DependencyGraph:
             # Functions may not exist yet, which is fine for incremental builds
             pass
 
+    def add_exception_handling(
+        self,
+        function_file: str,
+        function_name: str,
+        function_start_line: int,
+        exception_name: str,
+        exception_file: str,
+        exception_line: int,
+        context: str,
+    ) -> None:
+        """Add exception handling edge (raise or catch).
+
+        Args:
+            function_file: File where function is defined
+            function_name: Name of function
+            function_start_line: Starting line of function
+            exception_name: Name of exception
+            exception_file: File where exception is raised/caught
+            exception_line: Line number where exception appears
+            context: "raise" or "catch"
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+        func_id = self._make_function_id(function_file, function_name, function_start_line)
+        exc_id = self._make_exception_id(exception_file, exception_name, exception_line)
+
+        try:
+            self.conn.execute(
+                """
+                MATCH (func:Function {id: $func_id}), (exc:Exception {id: $exc_id})
+                CREATE (func)-[:HANDLES_EXCEPTION {line_number: $line_number, context: $context}]->(exc)
+            """,
+                {
+                    "func_id": func_id,
+                    "exc_id": exc_id,
+                    "line_number": exception_line,
+                    "context": context,
+                },
+            )
+        except Exception as e:
+            # Nodes may not exist yet
+            pass
+
+    def add_attribute_access(
+        self,
+        function_file: str,
+        function_name: str,
+        function_start_line: int,
+        class_name: str,
+        attribute_name: str,
+        attribute_file: str,
+        attribute_line: int,
+        access_type: str,
+        access_line: int,
+    ) -> None:
+        """Add attribute access edge.
+
+        Args:
+            function_file: File where function is defined
+            function_name: Name of function accessing attribute
+            function_start_line: Starting line of function
+            class_name: Name of class owning the attribute
+            attribute_name: Name of attribute
+            attribute_file: File where attribute is defined
+            attribute_line: Line where attribute is defined
+            access_type: "read", "write", or "read_write"
+            access_line: Line where access occurs
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+        func_id = self._make_function_id(function_file, function_name, function_start_line)
+        attr_id = self._make_attribute_id(attribute_file, class_name, attribute_name, attribute_line)
+
+        try:
+            self.conn.execute(
+                """
+                MATCH (func:Function {id: $func_id}), (attr:Attribute {id: $attr_id})
+                CREATE (func)-[:ACCESSES {line_number: $line_number, access_type: $access_type}]->(attr)
+            """,
+                {
+                    "func_id": func_id,
+                    "attr_id": attr_id,
+                    "line_number": access_line,
+                    "access_type": access_type,
+                },
+            )
+        except Exception as e:
+            # Nodes may not exist yet
+            pass
+
+    def add_class_dependency(
+        self,
+        dependent_class_file: str,
+        dependent_class_name: str,
+        dependent_class_start_line: int,
+        dependency_class_file: str,
+        dependency_class_name: str,
+        dependency_class_start_line: int,
+        dependency_type: str,
+        line_number: int,
+    ) -> None:
+        """Add class dependency edge (composition, dependency injection).
+
+        Args:
+            dependent_class_file: File where dependent class is defined
+            dependent_class_name: Name of class that depends
+            dependent_class_start_line: Starting line of dependent class
+            dependency_class_file: File where dependency class is defined
+            dependency_class_name: Name of class that is depended upon
+            dependency_class_start_line: Starting line of dependency class
+            dependency_type: "composition", "injection", or "inheritance"
+            line_number: Line where dependency is declared
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+        dependent_id = self._make_class_id(
+            dependent_class_file, dependent_class_name, dependent_class_start_line
+        )
+        dependency_id = self._make_class_id(
+            dependency_class_file, dependency_class_name, dependency_class_start_line
+        )
+
+        try:
+            self.conn.execute(
+                """
+                MATCH (dependent:Class {id: $dependent_id}), (dependency:Class {id: $dependency_id})
+                CREATE (dependent)-[:DEPENDS_ON {dependency_type: $dep_type, line_number: $line_number}]->(dependency)
+            """,
+                {
+                    "dependent_id": dependent_id,
+                    "dependency_id": dependency_id,
+                    "dep_type": dependency_type,
+                    "line_number": line_number,
+                },
+            )
+        except Exception as e:
+            # Classes may not exist yet
+            pass
+
     def add_variable_usage(
         self,
         function_file: str,
@@ -1330,24 +1497,20 @@ class DependencyGraph:
         var_id = self._make_variable_id(var_file, var_name, var_definition_line)
 
         try:
-            if is_definition:
-                # Create DEFINES edge
-                self.conn.execute(
-                    """
-                    MATCH (func:Function {id: $func_id}), (var:Variable {id: $var_id})
-                    CREATE (func)-[:DEFINES]->(var)
-                """,
-                    {"func_id": func_id, "var_id": var_id},
-                )
-            else:
-                # Create USES edge
-                self.conn.execute(
-                    """
-                    MATCH (func:Function {id: $func_id}), (var:Variable {id: $var_id})
-                    CREATE (func)-[:USES {usage_line: $usage_line}]->(var)
-                """,
-                    {"func_id": func_id, "var_id": var_id, "usage_line": usage_line},
-                )
+            # Create REFERENCES edge with context ("define" or "use")
+            context = "define" if is_definition else "use"
+            self.conn.execute(
+                """
+                MATCH (func:Function {id: $func_id}), (var:Variable {id: $var_id})
+                CREATE (func)-[:REFERENCES {line_number: $line_number, context: $context}]->(var)
+            """,
+                {
+                    "func_id": func_id,
+                    "var_id": var_id,
+                    "line_number": usage_line,
+                    "context": context,
+                },
+            )
         except Exception as e:
             # Nodes may not exist yet
             pass
@@ -1432,8 +1595,9 @@ class DependencyGraph:
         try:
             result = self.conn.execute(
                 """
-                MATCH (func:Function)-[u:USES]->(var:Variable {id: $var_id})
-                RETURN func.file, func.name, u.usage_line
+                MATCH (func:Function)-[r:REFERENCES]->(var:Variable {id: $var_id})
+                WHERE r.context = 'use'
+                RETURN func.file, func.name, r.line_number
             """,
                 {"var_id": var_id},
             )
@@ -1848,7 +2012,8 @@ class DependencyGraph:
         try:
             result = self.conn.execute(
                 """
-                MATCH (f:Function)-[:RAISES]->(e:Exception {name: $exc_name})
+                MATCH (f:Function)-[h:HANDLES_EXCEPTION]->(e:Exception {name: $exc_name})
+                WHERE h.context = 'raise'
                 RETURN DISTINCT f.file, f.name
             """,
                 {"exc_name": exception_name},
@@ -1936,8 +2101,9 @@ class DependencyGraph:
         try:
             result = self.conn.execute(
                 """
-                MATCH (f:Function)-[m:MODIFIES]->(a:Attribute {class_name: $class_name, name: $attr_name})
-                RETURN f.file, f.name, m.line_number
+                MATCH (f:Function)-[a:ACCESSES]->(attr:Attribute {class_name: $class_name, name: $attr_name})
+                WHERE a.access_type IN ['write', 'read_write']
+                RETURN f.file, f.name, a.line_number
             """,
                 {"class_name": class_name, "attr_name": attribute_name},
             )
@@ -2134,11 +2300,13 @@ class DependencyGraph:
         try:
             # Delete all edges first
             self.conn.execute("MATCH ()-[r:CALLS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:USES]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:CONTAINS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:DEFINES]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:REFERENCES]->() DELETE r")  # Consolidated USES + DEFINES
+            self.conn.execute("MATCH ()-[r:CONTAINS_FUNCTION]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:CONTAINS_CLASS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:CONTAINS_VARIABLE]->() DELETE r")
             self.conn.execute("MATCH ()-[r:IMPORTS]->() DELETE r")
             self.conn.execute("MATCH ()-[r:INHERITS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:DEPENDS_ON]->() DELETE r")
             self.conn.execute("MATCH ()-[r:METHOD_OF]->() DELETE r")
 
             # Delete new edges (v2 schema)
@@ -2147,12 +2315,10 @@ class DependencyGraph:
                     self.conn.execute("MATCH ()-[r:HAS_IMPORT]->() DELETE r")
                     self.conn.execute("MATCH ()-[r:IMPORTS_FROM]->() DELETE r")
                     self.conn.execute("MATCH ()-[r:DECORATED_BY]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:DECORATOR_RESOLVES_TO]->() DELETE r")
+                    # DECORATOR_RESOLVES_TO removed
                     self.conn.execute("MATCH ()-[r:HAS_ATTRIBUTE]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:ACCESSES]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:MODIFIES]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:RAISES]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:CATCHES]->() DELETE r")
+                    self.conn.execute("MATCH ()-[r:ACCESSES]->() DELETE r")  # Consolidated ACCESSES + MODIFIES
+                    self.conn.execute("MATCH ()-[r:HANDLES_EXCEPTION]->() DELETE r")  # Consolidated RAISES + CATCHES
                     self.conn.execute("MATCH ()-[r:CONTAINS_MODULE]->() DELETE r")
                     self.conn.execute("MATCH ()-[r:MODULE_OF]->() DELETE r")
                 except Exception:

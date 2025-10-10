@@ -54,11 +54,17 @@ def cli() -> None:
     default=None,
     help="Path to KuzuDB database (default: .code-explorer/graph.db)",
 )
+@click.option(
+    "--refresh",
+    is_flag=True,
+    help="Force full re-analysis (clears existing database)",
+)
 def analyze(
     path: str,
     exclude: tuple[str, ...],
     workers: int,
     db_path: Optional[str],
+    refresh: bool,
 ) -> None:
     """Analyze Python codebase and build dependency graph.
 
@@ -98,7 +104,12 @@ def analyze(
 
     # Initialize graph
     try:
-        graph = DependencyGraph()
+        graph = DependencyGraph(db_path=db_path)
+
+        if refresh:
+            console.print("[yellow]Clearing existing database...[/yellow]")
+            graph.clear_all()
+            console.print("[green]Database cleared. Starting fresh analysis.[/green]")
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to initialize database: {e}")
         sys.exit(1)
@@ -116,7 +127,29 @@ def analyze(
 
         # Populate graph with results
         console.print("\n[cyan]Building dependency graph...[/cyan]")
+
+        files_processed = 0
+        files_skipped = 0
+
         for result in track(results, description="[cyan]Processing results...[/cyan]"):
+            # Compute file hash for incremental updates
+            file_path = Path(result.file_path)
+            if file_path.exists():
+                file_hash = graph.compute_file_hash(file_path)
+
+                # Skip if file hasn't changed (unless refresh was requested)
+                if not refresh and graph.file_exists(result.file_path, file_hash):
+                    files_skipped += 1
+                    continue
+
+                # If file changed, delete old data
+                if not refresh:
+                    graph.delete_file_data(result.file_path)
+
+                # Add file node
+                graph.add_file(result.file_path, "python", file_hash)
+                files_processed += 1
+
             # Add functions to graph
             for func in result.functions:
                 graph.add_function(
@@ -170,13 +203,18 @@ def analyze(
         table.add_column("Count", justify="right", style="green")
 
         table.add_row("Total files analyzed", str(len(results)))
+        table.add_row("Files processed", str(files_processed))
+        if files_skipped > 0:
+            table.add_row("Files skipped (unchanged)", str(files_skipped))
         if error_files > 0:
             table.add_row("Files with errors", str(error_files))
         table.add_row("Total functions", str(total_functions))
         table.add_row("Total variables", str(total_variables))
 
         console.print(table)
-        console.print("\n[yellow]Note:[/yellow] Graph persistence not yet implemented.")
+        console.print(f"\n[green]Graph persisted to:[/green] {db_path}")
+        if files_skipped > 0:
+            console.print(f"[dim]Use --refresh to force re-analysis of all files[/dim]")
 
     except Exception as e:
         console.print(f"[red]Error during analysis:[/red] {e}")
@@ -257,16 +295,8 @@ def impact(
         console.print(f"[dim]Expected location: {db_path}[/dim]")
         sys.exit(1)
 
-    console.print(
-        "[yellow]Warning:[/yellow] Graph persistence not implemented. "
-        "This command currently works with an empty graph."
-    )
-    console.print(
-        "[dim]To use this command, first implement DependencyGraph persistence.[/dim]\n"
-    )
-
     try:
-        graph = DependencyGraph()
+        graph = DependencyGraph(db_path=db_path)
         analyzer = ImpactAnalyzer(graph)
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
@@ -374,16 +404,8 @@ def trace(
         console.print(f"[dim]Expected location: {db_path}[/dim]")
         sys.exit(1)
 
-    console.print(
-        "[yellow]Warning:[/yellow] Graph persistence not implemented. "
-        "This command currently works with an empty graph."
-    )
-    console.print(
-        "[dim]To use this command, first implement DependencyGraph persistence.[/dim]\n"
-    )
-
     try:
-        graph = DependencyGraph()
+        graph = DependencyGraph(db_path=db_path)
         analyzer = ImpactAnalyzer(graph)
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
@@ -469,16 +491,8 @@ def stats(db_path: Optional[str], top: int) -> None:
         console.print(f"[dim]Expected location: {db_path}[/dim]")
         sys.exit(1)
 
-    console.print(
-        "[yellow]Warning:[/yellow] Graph persistence not implemented. "
-        "This command currently works with an empty graph."
-    )
-    console.print(
-        "[dim]To use this command, first implement DependencyGraph persistence.[/dim]\n"
-    )
-
     try:
-        graph = DependencyGraph()
+        graph = DependencyGraph(db_path=db_path)
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
         sys.exit(1)
@@ -586,16 +600,21 @@ def visualize(
         console.print(f"[dim]Details: {e}[/dim]")
         sys.exit(1)
 
-    console.print(
-        "[yellow]Warning:[/yellow] Graph persistence not implemented. "
-        "This command currently works with an empty graph."
-    )
-    console.print(
-        "[dim]To use this command, first implement DependencyGraph persistence.[/dim]\n"
-    )
+    # Initialize graph
+    if db_path is None:
+        db_path = Path.cwd() / ".code-explorer" / "graph.db"
+    else:
+        db_path = Path(db_path)
+
+    if not db_path.exists():
+        console.print(
+            "[red]Error:[/red] Database not found. Run 'analyze' command first."
+        )
+        console.print(f"[dim]Expected location: {db_path}[/dim]")
+        sys.exit(1)
 
     try:
-        graph = DependencyGraph()
+        graph = DependencyGraph(db_path=db_path)
         visualizer = MermaidVisualizer(graph)
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")

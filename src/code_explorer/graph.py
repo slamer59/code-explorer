@@ -1,13 +1,17 @@
 """
-Dependency graph data structure.
+Dependency graph data structure with KuzuDB persistent storage.
 
-This module provides a simple in-memory graph for storing and querying
-Python code dependencies. For production use, this would be replaced with
-KuzuDB storage.
+This module provides a graph database for storing and querying Python code
+dependencies. Data persists to disk using KuzuDB for fast incremental analysis.
 """
 
+import hashlib
 from dataclasses import dataclass
-from typing import Dict, List, Set, Tuple
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
+import kuzu
 
 
 @dataclass
@@ -32,25 +36,117 @@ class VariableNode:
 
 
 class DependencyGraph:
-    """In-memory dependency graph for testing.
+    """KuzuDB-backed dependency graph with persistent storage.
 
-    Stores functions, variables, and their relationships.
-    In production, this would use KuzuDB for persistence and efficient queries.
+    Stores functions, variables, and their relationships in a property graph
+    database that persists to disk. Supports incremental updates and efficient queries.
     """
 
-    def __init__(self):
-        """Initialize empty dependency graph."""
-        self.functions: Dict[Tuple[str, str], FunctionNode] = {}
-        self.variables: Dict[Tuple[str, str, int], VariableNode] = {}
+    def __init__(self, db_path: Optional[Path] = None):
+        """Initialize KuzuDB connection and create schema if needed.
 
-        # Edges: caller -> set of callees
-        self._calls: Dict[Tuple[str, str], Set[Tuple[str, str, int]]] = {}
-        # Reverse edges: callee -> set of callers
-        self._called_by: Dict[Tuple[str, str], Set[Tuple[str, str, int]]] = {}
+        Args:
+            db_path: Path to KuzuDB database directory.
+                    Defaults to .code-explorer/graph.db
+        """
+        if db_path is None:
+            db_path = Path.cwd() / ".code-explorer" / "graph.db"
 
-        # Variable usage edges
-        self._defines: Dict[Tuple[str, str], Set[Tuple[str, str, int]]] = {}
-        self._uses: Dict[Tuple[str, str], Set[Tuple[str, str, int]]] = {}
+        # Ensure parent directory exists
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self.db_path = db_path
+        self.db = kuzu.Database(str(db_path))
+        self.conn = kuzu.Connection(self.db)
+
+        # Create schema if tables don't exist
+        self._create_schema()
+
+    def _create_schema(self) -> None:
+        """Create KuzuDB schema with node and edge tables."""
+        try:
+            # Create File node table
+            self.conn.execute("""
+                CREATE NODE TABLE IF NOT EXISTS File(
+                    path STRING,
+                    language STRING,
+                    last_modified TIMESTAMP,
+                    content_hash STRING,
+                    PRIMARY KEY(path)
+                )
+            """)
+
+            # Create Function node table
+            self.conn.execute("""
+                CREATE NODE TABLE IF NOT EXISTS Function(
+                    id STRING,
+                    name STRING,
+                    file STRING,
+                    start_line INT64,
+                    end_line INT64,
+                    is_public BOOLEAN,
+                    PRIMARY KEY(id)
+                )
+            """)
+
+            # Create Variable node table
+            self.conn.execute("""
+                CREATE NODE TABLE IF NOT EXISTS Variable(
+                    id STRING,
+                    name STRING,
+                    file STRING,
+                    definition_line INT64,
+                    scope STRING,
+                    PRIMARY KEY(id)
+                )
+            """)
+
+            # Create edge tables
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS CALLS(
+                    FROM Function TO Function,
+                    call_line INT64
+                )
+            """)
+
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS USES(
+                    FROM Function TO Variable,
+                    usage_line INT64
+                )
+            """)
+
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS CONTAINS(
+                    FROM File TO Function
+                )
+            """)
+
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS DEFINES(
+                    FROM Function TO Variable
+                )
+            """)
+
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS IMPORTS(
+                    FROM File TO File,
+                    line_number INT64,
+                    is_direct BOOLEAN
+                )
+            """)
+
+        except Exception as e:
+            # Tables may already exist, which is fine
+            pass
+
+    def _make_function_id(self, file: str, name: str) -> str:
+        """Create unique ID for a function."""
+        return f"{file}::{name}"
+
+    def _make_variable_id(self, file: str, name: str, line: int) -> str:
+        """Create unique ID for a variable."""
+        return f"{file}::{name}::{line}"
 
     def add_function(
         self,
@@ -69,14 +165,60 @@ class DependencyGraph:
             end_line: Ending line number
             is_public: Whether function is public (not starting with _)
         """
-        key = (file, name)
-        self.functions[key] = FunctionNode(
-            name=name,
-            file=file,
-            start_line=start_line,
-            end_line=end_line,
-            is_public=is_public
-        )
+        func_id = self._make_function_id(file, name)
+
+        try:
+            # Check if function already exists
+            result = self.conn.execute("""
+                MATCH (f:Function {id: $id})
+                RETURN f.id
+            """, {"id": func_id})
+
+            if result.has_next():
+                # Update existing function
+                self.conn.execute("""
+                    MATCH (f:Function {id: $id})
+                    SET f.name = $name,
+                        f.file = $file,
+                        f.start_line = $start_line,
+                        f.end_line = $end_line,
+                        f.is_public = $is_public
+                """, {
+                    "id": func_id,
+                    "name": name,
+                    "file": file,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "is_public": is_public
+                })
+            else:
+                # Create new function
+                self.conn.execute("""
+                    CREATE (f:Function {
+                        id: $id,
+                        name: $name,
+                        file: $file,
+                        start_line: $start_line,
+                        end_line: $end_line,
+                        is_public: $is_public
+                    })
+                """, {
+                    "id": func_id,
+                    "name": name,
+                    "file": file,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "is_public": is_public
+                })
+
+                # Add CONTAINS edge from file to function if file exists
+                self.conn.execute("""
+                    MATCH (file:File {path: $file}), (func:Function {id: $func_id})
+                    CREATE (file)-[:CONTAINS]->(func)
+                """, {"file": file, "func_id": func_id})
+
+        except Exception as e:
+            print(f"Error adding function {name} in {file}: {e}")
 
     def add_variable(
         self,
@@ -93,13 +235,50 @@ class DependencyGraph:
             definition_line: Line number where variable is defined
             scope: Scope of the variable (e.g., "module", "function:func_name")
         """
-        key = (file, name, definition_line)
-        self.variables[key] = VariableNode(
-            name=name,
-            file=file,
-            definition_line=definition_line,
-            scope=scope
-        )
+        var_id = self._make_variable_id(file, name, definition_line)
+
+        try:
+            # Check if variable already exists
+            result = self.conn.execute("""
+                MATCH (v:Variable {id: $id})
+                RETURN v.id
+            """, {"id": var_id})
+
+            if result.has_next():
+                # Update existing variable
+                self.conn.execute("""
+                    MATCH (v:Variable {id: $id})
+                    SET v.name = $name,
+                        v.file = $file,
+                        v.definition_line = $def_line,
+                        v.scope = $scope
+                """, {
+                    "id": var_id,
+                    "name": name,
+                    "file": file,
+                    "def_line": definition_line,
+                    "scope": scope
+                })
+            else:
+                # Create new variable
+                self.conn.execute("""
+                    CREATE (v:Variable {
+                        id: $id,
+                        name: $name,
+                        file: $file,
+                        definition_line: $def_line,
+                        scope: $scope
+                    })
+                """, {
+                    "id": var_id,
+                    "name": name,
+                    "file": file,
+                    "def_line": definition_line,
+                    "scope": scope
+                })
+
+        except Exception as e:
+            print(f"Error adding variable {name} in {file}: {e}")
 
     def add_call(
         self,
@@ -118,16 +297,22 @@ class DependencyGraph:
             callee_function: Name of called function
             call_line: Line number where call occurs
         """
-        caller_key = (caller_file, caller_function)
-        callee_key = (callee_file, callee_function)
+        caller_id = self._make_function_id(caller_file, caller_function)
+        callee_id = self._make_function_id(callee_file, callee_function)
 
-        if caller_key not in self._calls:
-            self._calls[caller_key] = set()
-        self._calls[caller_key].add((callee_file, callee_function, call_line))
-
-        if callee_key not in self._called_by:
-            self._called_by[callee_key] = set()
-        self._called_by[callee_key].add((caller_file, caller_function, call_line))
+        try:
+            # Create CALLS edge (KuzuDB handles duplicates automatically)
+            self.conn.execute("""
+                MATCH (caller:Function {id: $caller_id}), (callee:Function {id: $callee_id})
+                CREATE (caller)-[:CALLS {call_line: $call_line}]->(callee)
+            """, {
+                "caller_id": caller_id,
+                "callee_id": callee_id,
+                "call_line": call_line
+            })
+        except Exception as e:
+            # Functions may not exist yet, which is fine for incremental builds
+            pass
 
     def add_variable_usage(
         self,
@@ -150,17 +335,25 @@ class DependencyGraph:
             usage_line: Line where variable is used
             is_definition: True if function defines the variable
         """
-        func_key = (function_file, function_name)
-        var_key = (var_file, var_name, var_definition_line)
+        func_id = self._make_function_id(function_file, function_name)
+        var_id = self._make_variable_id(var_file, var_name, var_definition_line)
 
-        if is_definition:
-            if func_key not in self._defines:
-                self._defines[func_key] = set()
-            self._defines[func_key].add((var_file, var_name, var_definition_line))
-        else:
-            if func_key not in self._uses:
-                self._uses[func_key] = set()
-            self._uses[func_key].add((var_file, var_name, usage_line))
+        try:
+            if is_definition:
+                # Create DEFINES edge
+                self.conn.execute("""
+                    MATCH (func:Function {id: $func_id}), (var:Variable {id: $var_id})
+                    CREATE (func)-[:DEFINES]->(var)
+                """, {"func_id": func_id, "var_id": var_id})
+            else:
+                # Create USES edge
+                self.conn.execute("""
+                    MATCH (func:Function {id: $func_id}), (var:Variable {id: $var_id})
+                    CREATE (func)-[:USES {usage_line: $usage_line}]->(var)
+                """, {"func_id": func_id, "var_id": var_id, "usage_line": usage_line})
+        except Exception as e:
+            # Nodes may not exist yet
+            pass
 
     def get_callers(
         self,
@@ -176,8 +369,23 @@ class DependencyGraph:
         Returns:
             List of (file, function_name, call_line) tuples
         """
-        key = (file, function)
-        return list(self._called_by.get(key, set()))
+        func_id = self._make_function_id(file, function)
+
+        try:
+            result = self.conn.execute("""
+                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $func_id})
+                RETURN caller.file, caller.name, c.call_line
+            """, {"func_id": func_id})
+
+            callers = []
+            while result.has_next():
+                row = result.get_next()
+                callers.append((row[0], row[1], row[2]))
+
+            return callers
+        except Exception as e:
+            print(f"Error getting callers for {function} in {file}: {e}")
+            return []
 
     def get_callees(
         self,
@@ -193,8 +401,23 @@ class DependencyGraph:
         Returns:
             List of (file, function_name, call_line) tuples
         """
-        key = (file, function)
-        return list(self._calls.get(key, set()))
+        func_id = self._make_function_id(file, function)
+
+        try:
+            result = self.conn.execute("""
+                MATCH (caller:Function {id: $func_id})-[c:CALLS]->(callee:Function)
+                RETURN callee.file, callee.name, c.call_line
+            """, {"func_id": func_id})
+
+            callees = []
+            while result.has_next():
+                row = result.get_next()
+                callees.append((row[0], row[1], row[2]))
+
+            return callees
+        except Exception as e:
+            print(f"Error getting callees for {function} in {file}: {e}")
+            return []
 
     def get_variable_usage(
         self,
@@ -212,14 +435,25 @@ class DependencyGraph:
         Returns:
             List of (file, function_name, usage_line) tuples
         """
-        results = []
-        for func_key, var_set in self._uses.items():
-            for var_file, name, usage_line in var_set:
-                if var_file == file and name == var_name:
-                    results.append((func_key[0], func_key[1], usage_line))
-        return results
+        var_id = self._make_variable_id(file, var_name, definition_line)
 
-    def get_function(self, file: str, name: str) -> FunctionNode | None:
+        try:
+            result = self.conn.execute("""
+                MATCH (func:Function)-[u:USES]->(var:Variable {id: $var_id})
+                RETURN func.file, func.name, u.usage_line
+            """, {"var_id": var_id})
+
+            usages = []
+            while result.has_next():
+                row = result.get_next()
+                usages.append((row[0], row[1], row[2]))
+
+            return usages
+        except Exception as e:
+            print(f"Error getting variable usage for {var_name} in {file}: {e}")
+            return []
+
+    def get_function(self, file: str, name: str) -> Optional[FunctionNode]:
         """Get function node by file and name.
 
         Args:
@@ -229,7 +463,27 @@ class DependencyGraph:
         Returns:
             FunctionNode if found, None otherwise
         """
-        return self.functions.get((file, name))
+        func_id = self._make_function_id(file, name)
+
+        try:
+            result = self.conn.execute("""
+                MATCH (f:Function {id: $func_id})
+                RETURN f.name, f.file, f.start_line, f.end_line, f.is_public
+            """, {"func_id": func_id})
+
+            if result.has_next():
+                row = result.get_next()
+                return FunctionNode(
+                    name=row[0],
+                    file=row[1],
+                    start_line=row[2],
+                    end_line=row[3],
+                    is_public=row[4]
+                )
+            return None
+        except Exception as e:
+            print(f"Error getting function {name} in {file}: {e}")
+            return None
 
     def get_all_functions_in_file(self, file: str) -> List[FunctionNode]:
         """Get all functions defined in a file.
@@ -240,10 +494,27 @@ class DependencyGraph:
         Returns:
             List of FunctionNode objects
         """
-        return [
-            node for (f, _), node in self.functions.items()
-            if f == file
-        ]
+        try:
+            result = self.conn.execute("""
+                MATCH (f:Function {file: $file})
+                RETURN f.name, f.file, f.start_line, f.end_line, f.is_public
+            """, {"file": file})
+
+            functions = []
+            while result.has_next():
+                row = result.get_next()
+                functions.append(FunctionNode(
+                    name=row[0],
+                    file=row[1],
+                    start_line=row[2],
+                    end_line=row[3],
+                    is_public=row[4]
+                ))
+
+            return functions
+        except Exception as e:
+            print(f"Error getting functions in file {file}: {e}")
+            return []
 
     def get_statistics(self) -> Dict[str, any]:
         """Get statistics about the graph.
@@ -251,32 +522,186 @@ class DependencyGraph:
         Returns:
             Dictionary with graph statistics
         """
-        # Get unique files
-        files = set(f for f, _ in self.functions.keys())
-        files.update(f for f, _, _ in self.variables.keys())
+        try:
+            # Count files
+            result = self.conn.execute("MATCH (f:File) RETURN COUNT(*)")
+            total_files = result.get_next()[0] if result.has_next() else 0
 
-        # Count total edges
-        total_call_edges = sum(len(callees) for callees in self._calls.values())
+            # Count functions
+            result = self.conn.execute("MATCH (f:Function) RETURN COUNT(*)")
+            total_functions = result.get_next()[0] if result.has_next() else 0
 
-        # Find most-called functions
-        call_counts = {}
-        for (file, func) in self.functions.keys():
-            callers = self._called_by.get((file, func), set())
-            if callers:
-                call_counts[(file, func)] = len(callers)
+            # Count variables
+            result = self.conn.execute("MATCH (v:Variable) RETURN COUNT(*)")
+            total_variables = result.get_next()[0] if result.has_next() else 0
 
-        most_called = [
-            {"name": func, "file": file, "call_count": count}
-            for (file, func), count in sorted(
-                call_counts.items(), key=lambda x: x[1], reverse=True
-            )
-        ]
+            # Count call edges
+            result = self.conn.execute("MATCH ()-[c:CALLS]->() RETURN COUNT(*)")
+            total_call_edges = result.get_next()[0] if result.has_next() else 0
 
-        return {
-            "total_files": len(files),
-            "total_functions": len(self.functions),
-            "total_variables": len(self.variables),
-            "total_edges": total_call_edges,
-            "function_calls": total_call_edges,
-            "most_called_functions": most_called,
-        }
+            # Get most-called functions
+            result = self.conn.execute("""
+                MATCH (caller:Function)-[:CALLS]->(callee:Function)
+                RETURN callee.name, callee.file, COUNT(*) as call_count
+                ORDER BY call_count DESC
+                LIMIT 20
+            """)
+
+            most_called = []
+            while result.has_next():
+                row = result.get_next()
+                most_called.append({
+                    "name": row[0],
+                    "file": row[1],
+                    "call_count": row[2]
+                })
+
+            return {
+                "total_files": total_files,
+                "total_functions": total_functions,
+                "total_variables": total_variables,
+                "total_edges": total_call_edges,
+                "function_calls": total_call_edges,
+                "most_called_functions": most_called,
+            }
+        except Exception as e:
+            print(f"Error getting statistics: {e}")
+            return {
+                "total_files": 0,
+                "total_functions": 0,
+                "total_variables": 0,
+                "total_edges": 0,
+                "function_calls": 0,
+                "most_called_functions": [],
+            }
+
+    def file_exists(self, file_path: str, content_hash: str) -> bool:
+        """Check if file with this hash exists in database.
+
+        Args:
+            file_path: Path to file
+            content_hash: Hash of file contents
+
+        Returns:
+            True if file exists with same hash, False otherwise
+        """
+        try:
+            result = self.conn.execute("""
+                MATCH (f:File {path: $path})
+                RETURN f.content_hash
+            """, {"path": file_path})
+
+            if result.has_next():
+                row = result.get_next()
+                return row[0] == content_hash
+            return False
+        except Exception as e:
+            print(f"Error checking file existence: {e}")
+            return False
+
+    def add_file(self, file_path: str, language: str, content_hash: str) -> None:
+        """Add or update file node in database.
+
+        Args:
+            file_path: Path to file
+            language: Programming language
+            content_hash: Hash of file contents
+        """
+        try:
+            # Check if file exists
+            result = self.conn.execute("""
+                MATCH (f:File {path: $path})
+                RETURN f.path
+            """, {"path": file_path})
+
+            if result.has_next():
+                # Update existing file
+                self.conn.execute("""
+                    MATCH (f:File {path: $path})
+                    SET f.language = $language,
+                        f.last_modified = $timestamp,
+                        f.content_hash = $hash
+                """, {
+                    "path": file_path,
+                    "language": language,
+                    "timestamp": datetime.now(),
+                    "hash": content_hash
+                })
+            else:
+                # Create new file
+                self.conn.execute("""
+                    CREATE (f:File {
+                        path: $path,
+                        language: $language,
+                        last_modified: $timestamp,
+                        content_hash: $hash
+                    })
+                """, {
+                    "path": file_path,
+                    "language": language,
+                    "timestamp": datetime.now(),
+                    "hash": content_hash
+                })
+        except Exception as e:
+            print(f"Error adding file {file_path}: {e}")
+
+    def delete_file_data(self, file_path: str) -> None:
+        """Delete all nodes and edges for a file.
+
+        Args:
+            file_path: Path to file
+        """
+        try:
+            # Delete functions from this file
+            self.conn.execute("""
+                MATCH (f:Function {file: $path})
+                DETACH DELETE f
+            """, {"path": file_path})
+
+            # Delete variables from this file
+            self.conn.execute("""
+                MATCH (v:Variable {file: $path})
+                DETACH DELETE v
+            """, {"path": file_path})
+
+            # Delete file node
+            self.conn.execute("""
+                MATCH (f:File {path: $path})
+                DELETE f
+            """, {"path": file_path})
+
+        except Exception as e:
+            print(f"Error deleting file data for {file_path}: {e}")
+
+    def clear_all(self) -> None:
+        """Clear all data from the database."""
+        try:
+            # Delete all edges first
+            self.conn.execute("MATCH ()-[r:CALLS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:USES]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:CONTAINS]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:DEFINES]->() DELETE r")
+            self.conn.execute("MATCH ()-[r:IMPORTS]->() DELETE r")
+
+            # Delete all nodes
+            self.conn.execute("MATCH (f:Function) DELETE f")
+            self.conn.execute("MATCH (v:Variable) DELETE v")
+            self.conn.execute("MATCH (f:File) DELETE f")
+
+        except Exception as e:
+            print(f"Error clearing database: {e}")
+
+    def compute_file_hash(self, file_path: Path) -> str:
+        """Compute SHA256 hash of file contents.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            Hex digest of file contents
+        """
+        hasher = hashlib.sha256()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b''):
+                hasher.update(chunk)
+        return hasher.hexdigest()

@@ -57,13 +57,13 @@
 - [x] 6.5 Support exporting to .md files
 
 ## 7. Testing
-- [ ] 7.1 Create test fixtures with sample Python code
-- [ ] 7.2 Write unit tests for analyzer.py (ast + astroid parsing)
-- [ ] 7.3 Write unit tests for graph.py (KuzuDB operations)
-- [ ] 7.4 Write unit tests for impact.py (query logic)
-- [ ] 7.5 Write integration tests for end-to-end analysis
-- [ ] 7.6 Test incremental updates with content hashing
-- [ ] 7.7 Add performance benchmarks for various codebase sizes
+- [x] 7.1 Create test fixtures with sample Python code
+- [x] 7.2 Write unit tests for analyzer.py (ast + astroid parsing)
+- [x] 7.3 Write unit tests for graph.py (KuzuDB operations)
+- [x] 7.4 Write unit tests for impact.py (query logic)
+- [x] 7.5 Write integration tests for end-to-end analysis
+- [x] 7.6 Test incremental updates with content hashing
+- [x] 7.7 Add performance benchmarks for various codebase sizes
 
 ## 8. Documentation
 - [ ] 8.1 Update README.md with installation instructions

@@ -19,7 +19,6 @@ USAGE_EXAMPLES.md
 # Test files
 test_*.py
 demo_*.py
-openspec/
 
 # Code Explorer database
 .code-explorer/

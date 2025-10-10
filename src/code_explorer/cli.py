@@ -25,12 +25,22 @@ def cli() -> None:
     Analyze Python codebases to understand dependencies, track impact of changes,
     and visualize code relationships.
 
+    The tool now tracks granular imports, decorators, class attributes, exceptions,
+    and module hierarchy for comprehensive code analysis.
+
     Examples:
         code-explorer analyze /path/to/code
         code-explorer impact module.py:function_name
         code-explorer trace module.py:42 --variable user_input
         code-explorer stats
         code-explorer visualize module.py --output graph.md
+
+    New capabilities:
+        - Import tracking: See what imports a function/class
+        - Decorator analysis: Track decorator usage and dependencies
+        - Attribute tracking: Find what modifies class attributes
+        - Exception analysis: Trace exception propagation
+        - Module hierarchy: Understand package structure
     """
     pass
 
@@ -245,11 +255,64 @@ def analyze(
                             )
                             break
 
+            # Add detailed imports to graph
+            for imp in result.imports_detailed:
+                graph.add_import(
+                    imported_name=imp.imported_name,
+                    import_type=imp.import_type,
+                    file=result.file_path,
+                    line_number=imp.line_number,
+                    alias=imp.alias,
+                    is_relative=imp.is_relative
+                )
+
+            # Add decorators to graph
+            for dec in result.decorators:
+                graph.add_decorator(
+                    name=dec.name,
+                    file=dec.file,
+                    line_number=dec.line_number,
+                    arguments=dec.arguments
+                )
+
+            # Add attributes to graph
+            for attr in result.attributes:
+                graph.add_attribute(
+                    name=attr.name,
+                    class_name=attr.class_name,
+                    file=attr.file,
+                    definition_line=attr.definition_line,
+                    type_hint=attr.type_hint,
+                    is_class_attribute=attr.is_class_attribute
+                )
+
+            # Add exceptions to graph
+            for exc in result.exceptions:
+                graph.add_exception(
+                    name=exc.name,
+                    file=exc.file,
+                    line_number=exc.line_number
+                )
+
+            # Add module info to graph
+            if result.module_info:
+                graph.add_module(
+                    name=result.module_info.name,
+                    path=result.module_info.path,
+                    is_package=result.module_info.is_package,
+                    docstring=result.module_info.docstring
+                )
+
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)
         total_classes = sum(len(r.classes) for r in results)
         total_functions = sum(len(r.functions) for r in results)
         total_variables = sum(len(r.variables) for r in results)
+        total_imports_detailed = sum(len(r.imports_detailed) for r in results)
+        total_decorators = sum(len(r.decorators) for r in results)
+        total_attributes = sum(len(r.attributes) for r in results)
+        total_exceptions = sum(len(r.exceptions) for r in results)
+        files_with_modules = sum(1 for r in results if r.module_info is not None)
 
         # Print summary
         console.print("\n[bold green]Analysis complete![/bold green]")
@@ -267,6 +330,11 @@ def analyze(
         table.add_row("Total classes", str(total_classes))
         table.add_row("Total functions", str(total_functions))
         table.add_row("Total variables", str(total_variables))
+        table.add_row("Total imports (detailed)", str(total_imports_detailed))
+        table.add_row("Total decorators", str(total_decorators))
+        table.add_row("Total attributes", str(total_attributes))
+        table.add_row("Total exceptions", str(total_exceptions))
+        table.add_row("Modules detected", str(files_with_modules))
 
         console.print(table)
         console.print(f"\n[green]Graph persisted to:[/green] {db_path}")
@@ -570,6 +638,14 @@ def stats(db_path: Optional[str], top: int) -> None:
         table.add_row("Total variables", str(stats_data.get("total_variables", 0)))
         table.add_row("Total edges", str(stats_data.get("total_edges", 0)))
         table.add_row("Function calls", str(stats_data.get("function_calls", 0)))
+
+        # Show new node types if schema v2
+        if stats_data.get("schema_version") == "v2":
+            table.add_row("Total imports (detailed)", str(stats_data.get("total_imports", 0)))
+            table.add_row("Total decorators", str(stats_data.get("total_decorators", 0)))
+            table.add_row("Total attributes", str(stats_data.get("total_attributes", 0)))
+            table.add_row("Total exceptions", str(stats_data.get("total_exceptions", 0)))
+            table.add_row("Total modules", str(stats_data.get("total_modules", 0)))
 
         console.print(table)
         console.print()

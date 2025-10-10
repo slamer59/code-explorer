@@ -7,11 +7,12 @@ Extracts functions, function calls, variables, and their dependencies from Pytho
 
 import ast
 import hashlib
+import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import astroid
 from astroid.nodes import Module, FunctionDef, Call, Name, Attribute
@@ -79,6 +80,58 @@ class ImportInfo:
 
 
 @dataclass
+class ImportDetailedInfo:
+    """Detailed information about an import statement."""
+    imported_name: str
+    import_type: str  # "module", "function", "class", "variable", "*"
+    alias: Optional[str]
+    line_number: int
+    is_relative: bool
+    module: Optional[str]  # For "from X import Y", this is X
+
+
+@dataclass
+class DecoratorInfo:
+    """Information about a decorator."""
+    name: str
+    file: str
+    line_number: int
+    arguments: str  # JSON-serialized decorator arguments
+    target_name: str  # Name of decorated function/class
+    target_type: str  # "function" or "class"
+
+
+@dataclass
+class AttributeInfo:
+    """Information about a class attribute."""
+    name: str
+    class_name: str
+    file: str
+    definition_line: int
+    type_hint: Optional[str]
+    is_class_attribute: bool
+
+
+@dataclass
+class ExceptionInfo:
+    """Information about an exception."""
+    name: str
+    file: str
+    line_number: int
+    context: str  # "raise" or "catch"
+    function_name: Optional[str]  # Function where exception appears
+
+
+@dataclass
+class ModuleInfo:
+    """Information about module hierarchy."""
+    name: str
+    path: str
+    is_package: bool
+    docstring: Optional[str]
+
+
+@dataclass
 class FileAnalysis:
     """Complete analysis result for a single file."""
     file_path: str
@@ -89,6 +142,11 @@ class FileAnalysis:
     variables: List[VariableInfo] = field(default_factory=list)
     variable_usage: List[VariableUsage] = field(default_factory=list)
     imports: List[ImportInfo] = field(default_factory=list)
+    imports_detailed: List[ImportDetailedInfo] = field(default_factory=list)
+    decorators: List[DecoratorInfo] = field(default_factory=list)
+    attributes: List[AttributeInfo] = field(default_factory=list)
+    exceptions: List[ExceptionInfo] = field(default_factory=list)
+    module_info: Optional[ModuleInfo] = None
     errors: List[str] = field(default_factory=list)
 
 
@@ -152,6 +210,13 @@ class CodeAnalyzer:
 
             # Extract variables using ast
             self._extract_variables_ast(tree, result)
+
+            # Extract new node types using ast
+            self._extract_imports_detailed(tree, result)
+            self._extract_decorators(tree, result)
+            self._extract_attributes(tree, result)
+            self._extract_exceptions(tree, result)
+            self._extract_module_info(result)
 
             # Try astroid for better name resolution
             try:
@@ -473,6 +538,388 @@ class CodeAnalyzer:
                 except AttributeError:
                     # Some nodes might not have ctx
                     pass
+
+    def _extract_imports_detailed(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Extract detailed import information using ast.
+
+        Args:
+            tree: AST tree
+            result: FileAnalysis to populate
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                # Handle: import module [as alias]
+                for alias in node.names:
+                    import_info = ImportDetailedInfo(
+                        imported_name=alias.name,
+                        import_type="module",
+                        alias=alias.asname,
+                        line_number=node.lineno,
+                        is_relative=False,
+                        module=None
+                    )
+                    result.imports_detailed.append(import_info)
+            elif isinstance(node, ast.ImportFrom):
+                # Handle: from module import name [as alias]
+                module_name = node.module or ""
+                is_relative = node.level > 0
+
+                for alias in node.names:
+                    # Determine import type based on name
+                    import_type = "unknown"
+                    if alias.name == "*":
+                        import_type = "*"
+                    else:
+                        # We'll try to infer type later, default to "unknown"
+                        import_type = "unknown"
+
+                    import_info = ImportDetailedInfo(
+                        imported_name=alias.name,
+                        import_type=import_type,
+                        alias=alias.asname,
+                        line_number=node.lineno,
+                        is_relative=is_relative,
+                        module=module_name if module_name else None
+                    )
+                    result.imports_detailed.append(import_info)
+
+    def _parse_decorator_args(self, decorator_call: ast.Call) -> Dict[str, Any]:
+        """Parse decorator arguments to a dictionary.
+
+        Args:
+            decorator_call: AST Call node representing decorator with arguments
+
+        Returns:
+            Dictionary of argument names to values
+        """
+        args_dict = {}
+
+        try:
+            # Parse positional arguments
+            for i, arg in enumerate(decorator_call.args):
+                try:
+                    # Try to evaluate simple literals
+                    value = ast.literal_eval(arg)
+                    args_dict[f"arg_{i}"] = value
+                except (ValueError, TypeError):
+                    # Fall back to unparsing complex expressions
+                    try:
+                        args_dict[f"arg_{i}"] = ast.unparse(arg)
+                    except Exception:
+                        args_dict[f"arg_{i}"] = "<complex>"
+
+            # Parse keyword arguments
+            for keyword in decorator_call.keywords:
+                try:
+                    # Try to evaluate simple literals
+                    value = ast.literal_eval(keyword.value)
+                    args_dict[keyword.arg or "**kwargs"] = value
+                except (ValueError, TypeError):
+                    # Fall back to unparsing
+                    try:
+                        args_dict[keyword.arg or "**kwargs"] = ast.unparse(keyword.value)
+                    except Exception:
+                        args_dict[keyword.arg or "**kwargs"] = "<complex>"
+        except Exception as e:
+            logger.warning(f"Error parsing decorator arguments: {e}")
+
+        return args_dict
+
+    def _extract_decorators(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Extract decorator information using ast.
+
+        Args:
+            tree: AST tree
+            result: FileAnalysis to populate
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                target_name = node.name
+                target_type = "function" if isinstance(node, ast.FunctionDef) else "class"
+
+                for decorator in node.decorator_list:
+                    # Get decorator name and arguments
+                    decorator_name = ""
+                    arguments = {}
+
+                    if isinstance(decorator, ast.Name):
+                        # Simple decorator: @property
+                        decorator_name = decorator.id
+                    elif isinstance(decorator, ast.Call):
+                        # Decorator with arguments: @lru_cache(maxsize=128)
+                        if isinstance(decorator.func, ast.Name):
+                            decorator_name = decorator.func.id
+                        elif isinstance(decorator.func, ast.Attribute):
+                            # Decorated with attribute access: @dataclasses.dataclass
+                            try:
+                                decorator_name = ast.unparse(decorator.func)
+                            except Exception:
+                                decorator_name = decorator.func.attr
+                        arguments = self._parse_decorator_args(decorator)
+                    elif isinstance(decorator, ast.Attribute):
+                        # Decorator as attribute: @staticmethod
+                        try:
+                            decorator_name = ast.unparse(decorator)
+                        except Exception:
+                            decorator_name = decorator.attr
+                    else:
+                        # Complex decorator expression
+                        try:
+                            decorator_name = ast.unparse(decorator)
+                        except Exception:
+                            decorator_name = "<complex>"
+
+                    decorator_info = DecoratorInfo(
+                        name=decorator_name,
+                        file=result.file_path,
+                        line_number=decorator.lineno,
+                        arguments=json.dumps(arguments),
+                        target_name=target_name,
+                        target_type=target_type
+                    )
+                    result.decorators.append(decorator_info)
+
+    def _extract_type_hint(self, annotation: Optional[ast.AST]) -> Optional[str]:
+        """Extract type hint from annotation node.
+
+        Args:
+            annotation: AST annotation node
+
+        Returns:
+            String representation of type hint or None
+        """
+        if annotation is None:
+            return None
+
+        try:
+            return ast.unparse(annotation)
+        except Exception:
+            return None
+
+    def _extract_attributes(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Extract class attribute information using ast.
+
+        Args:
+            tree: AST tree
+            result: FileAnalysis to populate
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                class_name = node.name
+
+                # Extract class-level attributes
+                for item in node.body:
+                    if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                        # Type-annotated class attribute: name: type = value
+                        attr_info = AttributeInfo(
+                            name=item.target.id,
+                            class_name=class_name,
+                            file=result.file_path,
+                            definition_line=item.lineno,
+                            type_hint=self._extract_type_hint(item.annotation),
+                            is_class_attribute=True
+                        )
+                        result.attributes.append(attr_info)
+                    elif isinstance(item, ast.Assign):
+                        # Regular class attribute: name = value
+                        for target in item.targets:
+                            if isinstance(target, ast.Name):
+                                attr_info = AttributeInfo(
+                                    name=target.id,
+                                    class_name=class_name,
+                                    file=result.file_path,
+                                    definition_line=item.lineno,
+                                    type_hint=None,
+                                    is_class_attribute=True
+                                )
+                                result.attributes.append(attr_info)
+
+                # Extract instance attributes from __init__
+                for item in node.body:
+                    if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                        for child in ast.walk(item):
+                            if isinstance(child, ast.Assign):
+                                for target in child.targets:
+                                    # Look for self.attribute assignments
+                                    if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
+                                        if target.value.id == "self":
+                                            attr_info = AttributeInfo(
+                                                name=target.attr,
+                                                class_name=class_name,
+                                                file=result.file_path,
+                                                definition_line=child.lineno,
+                                                type_hint=None,
+                                                is_class_attribute=False
+                                            )
+                                            result.attributes.append(attr_info)
+                            elif isinstance(child, ast.AnnAssign):
+                                # Type-annotated instance attribute: self.name: type = value
+                                if isinstance(child.target, ast.Attribute) and isinstance(child.target.value, ast.Name):
+                                    if child.target.value.id == "self":
+                                        attr_info = AttributeInfo(
+                                            name=child.target.attr,
+                                            class_name=class_name,
+                                            file=result.file_path,
+                                            definition_line=child.lineno,
+                                            type_hint=self._extract_type_hint(child.annotation),
+                                            is_class_attribute=False
+                                        )
+                                        result.attributes.append(attr_info)
+
+    def _get_exception_name(self, exc_node: ast.AST) -> Optional[str]:
+        """Extract exception name from exception node.
+
+        Args:
+            exc_node: AST node representing exception
+
+        Returns:
+            Exception name or None
+        """
+        if isinstance(exc_node, ast.Name):
+            return exc_node.id
+        elif isinstance(exc_node, ast.Call) and isinstance(exc_node.func, ast.Name):
+            return exc_node.func.id
+        elif isinstance(exc_node, ast.Attribute):
+            try:
+                return ast.unparse(exc_node)
+            except Exception:
+                return exc_node.attr
+        else:
+            try:
+                return ast.unparse(exc_node)
+            except Exception:
+                return None
+
+    def _extract_exceptions(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Extract exception raising and handling information using ast.
+
+        Args:
+            tree: AST tree
+            result: FileAnalysis to populate
+        """
+        # Find exceptions in functions
+        for func_node in ast.walk(tree):
+            if isinstance(func_node, ast.FunctionDef):
+                func_name = func_node.name
+
+                # Find raise statements
+                for node in ast.walk(func_node):
+                    if isinstance(node, ast.Raise):
+                        if node.exc:
+                            exc_name = self._get_exception_name(node.exc)
+                            if exc_name:
+                                exc_info = ExceptionInfo(
+                                    name=exc_name,
+                                    file=result.file_path,
+                                    line_number=node.lineno,
+                                    context="raise",
+                                    function_name=func_name
+                                )
+                                result.exceptions.append(exc_info)
+                        else:
+                            # Bare raise (re-raise)
+                            exc_info = ExceptionInfo(
+                                name="<bare-raise>",
+                                file=result.file_path,
+                                line_number=node.lineno,
+                                context="raise",
+                                function_name=func_name
+                            )
+                            result.exceptions.append(exc_info)
+
+                    # Find except handlers
+                    elif isinstance(node, ast.ExceptHandler):
+                        if node.type:
+                            # Handle multiple exception types in tuple
+                            exc_names = []
+                            if isinstance(node.type, ast.Tuple):
+                                for elt in node.type.elts:
+                                    exc_name = self._get_exception_name(elt)
+                                    if exc_name:
+                                        exc_names.append(exc_name)
+                            else:
+                                exc_name = self._get_exception_name(node.type)
+                                if exc_name:
+                                    exc_names.append(exc_name)
+
+                            for exc_name in exc_names:
+                                exc_info = ExceptionInfo(
+                                    name=exc_name,
+                                    file=result.file_path,
+                                    line_number=node.lineno,
+                                    context="catch",
+                                    function_name=func_name
+                                )
+                                result.exceptions.append(exc_info)
+                        else:
+                            # Bare except
+                            exc_info = ExceptionInfo(
+                                name="<bare-except>",
+                                file=result.file_path,
+                                line_number=node.lineno,
+                                context="catch",
+                                function_name=func_name
+                            )
+                            result.exceptions.append(exc_info)
+
+    def _extract_module_info(self, result: FileAnalysis) -> None:
+        """Extract module information from file path.
+
+        Args:
+            result: FileAnalysis to populate
+        """
+        try:
+            file_path = Path(result.file_path)
+
+            # Determine if this is a package (__init__.py)
+            is_package = file_path.name == "__init__.py"
+
+            # Build module name from path
+            # Remove .py extension
+            if file_path.suffix == ".py":
+                parts = []
+
+                # Walk up the directory tree to build module path
+                current = file_path
+                if is_package:
+                    # For __init__.py, the package name is the directory name
+                    current = current.parent
+                else:
+                    # For regular files, use the stem (filename without extension)
+                    parts.insert(0, current.stem)
+                    current = current.parent
+
+                # Add parent directories as module parts
+                # Stop when we hit a directory without __init__.py
+                while current != current.parent:
+                    init_file = current / "__init__.py"
+                    if init_file.exists():
+                        parts.insert(0, current.name)
+                        current = current.parent
+                    else:
+                        break
+
+                module_name = ".".join(parts) if parts else file_path.stem
+
+                # Extract docstring
+                docstring = None
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        tree = ast.parse(content)
+                        docstring = ast.get_docstring(tree)
+                except Exception as e:
+                    logger.debug(f"Could not extract docstring from {file_path}: {e}")
+
+                module_info = ModuleInfo(
+                    name=module_name,
+                    path=str(file_path),
+                    is_package=is_package,
+                    docstring=docstring
+                )
+                result.module_info = module_info
+        except Exception as e:
+            logger.warning(f"Error extracting module info for {result.file_path}: {e}")
 
     def analyze_directory(
         self,

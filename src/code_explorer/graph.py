@@ -42,7 +42,7 @@ class DependencyGraph:
     database that persists to disk. Supports incremental updates and efficient queries.
     """
 
-    def __init__(self, db_path: Optional[Path] = None, read_only: bool = False):
+    def __init__(self, db_path: Optional[Path] = None, read_only: bool = False, project_root: Optional[Path] = None):
         """Initialize KuzuDB connection and create schema if needed.
 
         Args:
@@ -52,6 +52,7 @@ class DependencyGraph:
                       reads without risk of accidental writes. Default is False.
                       In read-only mode, schema creation is skipped and all write
                       methods will raise exceptions if called.
+            project_root: Root directory for relative paths. Defaults to current working directory.
         """
         if db_path is None:
             db_path = Path.cwd() / ".code-explorer" / "graph.db"
@@ -62,6 +63,7 @@ class DependencyGraph:
 
         self.db_path = db_path
         self.read_only = read_only
+        self.project_root = project_root if project_root else Path.cwd()
         self.db = kuzu.Database(str(db_path), read_only=read_only)
         self.conn = kuzu.Connection(self.db)
 
@@ -104,6 +106,7 @@ class DependencyGraph:
                     start_line INT64,
                     end_line INT64,
                     is_public BOOLEAN,
+                    source_code STRING,
                     PRIMARY KEY(id)
                 )
             """)
@@ -159,13 +162,56 @@ class DependencyGraph:
             # Tables may already exist, which is fine
             pass
 
-    def _make_function_id(self, file: str, name: str) -> str:
-        """Create unique ID for a function."""
-        return f"{file}::{name}"
+    def _to_relative_path(self, file_path: str) -> str:
+        """Convert absolute path to relative path from project root.
+
+        Args:
+            file_path: Absolute or relative file path
+
+        Returns:
+            Relative path from project root
+        """
+        try:
+            path = Path(file_path)
+            if path.is_absolute():
+                return str(path.relative_to(self.project_root))
+            return file_path
+        except ValueError:
+            # Path is not relative to project_root, return as-is
+            return file_path
+
+    def _make_function_id(self, file: str, name: str, start_line: int) -> str:
+        """Create stable hash-based ID for a function.
+
+        Args:
+            file: File path
+            name: Function name
+            start_line: Starting line number
+
+        Returns:
+            Hash-based identifier (e.g., 'fn_a1b2c3d4e5f6')
+        """
+        # Use relative path for stability
+        rel_path = self._to_relative_path(file)
+        content = f"{rel_path}::{name}::{start_line}"
+        hash_digest = hashlib.sha256(content.encode()).hexdigest()[:12]
+        return f"fn_{hash_digest}"
 
     def _make_variable_id(self, file: str, name: str, line: int) -> str:
-        """Create unique ID for a variable."""
-        return f"{file}::{name}::{line}"
+        """Create stable hash-based ID for a variable.
+
+        Args:
+            file: File path
+            name: Variable name
+            line: Definition line number
+
+        Returns:
+            Hash-based identifier (e.g., 'var_a1b2c3d4e5f6')
+        """
+        rel_path = self._to_relative_path(file)
+        content = f"{rel_path}::{name}::{line}"
+        hash_digest = hashlib.sha256(content.encode()).hexdigest()[:12]
+        return f"var_{hash_digest}"
 
     def add_function(
         self,
@@ -173,7 +219,8 @@ class DependencyGraph:
         file: str,
         start_line: int,
         end_line: int,
-        is_public: bool = True
+        is_public: bool = True,
+        source_code: Optional[str] = None
     ) -> None:
         """Add a function to the graph.
 
@@ -183,12 +230,14 @@ class DependencyGraph:
             start_line: Starting line number
             end_line: Ending line number
             is_public: Whether function is public (not starting with _)
+            source_code: Source code of the function (optional)
 
         Raises:
             RuntimeError: If database is in read-only mode
         """
         self._check_read_only()
-        func_id = self._make_function_id(file, name)
+        func_id = self._make_function_id(file, name, start_line)
+        rel_file = self._to_relative_path(file)
 
         try:
             # Check if function already exists
@@ -205,14 +254,16 @@ class DependencyGraph:
                         f.file = $file,
                         f.start_line = $start_line,
                         f.end_line = $end_line,
-                        f.is_public = $is_public
+                        f.is_public = $is_public,
+                        f.source_code = $source_code
                 """, {
                     "id": func_id,
                     "name": name,
-                    "file": file,
+                    "file": rel_file,
                     "start_line": start_line,
                     "end_line": end_line,
-                    "is_public": is_public
+                    "is_public": is_public,
+                    "source_code": source_code or ""
                 })
             else:
                 # Create new function
@@ -223,22 +274,24 @@ class DependencyGraph:
                         file: $file,
                         start_line: $start_line,
                         end_line: $end_line,
-                        is_public: $is_public
+                        is_public: $is_public,
+                        source_code: $source_code
                     })
                 """, {
                     "id": func_id,
                     "name": name,
-                    "file": file,
+                    "file": rel_file,
                     "start_line": start_line,
                     "end_line": end_line,
-                    "is_public": is_public
+                    "is_public": is_public,
+                    "source_code": source_code or ""
                 })
 
                 # Add CONTAINS edge from file to function if file exists
                 self.conn.execute("""
                     MATCH (file:File {path: $file}), (func:Function {id: $func_id})
                     CREATE (file)-[:CONTAINS]->(func)
-                """, {"file": file, "func_id": func_id})
+                """, {"file": rel_file, "func_id": func_id})
 
         except Exception as e:
             print(f"Error adding function {name} in {file}: {e}")
@@ -263,6 +316,7 @@ class DependencyGraph:
         """
         self._check_read_only()
         var_id = self._make_variable_id(file, name, definition_line)
+        rel_file = self._to_relative_path(file)
 
         try:
             # Check if variable already exists
@@ -282,7 +336,7 @@ class DependencyGraph:
                 """, {
                     "id": var_id,
                     "name": name,
-                    "file": file,
+                    "file": rel_file,
                     "def_line": definition_line,
                     "scope": scope
                 })
@@ -299,7 +353,7 @@ class DependencyGraph:
                 """, {
                     "id": var_id,
                     "name": name,
-                    "file": file,
+                    "file": rel_file,
                     "def_line": definition_line,
                     "scope": scope
                 })
@@ -311,8 +365,10 @@ class DependencyGraph:
         self,
         caller_file: str,
         caller_function: str,
+        caller_start_line: int,
         callee_file: str,
         callee_function: str,
+        callee_start_line: int,
         call_line: int
     ) -> None:
         """Add a function call edge.
@@ -320,16 +376,18 @@ class DependencyGraph:
         Args:
             caller_file: File where caller is defined
             caller_function: Name of calling function
+            caller_start_line: Starting line of caller function
             callee_file: File where callee is defined
             callee_function: Name of called function
+            callee_start_line: Starting line of callee function
             call_line: Line number where call occurs
 
         Raises:
             RuntimeError: If database is in read-only mode
         """
         self._check_read_only()
-        caller_id = self._make_function_id(caller_file, caller_function)
-        callee_id = self._make_function_id(callee_file, callee_function)
+        caller_id = self._make_function_id(caller_file, caller_function, caller_start_line)
+        callee_id = self._make_function_id(callee_file, callee_function, callee_start_line)
 
         try:
             # Create CALLS edge (KuzuDB handles duplicates automatically)
@@ -349,6 +407,7 @@ class DependencyGraph:
         self,
         function_file: str,
         function_name: str,
+        function_start_line: int,
         var_name: str,
         var_file: str,
         var_definition_line: int,
@@ -360,6 +419,7 @@ class DependencyGraph:
         Args:
             function_file: File where function is defined
             function_name: Name of function using the variable
+            function_start_line: Starting line of function
             var_name: Variable name
             var_file: File where variable is defined
             var_definition_line: Line where variable is defined
@@ -370,7 +430,7 @@ class DependencyGraph:
             RuntimeError: If database is in read-only mode
         """
         self._check_read_only()
-        func_id = self._make_function_id(function_file, function_name)
+        func_id = self._make_function_id(function_file, function_name, function_start_line)
         var_id = self._make_variable_id(var_file, var_name, var_definition_line)
 
         try:
@@ -404,13 +464,13 @@ class DependencyGraph:
         Returns:
             List of (file, function_name, call_line) tuples
         """
-        func_id = self._make_function_id(file, function)
+        rel_file = self._to_relative_path(file)
 
         try:
             result = self.conn.execute("""
-                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $func_id})
+                MATCH (caller:Function)-[c:CALLS]->(callee:Function {file: $file, name: $name})
                 RETURN caller.file, caller.name, c.call_line
-            """, {"func_id": func_id})
+            """, {"file": rel_file, "name": function})
 
             callers = []
             while result.has_next():
@@ -436,13 +496,13 @@ class DependencyGraph:
         Returns:
             List of (file, function_name, call_line) tuples
         """
-        func_id = self._make_function_id(file, function)
+        rel_file = self._to_relative_path(file)
 
         try:
             result = self.conn.execute("""
-                MATCH (caller:Function {id: $func_id})-[c:CALLS]->(callee:Function)
+                MATCH (caller:Function {file: $file, name: $name})-[c:CALLS]->(callee:Function)
                 RETURN callee.file, callee.name, c.call_line
-            """, {"func_id": func_id})
+            """, {"file": rel_file, "name": function})
 
             callees = []
             while result.has_next():
@@ -498,13 +558,13 @@ class DependencyGraph:
         Returns:
             FunctionNode if found, None otherwise
         """
-        func_id = self._make_function_id(file, name)
+        rel_file = self._to_relative_path(file)
 
         try:
             result = self.conn.execute("""
-                MATCH (f:Function {id: $func_id})
+                MATCH (f:Function {file: $file, name: $name})
                 RETURN f.name, f.file, f.start_line, f.end_line, f.is_public
-            """, {"func_id": func_id})
+            """, {"file": rel_file, "name": name})
 
             if result.has_next():
                 row = result.get_next()

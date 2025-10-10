@@ -6,8 +6,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./.code-explorer:/database
+      - ./.code-explorer:/database:ro
     environment:
       - KUZU_FILE=graph.db
-    user: "${UID:-1000}:${GID:-1000}"
+      - MODE=READ_ONLY
     restart: unless-stopped

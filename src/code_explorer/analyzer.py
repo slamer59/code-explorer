@@ -28,6 +28,7 @@ class FunctionInfo:
     start_line: int
     end_line: int
     is_public: bool
+    source_code: Optional[str] = None
 
 
 @dataclass
@@ -160,14 +161,33 @@ class CodeAnalyzer:
             tree: AST tree
             result: FileAnalysis to populate
         """
+        # Read file to extract source code
+        source_lines = None
+        try:
+            with open(result.file_path, 'r', encoding='utf-8') as f:
+                source_lines = f.readlines()
+        except Exception as e:
+            logger.warning(f"Could not read source for {result.file_path}: {e}")
+
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
+                # Extract source code if available
+                source_code = None
+                if source_lines and node.lineno and node.end_lineno:
+                    try:
+                        # Extract lines (1-indexed to 0-indexed)
+                        func_lines = source_lines[node.lineno - 1:node.end_lineno]
+                        source_code = ''.join(func_lines)
+                    except Exception as e:
+                        logger.warning(f"Could not extract source for {node.name}: {e}")
+
                 func_info = FunctionInfo(
                     name=node.name,
                     file=result.file_path,
                     start_line=node.lineno,
                     end_line=node.end_lineno or node.lineno,
-                    is_public=not node.name.startswith('_')
+                    is_public=not node.name.startswith('_'),
+                    source_code=source_code
                 )
                 result.functions.append(func_info)
 

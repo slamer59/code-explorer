@@ -92,7 +92,7 @@ def analyze(
     target_path = Path(path).resolve()
 
     if db_path is None:
-        db_path = target_path / ".code-explorer" / "graph.db"
+        db_path = Path.cwd() / ".code-explorer" / "graph.db"
     else:
         db_path = Path(db_path)
 
@@ -157,7 +157,8 @@ def analyze(
                     file=func.file,
                     start_line=func.start_line,
                     end_line=func.end_line,
-                    is_public=func.is_public
+                    is_public=func.is_public,
+                    source_code=func.source_code
                 )
 
             # Add variables to graph
@@ -177,15 +178,27 @@ def analyze(
                 called_name = call.called_name
                 call_line = call.call_line
 
-                # Find matching function (simple name matching)
+                # Find caller function start_line
+                caller_start_line = None
+                for func in result.functions:
+                    if func.name == caller_func:
+                        caller_start_line = func.start_line
+                        break
+
+                if caller_start_line is None:
+                    continue  # Skip if caller function not found
+
+                # Find matching callee function (simple name matching)
                 for func in results:
                     for f in func.functions:
                         if f.name == called_name:
                             graph.add_call(
                                 caller_file=caller_file,
                                 caller_function=caller_func,
+                                caller_start_line=caller_start_line,
                                 callee_file=f.file,
                                 callee_function=f.name,
+                                callee_start_line=f.start_line,
                                 call_line=call_line
                             )
                             break

@@ -973,7 +973,9 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            console.print(f"[red]Error adding import {imported_name} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error adding import {imported_name} in {file}: {e}[/red]"
+            )
 
     def add_decorator(
         self, name: str, file: str, line_number: int, arguments: str = "{}"
@@ -1138,7 +1140,9 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            console.print(f"[red]Error adding attribute {name} to class {class_name} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error adding attribute {name} to class {class_name} in {file}: {e}[/red]"
+            )
 
     def add_exception(self, name: str, file: str, line_number: int) -> None:
         """Add an exception to the graph.
@@ -1347,7 +1351,9 @@ class DependencyGraph:
             RuntimeError: If database is in read-only mode
         """
         self._check_read_only()
-        func_id = self._make_function_id(function_file, function_name, function_start_line)
+        func_id = self._make_function_id(
+            function_file, function_name, function_start_line
+        )
         exc_id = self._make_exception_id(exception_file, exception_name, exception_line)
 
         try:
@@ -1396,8 +1402,12 @@ class DependencyGraph:
             RuntimeError: If database is in read-only mode
         """
         self._check_read_only()
-        func_id = self._make_function_id(function_file, function_name, function_start_line)
-        attr_id = self._make_attribute_id(attribute_file, class_name, attribute_name, attribute_line)
+        func_id = self._make_function_id(
+            function_file, function_name, function_start_line
+        )
+        attr_id = self._make_attribute_id(
+            attribute_file, class_name, attribute_name, attribute_line
+        )
 
         try:
             self.conn.execute(
@@ -1546,7 +1556,9 @@ class DependencyGraph:
 
             return callers
         except Exception as e:
-            console.print(f"[red]Error getting callers for {function} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error getting callers for {function} in {file}: {e}[/red]"
+            )
             return []
 
     def get_callees(self, file: str, function: str) -> List[Tuple[str, str, int]]:
@@ -1577,7 +1589,9 @@ class DependencyGraph:
 
             return callees
         except Exception as e:
-            console.print(f"[red]Error getting callees for {function} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error getting callees for {function} in {file}: {e}[/red]"
+            )
             return []
 
     def get_variable_usage(
@@ -1612,7 +1626,9 @@ class DependencyGraph:
 
             return usages
         except Exception as e:
-            console.print(f"[red]Error getting variable usage for {var_name} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error getting variable usage for {var_name} in {file}: {e}[/red]"
+            )
             return []
 
     def get_function(self, file: str, name: str) -> Optional[FunctionNode]:
@@ -1998,7 +2014,9 @@ class DependencyGraph:
 
             return attributes
         except Exception as e:
-            console.print(f"[red]Error getting attributes for class {class_name} in {file}: {e}[/red]")
+            console.print(
+                f"[red]Error getting attributes for class {class_name} in {file}: {e}[/red]"
+            )
             return []
 
     def get_functions_raising_exception(
@@ -2029,7 +2047,9 @@ class DependencyGraph:
 
             return functions
         except Exception as e:
-            console.print(f"[red]Error getting functions raising {exception_name}: {e}[/red]")
+            console.print(
+                f"[red]Error getting functions raising {exception_name}: {e}[/red]"
+            )
             return []
 
     def get_module_hierarchy(self) -> List[ModuleNode]:
@@ -2086,7 +2106,9 @@ class DependencyGraph:
 
             return usages
         except Exception as e:
-            console.print(f"[red]Error finding import usages for {function_or_class_name}: {e}[/red]")
+            console.print(
+                f"[red]Error finding import usages for {function_or_class_name}: {e}[/red]"
+            )
             return []
 
     def find_attribute_modifiers(
@@ -2118,7 +2140,9 @@ class DependencyGraph:
 
             return modifiers
         except Exception as e:
-            console.print(f"[red]Error finding modifiers for {class_name}.{attribute_name}: {e}[/red]")
+            console.print(
+                f"[red]Error finding modifiers for {class_name}.{attribute_name}: {e}[/red]"
+            )
             return []
 
     def file_exists(self, file_path: str, content_hash: str) -> bool:
@@ -2303,7 +2327,9 @@ class DependencyGraph:
         try:
             # Delete all edges first
             self.conn.execute("MATCH ()-[r:CALLS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:REFERENCES]->() DELETE r")  # Consolidated USES + DEFINES
+            self.conn.execute(
+                "MATCH ()-[r:REFERENCES]->() DELETE r"
+            )  # Consolidated USES + DEFINES
             self.conn.execute("MATCH ()-[r:CONTAINS_FUNCTION]->() DELETE r")
             self.conn.execute("MATCH ()-[r:CONTAINS_CLASS]->() DELETE r")
             self.conn.execute("MATCH ()-[r:CONTAINS_VARIABLE]->() DELETE r")
@@ -2320,8 +2346,12 @@ class DependencyGraph:
                     self.conn.execute("MATCH ()-[r:DECORATED_BY]->() DELETE r")
                     # DECORATOR_RESOLVES_TO removed
                     self.conn.execute("MATCH ()-[r:HAS_ATTRIBUTE]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:ACCESSES]->() DELETE r")  # Consolidated ACCESSES + MODIFIES
-                    self.conn.execute("MATCH ()-[r:HANDLES_EXCEPTION]->() DELETE r")  # Consolidated RAISES + CATCHES
+                    self.conn.execute(
+                        "MATCH ()-[r:ACCESSES]->() DELETE r"
+                    )  # Consolidated ACCESSES + MODIFIES
+                    self.conn.execute(
+                        "MATCH ()-[r:HANDLES_EXCEPTION]->() DELETE r"
+                    )  # Consolidated RAISES + CATCHES
                     self.conn.execute("MATCH ()-[r:CONTAINS_MODULE]->() DELETE r")
                     self.conn.execute("MATCH ()-[r:MODULE_OF]->() DELETE r")
                 except Exception:
@@ -2380,7 +2410,9 @@ class DependencyGraph:
         try:
             import pandas as pd
         except ImportError:
-            console.print("[yellow]Warning: pandas not installed, falling back to slow individual inserts[/yellow]")
+            console.print(
+                "[yellow]Warning: pandas not installed, falling back to slow individual inserts[/yellow]"
+            )
             return None
 
         # Process ALL results at once - chunking causes crashes!
@@ -2394,13 +2426,13 @@ class DependencyGraph:
             pd: pandas module
         """
         # Constants for chunking all data types (avoid memory exhaustion)
-        FUNCTION_CHUNK_SIZE = 500      # Heavy (has source code)
-        CLASS_CHUNK_SIZE = 500         # Heavy (has source code)
-        IMPORT_CHUNK_SIZE = 1000       # Medium
-        VARIABLE_CHUNK_SIZE = 1000     # Light
-        DECORATOR_CHUNK_SIZE = 1000    # Light
-        ATTRIBUTE_CHUNK_SIZE = 1000    # Medium
-        EXCEPTION_CHUNK_SIZE = 1000    # Light
+        FUNCTION_CHUNK_SIZE = 500  # Heavy (has source code)
+        CLASS_CHUNK_SIZE = 500  # Heavy (has source code)
+        IMPORT_CHUNK_SIZE = 1000  # Medium
+        VARIABLE_CHUNK_SIZE = 1000  # Light
+        DECORATOR_CHUNK_SIZE = 1000  # Light
+        ATTRIBUTE_CHUNK_SIZE = 1000  # Medium
+        EXCEPTION_CHUNK_SIZE = 1000  # Light
 
         # Collect all nodes by type
         all_files = []
@@ -2426,99 +2458,123 @@ class DependencyGraph:
             file_path = self._to_relative_path(result.file_path)
 
             # Collect file data
-            all_files.append({
-                'path': file_path,
-                'language': 'python',
-                'content_hash': '',
-                'last_modified': datetime.now()
-            })
+            all_files.append(
+                {
+                    "path": file_path,
+                    "language": "python",
+                    "content_hash": "",
+                    "last_modified": datetime.now(),
+                }
+            )
 
             # Collect functions
             for func in result.functions:
                 func_id = self._make_function_id(file_path, func.name, func.start_line)
-                all_functions.append({
-                    'id': func_id,
-                    'name': func.name,
-                    'file': file_path,
-                    'start_line': func.start_line,
-                    'end_line': func.end_line,
-                    'is_public': func.is_public,
-                    'source_code': getattr(func, 'source_code', '') or '',
-                    'parent_class': getattr(func, 'parent_class', None) or ''
-                })
+                all_functions.append(
+                    {
+                        "id": func_id,
+                        "name": func.name,
+                        "file": file_path,
+                        "start_line": func.start_line,
+                        "end_line": func.end_line,
+                        "is_public": func.is_public,
+                        "source_code": getattr(func, "source_code", "") or "",
+                        "parent_class": getattr(func, "parent_class", None) or "",
+                    }
+                )
 
             # Collect classes
             for cls in result.classes:
                 class_id = self._make_class_id(file_path, cls.name, cls.start_line)
-                all_classes.append({
-                    'id': class_id,
-                    'name': cls.name,
-                    'file': file_path,
-                    'start_line': cls.start_line,
-                    'end_line': cls.end_line,
-                    'bases': json.dumps(cls.bases),
-                    'is_public': cls.is_public,
-                    'source_code': getattr(cls, 'source_code', '') or ''
-                })
+                all_classes.append(
+                    {
+                        "id": class_id,
+                        "name": cls.name,
+                        "file": file_path,
+                        "start_line": cls.start_line,
+                        "end_line": cls.end_line,
+                        "bases": json.dumps(cls.bases),
+                        "is_public": cls.is_public,
+                        "source_code": getattr(cls, "source_code", "") or "",
+                    }
+                )
 
             # Collect variables (module-level only for CONTAINS edge)
             for var in result.variables:
                 if var.scope == "module":
-                    var_id = self._make_variable_id(file_path, var.name, var.definition_line)
-                    all_variables.append({
-                        'id': var_id,
-                        'name': var.name,
-                        'file': file_path,
-                        'definition_line': var.definition_line,
-                        'scope': var.scope
-                    })
+                    var_id = self._make_variable_id(
+                        file_path, var.name, var.definition_line
+                    )
+                    all_variables.append(
+                        {
+                            "id": var_id,
+                            "name": var.name,
+                            "file": file_path,
+                            "definition_line": var.definition_line,
+                            "scope": var.scope,
+                        }
+                    )
 
             # Collect imports
             for imp in result.imports_detailed:
-                import_id = self._make_import_id(file_path, imp.imported_name, imp.line_number)
-                all_imports.append({
-                    'id': import_id,
-                    'imported_name': imp.imported_name,
-                    'import_type': imp.import_type,
-                    'alias': imp.alias or '',
-                    'line_number': imp.line_number,
-                    'is_relative': imp.is_relative,
-                    'file': file_path
-                })
+                import_id = self._make_import_id(
+                    file_path, imp.imported_name, imp.line_number
+                )
+                all_imports.append(
+                    {
+                        "id": import_id,
+                        "imported_name": imp.imported_name,
+                        "import_type": imp.import_type,
+                        "alias": imp.alias or "",
+                        "line_number": imp.line_number,
+                        "is_relative": imp.is_relative,
+                        "file": file_path,
+                    }
+                )
 
             # Collect decorators
             for dec in result.decorators:
-                decorator_id = self._make_decorator_id(file_path, dec.name, dec.line_number)
-                all_decorators.append({
-                    'id': decorator_id,
-                    'name': dec.name,
-                    'file': file_path,
-                    'line_number': dec.line_number,
-                    'arguments': dec.arguments
-                })
+                decorator_id = self._make_decorator_id(
+                    file_path, dec.name, dec.line_number
+                )
+                all_decorators.append(
+                    {
+                        "id": decorator_id,
+                        "name": dec.name,
+                        "file": file_path,
+                        "line_number": dec.line_number,
+                        "arguments": dec.arguments,
+                    }
+                )
 
             # Collect attributes
             for attr in result.attributes:
-                attr_id = self._make_attribute_id(file_path, attr.class_name, attr.name, attr.definition_line)
-                all_attributes.append({
-                    'id': attr_id,
-                    'name': attr.name,
-                    'class_name': attr.class_name,
-                    'file': file_path,
-                    'definition_line': attr.definition_line,
-                    'type_hint': attr.type_hint or '',
-                    'is_class_attribute': attr.is_class_attribute
-                })
+                attr_id = self._make_attribute_id(
+                    file_path, attr.class_name, attr.name, attr.definition_line
+                )
+                all_attributes.append(
+                    {
+                        "id": attr_id,
+                        "name": attr.name,
+                        "class_name": attr.class_name,
+                        "file": file_path,
+                        "definition_line": attr.definition_line,
+                        "type_hint": attr.type_hint or "",
+                        "is_class_attribute": attr.is_class_attribute,
+                    }
+                )
 
             # Collect exceptions
             for exc in result.exceptions:
                 exc_id = self._make_exception_id(file_path, exc.name, exc.line_number)
-                all_exceptions.append({
-                    'id': exc_id,
-                    'name': exc.name,
-                    'file': file_path,
-                    'line_number': exc.line_number
-                })
+                all_exceptions.append(
+                    {
+                        "id": exc_id,
+                        "name": exc.name,
+                        "file": file_path,
+                        "line_number": exc.line_number,
+                    }
+                )
 
             # Insert functions in chunks to avoid memory exhaustion
             if len(all_functions) >= FUNCTION_CHUNK_SIZE:
@@ -2532,7 +2588,9 @@ class DependencyGraph:
                         f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
                 """)
                 total_functions_inserted += len(all_functions)
-                console.print(f"[cyan]  → Inserted {total_functions_inserted} functions so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_functions_inserted} functions so far...[/cyan]"
+                )
                 all_functions = []  # Clear for next chunk
 
             # Insert classes in chunks to avoid memory exhaustion
@@ -2547,7 +2605,9 @@ class DependencyGraph:
                         c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
                 """)
                 total_classes_inserted += len(all_classes)
-                console.print(f"[cyan]  → Inserted {total_classes_inserted} classes so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_classes_inserted} classes so far...[/cyan]"
+                )
                 all_classes = []  # Clear for next chunk
 
             # Insert imports in chunks to avoid memory exhaustion
@@ -2562,7 +2622,9 @@ class DependencyGraph:
                         i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
                 """)
                 total_imports_inserted += len(all_imports)
-                console.print(f"[cyan]  → Inserted {total_imports_inserted} imports so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_imports_inserted} imports so far...[/cyan]"
+                )
                 all_imports = []  # Clear for next chunk
 
             # Insert variables in chunks
@@ -2575,7 +2637,9 @@ class DependencyGraph:
                     ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
                 """)
                 total_variables_inserted += len(all_variables)
-                console.print(f"[cyan]  → Inserted {total_variables_inserted} variables so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_variables_inserted} variables so far...[/cyan]"
+                )
                 all_variables = []
 
             # Insert decorators in chunks
@@ -2588,7 +2652,9 @@ class DependencyGraph:
                     ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
                 """)
                 total_decorators_inserted += len(all_decorators)
-                console.print(f"[cyan]  → Inserted {total_decorators_inserted} decorators so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_decorators_inserted} decorators so far...[/cyan]"
+                )
                 all_decorators = []
 
             # Insert attributes in chunks
@@ -2603,7 +2669,9 @@ class DependencyGraph:
                         a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
                 """)
                 total_attributes_inserted += len(all_attributes)
-                console.print(f"[cyan]  → Inserted {total_attributes_inserted} attributes so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_attributes_inserted} attributes so far...[/cyan]"
+                )
                 all_attributes = []
 
             # Insert exceptions in chunks
@@ -2614,7 +2682,9 @@ class DependencyGraph:
                     COPY Exception FROM df_exceptions (ignore_errors=true)
                 """)
                 total_exceptions_inserted += len(all_exceptions)
-                console.print(f"[cyan]  → Inserted {total_exceptions_inserted} exceptions so far...[/cyan]")
+                console.print(
+                    f"[cyan]  → Inserted {total_exceptions_inserted} exceptions so far...[/cyan]"
+                )
                 all_exceptions = []
 
         # Batch insert using DataFrames and MERGE
@@ -2634,11 +2704,13 @@ class DependencyGraph:
 
         # 2. Insert remaining functions (in small chunks if needed)
         if all_functions:
-            console.print(f"[cyan]Inserting remaining {len(all_functions)} functions...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_functions)} functions...[/cyan]"
+            )
             # If remaining functions are still too many, chunk them
             if len(all_functions) > 200:
                 for i in range(0, len(all_functions), 200):
-                    chunk = all_functions[i:i+200]
+                    chunk = all_functions[i : i + 200]
                     df_functions = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_functions
@@ -2660,15 +2732,19 @@ class DependencyGraph:
                         f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
                 """)
                 total_functions_inserted += len(all_functions)
-            console.print(f"[green]✓ Total functions inserted: {total_functions_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total functions inserted: {total_functions_inserted}[/green]"
+            )
 
         # 3. Insert remaining classes (in small chunks if needed)
         if all_classes:
-            console.print(f"[cyan]Inserting remaining {len(all_classes)} classes...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_classes)} classes...[/cyan]"
+            )
             # If remaining classes are still too many, chunk them
             if len(all_classes) > 200:
                 for i in range(0, len(all_classes), 200):
-                    chunk = all_classes[i:i+200]
+                    chunk = all_classes[i : i + 200]
                     df_classes = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_classes
@@ -2690,15 +2766,19 @@ class DependencyGraph:
                         c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
                 """)
                 total_classes_inserted += len(all_classes)
-            console.print(f"[green]✓ Total classes inserted: {total_classes_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total classes inserted: {total_classes_inserted}[/green]"
+            )
 
         # 4. Insert remaining variables (in chunks if needed)
         if all_variables:
-            console.print(f"[cyan]Inserting remaining {len(all_variables)} variables...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_variables)} variables...[/cyan]"
+            )
             # If remaining variables are still too many, chunk them
             if len(all_variables) > 500:
                 for i in range(0, len(all_variables), 500):
-                    chunk = all_variables[i:i+500]
+                    chunk = all_variables[i : i + 500]
                     df_variables = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_variables
@@ -2716,15 +2796,19 @@ class DependencyGraph:
                     ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
                 """)
                 total_variables_inserted += len(all_variables)
-            console.print(f"[green]✓ Total variables inserted: {total_variables_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total variables inserted: {total_variables_inserted}[/green]"
+            )
 
         # 5. Insert remaining imports (in chunks if needed)
         if all_imports:
-            console.print(f"[cyan]Inserting remaining {len(all_imports)} imports...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_imports)} imports...[/cyan]"
+            )
             # If remaining imports are still too many, chunk them
             if len(all_imports) > 500:
                 for i in range(0, len(all_imports), 500):
-                    chunk = all_imports[i:i+500]
+                    chunk = all_imports[i : i + 500]
                     df_imports = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_imports
@@ -2746,15 +2830,19 @@ class DependencyGraph:
                         i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
                 """)
                 total_imports_inserted += len(all_imports)
-            console.print(f"[green]✓ Total imports inserted: {total_imports_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total imports inserted: {total_imports_inserted}[/green]"
+            )
 
         # 6. Insert remaining decorators (in chunks if needed)
         if all_decorators:
-            console.print(f"[cyan]Inserting remaining {len(all_decorators)} decorators...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_decorators)} decorators...[/cyan]"
+            )
             # If remaining decorators are still too many, chunk them
             if len(all_decorators) > 500:
                 for i in range(0, len(all_decorators), 500):
-                    chunk = all_decorators[i:i+500]
+                    chunk = all_decorators[i : i + 500]
                     df_decorators = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_decorators
@@ -2772,15 +2860,19 @@ class DependencyGraph:
                     ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
                 """)
                 total_decorators_inserted += len(all_decorators)
-            console.print(f"[green]✓ Total decorators inserted: {total_decorators_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total decorators inserted: {total_decorators_inserted}[/green]"
+            )
 
         # 7. Insert remaining attributes (in chunks if needed)
         if all_attributes:
-            console.print(f"[cyan]Inserting remaining {len(all_attributes)} attributes...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_attributes)} attributes...[/cyan]"
+            )
             # If remaining attributes are still too many, chunk them
             if len(all_attributes) > 500:
                 for i in range(0, len(all_attributes), 500):
-                    chunk = all_attributes[i:i+500]
+                    chunk = all_attributes[i : i + 500]
                     df_attributes = pd.DataFrame(chunk)
                     self.conn.execute("""
                         LOAD FROM df_attributes
@@ -2802,26 +2894,34 @@ class DependencyGraph:
                         a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
                 """)
                 total_attributes_inserted += len(all_attributes)
-            console.print(f"[green]✓ Total attributes inserted: {total_attributes_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total attributes inserted: {total_attributes_inserted}[/green]"
+            )
 
         # 8. Insert remaining exceptions (in chunks if needed)
         # NOTE: Use COPY instead of MERGE for exceptions to avoid segfault
         if all_exceptions:
-            console.print(f"[cyan]Inserting remaining {len(all_exceptions)} exceptions...[/cyan]")
+            console.print(
+                f"[cyan]Inserting remaining {len(all_exceptions)} exceptions...[/cyan]"
+            )
             # Always chunk exceptions into smaller batches
             for i in range(0, len(all_exceptions), 100):
-                chunk = all_exceptions[i:i+100]
+                chunk = all_exceptions[i : i + 100]
                 df_exceptions = pd.DataFrame(chunk)
                 self.conn.execute("""
                     COPY Exception FROM df_exceptions (ignore_errors=true)
                 """)
                 total_exceptions_inserted += len(chunk)
-            console.print(f"[green]✓ Total exceptions inserted: {total_exceptions_inserted}[/green]")
+            console.print(
+                f"[green]✓ Total exceptions inserted: {total_exceptions_inserted}[/green]"
+            )
 
-        console.print(f"[green]✓ Batch insert complete: {len(all_files)} files, {total_functions_inserted} functions, "
-              f"{total_classes_inserted} classes, {total_variables_inserted} variables, "
-              f"{total_imports_inserted} imports, {total_decorators_inserted} decorators, "
-              f"{total_attributes_inserted} attributes, {total_exceptions_inserted} exceptions[/green]")
+        console.print(
+            f"[green]✓ Batch insert complete: {len(all_files)} files, {total_functions_inserted} functions, "
+            f"{total_classes_inserted} classes, {total_variables_inserted} variables, "
+            f"{total_imports_inserted} imports, {total_decorators_inserted} decorators, "
+            f"{total_attributes_inserted} attributes, {total_exceptions_inserted} exceptions[/green]"
+        )
 
     def batch_add_all_edges_from_results(self, results, chunk_size: int = None) -> None:
         """Batch add all edges from FileAnalysis results AT ONCE.
@@ -2842,7 +2942,9 @@ class DependencyGraph:
         try:
             import pandas as pd
         except ImportError:
-            console.print("[yellow]Warning: pandas not installed, cannot batch insert edges[/yellow]")
+            console.print(
+                "[yellow]Warning: pandas not installed, cannot batch insert edges[/yellow]"
+            )
             return None
 
         # Process ALL results at once - chunking causes crashes!
@@ -2872,60 +2974,61 @@ class DependencyGraph:
             # CONTAINS_FUNCTION edges
             for func in result.functions:
                 func_id = self._make_function_id(file_path, func.name, func.start_line)
-                all_contains_function.append({
-                    'file_path': file_path,
-                    'function_id': func_id
-                })
+                all_contains_function.append(
+                    {"file_path": file_path, "function_id": func_id}
+                )
 
                 # METHOD_OF edges if parent_class
-                parent_class = getattr(func, 'parent_class', None)
+                parent_class = getattr(func, "parent_class", None)
                 if parent_class:
-                    all_method_of.append({
-                        'function_id': func_id,
-                        'file_path': file_path,
-                        'class_name': parent_class
-                    })
+                    all_method_of.append(
+                        {
+                            "function_id": func_id,
+                            "file_path": file_path,
+                            "class_name": parent_class,
+                        }
+                    )
 
             # CONTAINS_CLASS edges and INHERITS edges
             for cls in result.classes:
                 class_id = self._make_class_id(file_path, cls.name, cls.start_line)
-                all_contains_class.append({
-                    'file_path': file_path,
-                    'class_id': class_id
-                })
+                all_contains_class.append(
+                    {"file_path": file_path, "class_id": class_id}
+                )
 
                 # INHERITS edges
                 for base in cls.bases:
-                    all_inherits.append({
-                        'child_id': class_id,
-                        'base_name': base
-                    })
+                    all_inherits.append({"child_id": class_id, "base_name": base})
 
             # CONTAINS_VARIABLE edges (module-level only)
             for var in result.variables:
                 if var.scope == "module":
-                    var_id = self._make_variable_id(file_path, var.name, var.definition_line)
-                    all_contains_variable.append({
-                        'file_path': file_path,
-                        'variable_id': var_id
-                    })
+                    var_id = self._make_variable_id(
+                        file_path, var.name, var.definition_line
+                    )
+                    all_contains_variable.append(
+                        {"file_path": file_path, "variable_id": var_id}
+                    )
 
             # HAS_IMPORT edges
             for imp in result.imports_detailed:
-                import_id = self._make_import_id(file_path, imp.imported_name, imp.line_number)
-                all_has_import.append({
-                    'file_path': file_path,
-                    'import_id': import_id
-                })
+                import_id = self._make_import_id(
+                    file_path, imp.imported_name, imp.line_number
+                )
+                all_has_import.append({"file_path": file_path, "import_id": import_id})
 
             # HAS_ATTRIBUTE edges
             for attr in result.attributes:
-                attr_id = self._make_attribute_id(file_path, attr.class_name, attr.name, attr.definition_line)
-                all_has_attribute.append({
-                    'file_path': file_path,
-                    'class_name': attr.class_name,
-                    'attribute_id': attr_id
-                })
+                attr_id = self._make_attribute_id(
+                    file_path, attr.class_name, attr.name, attr.definition_line
+                )
+                all_has_attribute.append(
+                    {
+                        "file_path": file_path,
+                        "class_name": attr.class_name,
+                        "attribute_id": attr_id,
+                    }
+                )
 
         # Batch insert edges using DataFrames and MERGE
 
@@ -2996,7 +3099,9 @@ class DependencyGraph:
                 MERGE (c)-[:HAS_ATTRIBUTE]->(a)
             """)
 
-        console.print(f"[green]Batch inserted edges: {len(all_contains_function)} CONTAINS_FUNCTION, "
-              f"{len(all_contains_class)} CONTAINS_CLASS, {len(all_contains_variable)} CONTAINS_VARIABLE, "
-              f"{len(all_method_of)} METHOD_OF, {len(all_inherits)} INHERITS, "
-              f"{len(all_has_import)} HAS_IMPORT, {len(all_has_attribute)} HAS_ATTRIBUTE[/green]")
+        console.print(
+            f"[green]Batch inserted edges: {len(all_contains_function)} CONTAINS_FUNCTION, "
+            f"{len(all_contains_class)} CONTAINS_CLASS, {len(all_contains_variable)} CONTAINS_VARIABLE, "
+            f"{len(all_method_of)} METHOD_OF, {len(all_inherits)} INHERITS, "
+            f"{len(all_has_import)} HAS_IMPORT, {len(all_has_attribute)} HAS_ATTRIBUTE[/green]"
+        )

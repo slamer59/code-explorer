@@ -31,6 +31,9 @@ code-explorer analyze PATH [OPTIONS]
 # Basic analysis with exclusions
 code-explorer analyze ./src --exclude tests --exclude .venv
 
+# Include virtual environment (override default exclusion)
+code-explorer analyze . --include .venv --include venv
+
 # Force full refresh (clears database)
 code-explorer analyze ./src --refresh
 
@@ -41,12 +44,19 @@ code-explorer analyze ./src --workers 16
 **Options:**
 - `PATH` (required): Directory containing Python code
 - `--exclude PATTERN`: Exclude patterns (repeatable)
+- `--include PATTERN`: Override default exclusions (repeatable)
 - `--workers N`: Parallel workers (default: 4)
 - `--db-path PATH`: Database location (default: `.code-explorer/graph.db`)
 - `--refresh`: Force full re-analysis
 
+**Note**: To analyze `.venv`, use `--include .venv --include venv` to override both default exclusions.
+
 **Output Example:**
 ```
+Analyzing codebase at: /home/user/project/src
+Database location: /home/user/project/.code-explorer/graph.db
+Excluding: __pycache__, .pytest_cache, htmlcov, dist, build, .git, .venv, venv
+
 Analysis complete!
 ┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
 ┃ Metric                 ┃ Count ┃

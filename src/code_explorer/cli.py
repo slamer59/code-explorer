@@ -107,6 +107,11 @@ def cli() -> None:
     help="Patterns to exclude (can be specified multiple times)",
 )
 @click.option(
+    "--include",
+    multiple=True,
+    help="Override default exclusions (e.g., --include .venv to analyze virtual environment)",
+)
+@click.option(
     "--workers",
     type=int,
     default=4,
@@ -126,6 +131,7 @@ def cli() -> None:
 def analyze(
     path: str,
     exclude: tuple[str, ...],
+    include: tuple[str, ...],
     workers: int,
     db_path: Optional[str],
     refresh: bool,
@@ -167,8 +173,31 @@ def analyze(
     console.print(f"[cyan]Analyzing codebase at:[/cyan] {target_path}")
     console.print(f"[cyan]Database location:[/cyan] {db_path}")
 
+    # Build final exclusion list
+    # Start with defaults
+    default_exclusions = [
+        "__pycache__",
+        ".pytest_cache",
+        "htmlcov",
+        "dist",
+        "build",
+        ".git",
+        ".venv",
+        "venv",
+    ]
+
+    # Apply includes (remove from defaults)
+    final_exclusions = [e for e in default_exclusions if e not in include]
+
+    # Add custom excludes
     if exclude:
-        console.print(f"[cyan]Excluding patterns:[/cyan] {', '.join(exclude)}")
+        final_exclusions.extend(exclude)
+
+    # Display exclusion info
+    if include:
+        console.print(f"[cyan]Including (overriding defaults):[/cyan] {', '.join(include)}")
+    if final_exclusions:
+        console.print(f"[dim]Excluding:[/dim] {', '.join(final_exclusions)}")
 
     # Initialize graph
     try:
@@ -191,7 +220,7 @@ def analyze(
         results = analyzer.analyze_directory(
             target_path,
             parallel=(workers > 1),
-            exclude_patterns=list(exclude) if exclude else None,
+            exclude_patterns=final_exclusions,  # Pass list directly (can be empty)
         )
         analysis_time = time.time() - step_start
         console.print(f"[dim]⏱  File analysis: {analysis_time:.2f}s[/dim]")

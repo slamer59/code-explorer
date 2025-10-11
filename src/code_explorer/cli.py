@@ -11,7 +11,15 @@ from typing import Optional
 
 import click
 from rich.console import Console
-from rich.progress import track
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    track,
+)
 from rich.table import Table
 
 console = Console()
@@ -80,6 +88,11 @@ def cli() -> None:
     default=None,
     help="Store only first N lines of source code (preview mode)",
 )
+@click.option(
+    "--verbose-progress",
+    is_flag=True,
+    help="Show detailed nested progress bars for each file being analyzed",
+)
 def analyze(
     path: str,
     exclude: tuple[str, ...],
@@ -88,6 +101,7 @@ def analyze(
     refresh: bool,
     no_source: bool,
     source_lines: Optional[int],
+    verbose_progress: bool,
 ) -> None:
     """Analyze Python codebase and build dependency graph.
 
@@ -161,68 +175,28 @@ def analyze(
         results = analyzer.analyze_directory(
             target_path,
             parallel=(workers > 1),
-            exclude_patterns=list(exclude) if exclude else None
+            exclude_patterns=list(exclude) if exclude else None,
+            verbose_progress=verbose_progress
         )
 
-        # Populate graph with results
+        # Populate graph with results using BATCH operations
         console.print("\n[cyan]Building dependency graph...[/cyan]")
 
-        files_processed = 0
+        files_processed = len(results)
         files_skipped = 0
 
-        for result in track(results, description="[cyan]Processing results...[/cyan]"):
-            # Compute file hash for incremental updates
-            file_path = Path(result.file_path)
-            if file_path.exists():
-                file_hash = graph.compute_file_hash(file_path)
+        # BATCH INSERT: All nodes at once (MUCH faster than one-by-one!)
+        console.print("[cyan]Batch inserting nodes...[/cyan]")
+        graph.batch_add_all_from_results(results)
 
-                # Skip if file hasn't changed (unless refresh was requested)
-                if not refresh and graph.file_exists(result.file_path, file_hash):
-                    files_skipped += 1
-                    continue
+        # BATCH INSERT: All edges at once
+        console.print("[cyan]Batch inserting edges...[/cyan]")
+        graph.batch_add_all_edges_from_results(results)
 
-                # If file changed, delete old data
-                if not refresh:
-                    graph.delete_file_data(result.file_path)
-
-                # Add file node
-                graph.add_file(result.file_path, "python", file_hash)
-                files_processed += 1
-
-            # Add classes to graph
-            for cls in result.classes:
-                graph.add_class(
-                    name=cls.name,
-                    file=cls.file,
-                    start_line=cls.start_line,
-                    end_line=cls.end_line,
-                    bases=cls.bases,
-                    is_public=cls.is_public,
-                    source_code=prepare_source(cls.source_code)
-                )
-
-            # Add functions to graph
-            for func in result.functions:
-                graph.add_function(
-                    name=func.name,
-                    file=func.file,
-                    start_line=func.start_line,
-                    end_line=func.end_line,
-                    is_public=func.is_public,
-                    source_code=prepare_source(func.source_code),
-                    parent_class=func.parent_class
-                )
-
-            # Add variables to graph
-            for var in result.variables:
-                graph.add_variable(
-                    name=var.name,
-                    file=var.file,
-                    definition_line=var.definition_line,
-                    scope=var.scope
-                )
-
-            # Add function calls to graph
+        # Function calls still need special handling (cross-file references)
+        console.print("[cyan]Processing function calls...[/cyan]")
+        call_count = 0
+        for result in results:
             for call in result.function_calls:
                 # Try to find the called function in the graph
                 caller_file = result.file_path
@@ -241,8 +215,8 @@ def analyze(
                     continue  # Skip if caller function not found
 
                 # Find matching callee function (simple name matching)
-                for func in results:
-                    for f in func.functions:
+                for func_result in results:
+                    for f in func_result.functions:
                         if f.name == called_name:
                             graph.add_call(
                                 caller_file=caller_file,
@@ -253,55 +227,10 @@ def analyze(
                                 callee_start_line=f.start_line,
                                 call_line=call_line
                             )
+                            call_count += 1
                             break
 
-            # Add detailed imports to graph
-            for imp in result.imports_detailed:
-                graph.add_import(
-                    imported_name=imp.imported_name,
-                    import_type=imp.import_type,
-                    file=result.file_path,
-                    line_number=imp.line_number,
-                    alias=imp.alias,
-                    is_relative=imp.is_relative
-                )
-
-            # Add decorators to graph
-            for dec in result.decorators:
-                graph.add_decorator(
-                    name=dec.name,
-                    file=dec.file,
-                    line_number=dec.line_number,
-                    arguments=dec.arguments
-                )
-
-            # Add attributes to graph
-            for attr in result.attributes:
-                graph.add_attribute(
-                    name=attr.name,
-                    class_name=attr.class_name,
-                    file=attr.file,
-                    definition_line=attr.definition_line,
-                    type_hint=attr.type_hint,
-                    is_class_attribute=attr.is_class_attribute
-                )
-
-            # Add exceptions to graph
-            for exc in result.exceptions:
-                graph.add_exception(
-                    name=exc.name,
-                    file=exc.file,
-                    line_number=exc.line_number
-                )
-
-            # Add module info to graph
-            if result.module_info:
-                graph.add_module(
-                    name=result.module_info.name,
-                    path=result.module_info.path,
-                    is_package=result.module_info.is_package,
-                    docstring=result.module_info.docstring
-                )
+        console.print(f"[green]Added {call_count} function call edges[/green]")
 
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)

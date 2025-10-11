@@ -121,22 +121,6 @@ def cli() -> None:
     is_flag=True,
     help="Force full re-analysis (clears existing database)",
 )
-@click.option(
-    "--no-source",
-    is_flag=True,
-    help="Don't store function/class source code in database (saves space)",
-)
-@click.option(
-    "--source-lines",
-    type=int,
-    default=None,
-    help="Store only first N lines of source code (preview mode)",
-)
-@click.option(
-    "--verbose-progress",
-    is_flag=True,
-    help="Show detailed nested progress bars for each file being analyzed",
-)
 def analyze(
     path: str,
     exclude: tuple[str, ...],
@@ -152,15 +136,10 @@ def analyze(
 
     PATH: Directory containing Python code to analyze
 
-    Source code storage options:
-        --no-source: Don't store source code (saves space)
-        --source-lines N: Store only first N lines (preview mode)
 
     Examples:
         code-explorer analyze ./src
         code-explorer analyze /path/to/project --exclude tests --exclude migrations
-        code-explorer analyze ./src --no-source
-        code-explorer analyze ./src --source-lines 10
     """
     try:
         from .analyzer import CodeAnalyzer

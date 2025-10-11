@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 import kuzu
+from rich.console import Console
+
+console = Console()
 
 
 @dataclass
@@ -678,7 +681,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding function {name} in {file}: {e}")
+            console.print(f"[red]Error adding function {name} in {file}: {e}[/red]")
 
     def add_variable(
         self, name: str, file: str, definition_line: int, scope: str
@@ -762,7 +765,7 @@ class DependencyGraph:
                     pass
 
         except Exception as e:
-            print(f"Error adding variable {name} in {file}: {e}")
+            console.print(f"[red]Error adding variable {name} in {file}: {e}[/red]")
 
     def add_class(
         self,
@@ -875,7 +878,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding class {name} in {file}: {e}")
+            console.print(f"[red]Error adding class {name} in {file}: {e}[/red]")
 
     def add_import(
         self,
@@ -970,7 +973,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding import {imported_name} in {file}: {e}")
+            console.print(f"[red]Error adding import {imported_name} in {file}: {e}[/red]")
 
     def add_decorator(
         self, name: str, file: str, line_number: int, arguments: str = "{}"
@@ -1040,7 +1043,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding decorator {name} in {file}: {e}")
+            console.print(f"[red]Error adding decorator {name} in {file}: {e}[/red]")
 
     def add_attribute(
         self,
@@ -1135,7 +1138,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding attribute {name} to class {class_name} in {file}: {e}")
+            console.print(f"[red]Error adding attribute {name} to class {class_name} in {file}: {e}[/red]")
 
     def add_exception(self, name: str, file: str, line_number: int) -> None:
         """Add an exception to the graph.
@@ -1198,7 +1201,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding exception {name} in {file}: {e}")
+            console.print(f"[red]Error adding exception {name} in {file}: {e}[/red]")
 
     def add_module(
         self, name: str, path: str, is_package: bool, docstring: Optional[str] = None
@@ -1268,7 +1271,7 @@ class DependencyGraph:
                 )
 
         except Exception as e:
-            print(f"Error adding module {name}: {e}")
+            console.print(f"[red]Error adding module {name}: {e}[/red]")
 
     def add_call(
         self,
@@ -1543,7 +1546,7 @@ class DependencyGraph:
 
             return callers
         except Exception as e:
-            print(f"Error getting callers for {function} in {file}: {e}")
+            console.print(f"[red]Error getting callers for {function} in {file}: {e}[/red]")
             return []
 
     def get_callees(self, file: str, function: str) -> List[Tuple[str, str, int]]:
@@ -1574,7 +1577,7 @@ class DependencyGraph:
 
             return callees
         except Exception as e:
-            print(f"Error getting callees for {function} in {file}: {e}")
+            console.print(f"[red]Error getting callees for {function} in {file}: {e}[/red]")
             return []
 
     def get_variable_usage(
@@ -1609,7 +1612,7 @@ class DependencyGraph:
 
             return usages
         except Exception as e:
-            print(f"Error getting variable usage for {var_name} in {file}: {e}")
+            console.print(f"[red]Error getting variable usage for {var_name} in {file}: {e}[/red]")
             return []
 
     def get_function(self, file: str, name: str) -> Optional[FunctionNode]:
@@ -1644,7 +1647,7 @@ class DependencyGraph:
                 )
             return None
         except Exception as e:
-            print(f"Error getting function {name} in {file}: {e}")
+            console.print(f"[red]Error getting function {name} in {file}: {e}[/red]")
             return None
 
     def get_all_functions_in_file(self, file: str) -> List[FunctionNode]:
@@ -1680,7 +1683,7 @@ class DependencyGraph:
 
             return functions
         except Exception as e:
-            print(f"Error getting functions in file {file}: {e}")
+            console.print(f"[red]Error getting functions in file {file}: {e}[/red]")
             return []
 
     def get_class(self, file: str, name: str) -> Optional[ClassNode]:
@@ -1717,7 +1720,7 @@ class DependencyGraph:
                 )
             return None
         except Exception as e:
-            print(f"Error getting class {name} in {file}: {e}")
+            console.print(f"[red]Error getting class {name} in {file}: {e}[/red]")
             return None
 
     def get_all_classes_in_file(self, file: str) -> List[ClassNode]:
@@ -1755,7 +1758,7 @@ class DependencyGraph:
 
             return classes
         except Exception as e:
-            print(f"Error getting classes in file {file}: {e}")
+            console.print(f"[red]Error getting classes in file {file}: {e}[/red]")
             return []
 
     def get_statistics(self) -> Dict[str, any]:
@@ -1861,7 +1864,7 @@ class DependencyGraph:
                 "schema_version": self.schema_version,
             }
         except Exception as e:
-            print(f"Error getting statistics: {e}")
+            console.print(f"[red]Error getting statistics: {e}[/red]")
             return {
                 "total_files": 0,
                 "total_functions": 0,
@@ -1914,7 +1917,7 @@ class DependencyGraph:
 
             return imports
         except Exception as e:
-            print(f"Error getting imports for file {file_path}: {e}")
+            console.print(f"[red]Error getting imports for file {file_path}: {e}[/red]")
             return []
 
     def get_decorators_for_function(
@@ -1951,8 +1954,8 @@ class DependencyGraph:
 
             return decorators
         except Exception as e:
-            print(
-                f"Error getting decorators for function {function_name} in {file}: {e}"
+            console.print(
+                f"[red]Error getting decorators for function {function_name} in {file}: {e}[/red]"
             )
             return []
 
@@ -1995,7 +1998,7 @@ class DependencyGraph:
 
             return attributes
         except Exception as e:
-            print(f"Error getting attributes for class {class_name} in {file}: {e}")
+            console.print(f"[red]Error getting attributes for class {class_name} in {file}: {e}[/red]")
             return []
 
     def get_functions_raising_exception(
@@ -2026,7 +2029,7 @@ class DependencyGraph:
 
             return functions
         except Exception as e:
-            print(f"Error getting functions raising {exception_name}: {e}")
+            console.print(f"[red]Error getting functions raising {exception_name}: {e}[/red]")
             return []
 
     def get_module_hierarchy(self) -> List[ModuleNode]:
@@ -2055,7 +2058,7 @@ class DependencyGraph:
 
             return modules
         except Exception as e:
-            print(f"Error getting module hierarchy: {e}")
+            console.print(f"[red]Error getting module hierarchy: {e}[/red]")
             return []
 
     def find_import_usages(self, function_or_class_name: str) -> List[Tuple[str, int]]:
@@ -2083,7 +2086,7 @@ class DependencyGraph:
 
             return usages
         except Exception as e:
-            print(f"Error finding import usages for {function_or_class_name}: {e}")
+            console.print(f"[red]Error finding import usages for {function_or_class_name}: {e}[/red]")
             return []
 
     def find_attribute_modifiers(
@@ -2115,7 +2118,7 @@ class DependencyGraph:
 
             return modifiers
         except Exception as e:
-            print(f"Error finding modifiers for {class_name}.{attribute_name}: {e}")
+            console.print(f"[red]Error finding modifiers for {class_name}.{attribute_name}: {e}[/red]")
             return []
 
     def file_exists(self, file_path: str, content_hash: str) -> bool:
@@ -2142,7 +2145,7 @@ class DependencyGraph:
                 return row[0] == content_hash
             return False
         except Exception as e:
-            print(f"Error checking file existence: {e}")
+            console.print(f"[red]Error checking file existence: {e}[/red]")
             return False
 
     def add_file(self, file_path: str, language: str, content_hash: str) -> None:
@@ -2202,7 +2205,7 @@ class DependencyGraph:
                     },
                 )
         except Exception as e:
-            print(f"Error adding file {file_path}: {e}")
+            console.print(f"[red]Error adding file {file_path}: {e}[/red]")
 
     def delete_file_data(self, file_path: str) -> None:
         """Delete all nodes and edges for a file.
@@ -2288,7 +2291,7 @@ class DependencyGraph:
             )
 
         except Exception as e:
-            print(f"Error deleting file data for {file_path}: {e}")
+            console.print(f"[red]Error deleting file data for {file_path}: {e}[/red]")
 
     def clear_all(self) -> None:
         """Clear all data from the database.
@@ -2342,7 +2345,7 @@ class DependencyGraph:
                     pass
 
         except Exception as e:
-            print(f"Error clearing database: {e}")
+            console.print(f"[red]Error clearing database: {e}[/red]")
 
     def compute_file_hash(self, file_path: Path) -> str:
         """Compute SHA256 hash of file contents.
@@ -2359,16 +2362,15 @@ class DependencyGraph:
                 hasher.update(chunk)
         return hasher.hexdigest()
 
-    def batch_add_all_from_results(self, results) -> None:
-        """Batch add all nodes and edges from multiple FileAnalysis results.
+    def batch_add_all_from_results(self, results, chunk_size: int = None) -> None:
+        """Batch add all nodes from multiple FileAnalysis results AT ONCE.
 
-        This is MUCH faster than calling add_* methods individually because it:
-        1. Collects all data into DataFrames
-        2. Uses MERGE with LOAD FROM for batch upserts
-        3. Reduces database round trips from thousands to dozens
+        This MUST process ALL files in a single batch operation.
+        Chunking causes segmentation faults with KuzuDB!
 
         Args:
             results: List of FileAnalysis objects
+            chunk_size: Ignored (kept for API compatibility)
 
         Raises:
             RuntimeError: If database is in read-only mode
@@ -2378,9 +2380,27 @@ class DependencyGraph:
         try:
             import pandas as pd
         except ImportError:
-            print("Warning: pandas not installed, falling back to slow individual inserts")
-            # Fallback to individual inserts
+            console.print("[yellow]Warning: pandas not installed, falling back to slow individual inserts[/yellow]")
             return None
+
+        # Process ALL results at once - chunking causes crashes!
+        self._batch_add_nodes_chunk(results, pd)
+
+    def _batch_add_nodes_chunk(self, results, pd) -> None:
+        """Helper method to batch insert nodes for a chunk of results.
+
+        Args:
+            results: List of FileAnalysis objects (chunk)
+            pd: pandas module
+        """
+        # Constants for chunking all data types (avoid memory exhaustion)
+        FUNCTION_CHUNK_SIZE = 500      # Heavy (has source code)
+        CLASS_CHUNK_SIZE = 500         # Heavy (has source code)
+        IMPORT_CHUNK_SIZE = 1000       # Medium
+        VARIABLE_CHUNK_SIZE = 1000     # Light
+        DECORATOR_CHUNK_SIZE = 1000    # Light
+        ATTRIBUTE_CHUNK_SIZE = 1000    # Medium
+        EXCEPTION_CHUNK_SIZE = 1000    # Light
 
         # Collect all nodes by type
         all_files = []
@@ -2391,6 +2411,15 @@ class DependencyGraph:
         all_decorators = []
         all_attributes = []
         all_exceptions = []
+
+        # Counters for progress tracking
+        total_functions_inserted = 0
+        total_classes_inserted = 0
+        total_imports_inserted = 0
+        total_variables_inserted = 0
+        total_decorators_inserted = 0
+        total_attributes_inserted = 0
+        total_exceptions_inserted = 0
 
         # Process each result
         for result in results:
@@ -2491,109 +2520,319 @@ class DependencyGraph:
                     'line_number': exc.line_number
                 })
 
+            # Insert functions in chunks to avoid memory exhaustion
+            if len(all_functions) >= FUNCTION_CHUNK_SIZE:
+                df_functions = pd.DataFrame(all_functions)
+                self.conn.execute("""
+                    LOAD FROM df_functions
+                    MERGE (f:Function {id: id})
+                    ON MATCH SET f.name = name, f.file = file, f.start_line = start_line,
+                        f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                    ON CREATE SET f.name = name, f.file = file, f.start_line = start_line,
+                        f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                """)
+                total_functions_inserted += len(all_functions)
+                console.print(f"[cyan]  → Inserted {total_functions_inserted} functions so far...[/cyan]")
+                all_functions = []  # Clear for next chunk
+
+            # Insert classes in chunks to avoid memory exhaustion
+            if len(all_classes) >= CLASS_CHUNK_SIZE:
+                df_classes = pd.DataFrame(all_classes)
+                self.conn.execute("""
+                    LOAD FROM df_classes
+                    MERGE (c:Class {id: id})
+                    ON MATCH SET c.name = name, c.file = file, c.start_line = start_line,
+                        c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                    ON CREATE SET c.name = name, c.file = file, c.start_line = start_line,
+                        c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                """)
+                total_classes_inserted += len(all_classes)
+                console.print(f"[cyan]  → Inserted {total_classes_inserted} classes so far...[/cyan]")
+                all_classes = []  # Clear for next chunk
+
+            # Insert imports in chunks to avoid memory exhaustion
+            if len(all_imports) >= IMPORT_CHUNK_SIZE:
+                df_imports = pd.DataFrame(all_imports)
+                self.conn.execute("""
+                    LOAD FROM df_imports
+                    MERGE (i:Import {id: id})
+                    ON MATCH SET i.imported_name = imported_name, i.import_type = import_type,
+                        i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                    ON CREATE SET i.imported_name = imported_name, i.import_type = import_type,
+                        i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                """)
+                total_imports_inserted += len(all_imports)
+                console.print(f"[cyan]  → Inserted {total_imports_inserted} imports so far...[/cyan]")
+                all_imports = []  # Clear for next chunk
+
+            # Insert variables in chunks
+            if len(all_variables) >= VARIABLE_CHUNK_SIZE:
+                df_variables = pd.DataFrame(all_variables)
+                self.conn.execute("""
+                    LOAD FROM df_variables
+                    MERGE (v:Variable {id: id})
+                    ON MATCH SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                    ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                """)
+                total_variables_inserted += len(all_variables)
+                console.print(f"[cyan]  → Inserted {total_variables_inserted} variables so far...[/cyan]")
+                all_variables = []
+
+            # Insert decorators in chunks
+            if len(all_decorators) >= DECORATOR_CHUNK_SIZE:
+                df_decorators = pd.DataFrame(all_decorators)
+                self.conn.execute("""
+                    LOAD FROM df_decorators
+                    MERGE (d:Decorator {id: id})
+                    ON MATCH SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                    ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                """)
+                total_decorators_inserted += len(all_decorators)
+                console.print(f"[cyan]  → Inserted {total_decorators_inserted} decorators so far...[/cyan]")
+                all_decorators = []
+
+            # Insert attributes in chunks
+            if len(all_attributes) >= ATTRIBUTE_CHUNK_SIZE:
+                df_attributes = pd.DataFrame(all_attributes)
+                self.conn.execute("""
+                    LOAD FROM df_attributes
+                    MERGE (a:Attribute {id: id})
+                    ON MATCH SET a.name = name, a.class_name = class_name, a.file = file,
+                        a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                    ON CREATE SET a.name = name, a.class_name = class_name, a.file = file,
+                        a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                """)
+                total_attributes_inserted += len(all_attributes)
+                console.print(f"[cyan]  → Inserted {total_attributes_inserted} attributes so far...[/cyan]")
+                all_attributes = []
+
+            # Insert exceptions in chunks
+            # NOTE: Use COPY instead of MERGE for exceptions to avoid segfault
+            if len(all_exceptions) >= EXCEPTION_CHUNK_SIZE:
+                df_exceptions = pd.DataFrame(all_exceptions)
+                self.conn.execute("""
+                    COPY Exception FROM df_exceptions (ignore_errors=true)
+                """)
+                total_exceptions_inserted += len(all_exceptions)
+                console.print(f"[cyan]  → Inserted {total_exceptions_inserted} exceptions so far...[/cyan]")
+                all_exceptions = []
+
         # Batch insert using DataFrames and MERGE
 
         # 1. Batch insert files
+        console.print(f"[cyan]Creating DataFrame for {len(all_files)} files...[/cyan]")
         if all_files:
             df_files = pd.DataFrame(all_files)
+            console.print(f"[cyan]Loading files to database...[/cyan]")
             self.conn.execute("""
                 LOAD FROM df_files
                 MERGE (f:File {path: path})
                 ON MATCH SET f.language = language, f.content_hash = content_hash, f.last_modified = last_modified
                 ON CREATE SET f.language = language, f.content_hash = content_hash, f.last_modified = last_modified
             """)
+            console.print(f"[green]✓ Files inserted[/green]")
 
-        # 2. Batch insert functions
+        # 2. Insert remaining functions (in small chunks if needed)
         if all_functions:
-            df_functions = pd.DataFrame(all_functions)
-            self.conn.execute("""
-                LOAD FROM df_functions
-                MERGE (f:Function {id: id})
-                ON MATCH SET f.name = name, f.file = file, f.start_line = start_line,
-                    f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
-                ON CREATE SET f.name = name, f.file = file, f.start_line = start_line,
-                    f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_functions)} functions...[/cyan]")
+            # If remaining functions are still too many, chunk them
+            if len(all_functions) > 200:
+                for i in range(0, len(all_functions), 200):
+                    chunk = all_functions[i:i+200]
+                    df_functions = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_functions
+                        MERGE (f:Function {id: id})
+                        ON MATCH SET f.name = name, f.file = file, f.start_line = start_line,
+                            f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                        ON CREATE SET f.name = name, f.file = file, f.start_line = start_line,
+                            f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                    """)
+                    total_functions_inserted += len(chunk)
+            else:
+                df_functions = pd.DataFrame(all_functions)
+                self.conn.execute("""
+                    LOAD FROM df_functions
+                    MERGE (f:Function {id: id})
+                    ON MATCH SET f.name = name, f.file = file, f.start_line = start_line,
+                        f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                    ON CREATE SET f.name = name, f.file = file, f.start_line = start_line,
+                        f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
+                """)
+                total_functions_inserted += len(all_functions)
+            console.print(f"[green]✓ Total functions inserted: {total_functions_inserted}[/green]")
 
-        # 3. Batch insert classes
+        # 3. Insert remaining classes (in small chunks if needed)
         if all_classes:
-            df_classes = pd.DataFrame(all_classes)
-            self.conn.execute("""
-                LOAD FROM df_classes
-                MERGE (c:Class {id: id})
-                ON MATCH SET c.name = name, c.file = file, c.start_line = start_line,
-                    c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
-                ON CREATE SET c.name = name, c.file = file, c.start_line = start_line,
-                    c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_classes)} classes...[/cyan]")
+            # If remaining classes are still too many, chunk them
+            if len(all_classes) > 200:
+                for i in range(0, len(all_classes), 200):
+                    chunk = all_classes[i:i+200]
+                    df_classes = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_classes
+                        MERGE (c:Class {id: id})
+                        ON MATCH SET c.name = name, c.file = file, c.start_line = start_line,
+                            c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                        ON CREATE SET c.name = name, c.file = file, c.start_line = start_line,
+                            c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                    """)
+                    total_classes_inserted += len(chunk)
+            else:
+                df_classes = pd.DataFrame(all_classes)
+                self.conn.execute("""
+                    LOAD FROM df_classes
+                    MERGE (c:Class {id: id})
+                    ON MATCH SET c.name = name, c.file = file, c.start_line = start_line,
+                        c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                    ON CREATE SET c.name = name, c.file = file, c.start_line = start_line,
+                        c.end_line = end_line, c.bases = bases, c.is_public = is_public, c.source_code = source_code
+                """)
+                total_classes_inserted += len(all_classes)
+            console.print(f"[green]✓ Total classes inserted: {total_classes_inserted}[/green]")
 
-        # 4. Batch insert variables
+        # 4. Insert remaining variables (in chunks if needed)
         if all_variables:
-            df_variables = pd.DataFrame(all_variables)
-            self.conn.execute("""
-                LOAD FROM df_variables
-                MERGE (v:Variable {id: id})
-                ON MATCH SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
-                ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_variables)} variables...[/cyan]")
+            # If remaining variables are still too many, chunk them
+            if len(all_variables) > 500:
+                for i in range(0, len(all_variables), 500):
+                    chunk = all_variables[i:i+500]
+                    df_variables = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_variables
+                        MERGE (v:Variable {id: id})
+                        ON MATCH SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                        ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                    """)
+                    total_variables_inserted += len(chunk)
+            else:
+                df_variables = pd.DataFrame(all_variables)
+                self.conn.execute("""
+                    LOAD FROM df_variables
+                    MERGE (v:Variable {id: id})
+                    ON MATCH SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                    ON CREATE SET v.name = name, v.file = file, v.definition_line = definition_line, v.scope = scope
+                """)
+                total_variables_inserted += len(all_variables)
+            console.print(f"[green]✓ Total variables inserted: {total_variables_inserted}[/green]")
 
-        # 5. Batch insert imports
+        # 5. Insert remaining imports (in chunks if needed)
         if all_imports:
-            df_imports = pd.DataFrame(all_imports)
-            self.conn.execute("""
-                LOAD FROM df_imports
-                MERGE (i:Import {id: id})
-                ON MATCH SET i.imported_name = imported_name, i.import_type = import_type,
-                    i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
-                ON CREATE SET i.imported_name = imported_name, i.import_type = import_type,
-                    i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_imports)} imports...[/cyan]")
+            # If remaining imports are still too many, chunk them
+            if len(all_imports) > 500:
+                for i in range(0, len(all_imports), 500):
+                    chunk = all_imports[i:i+500]
+                    df_imports = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_imports
+                        MERGE (i:Import {id: id})
+                        ON MATCH SET i.imported_name = imported_name, i.import_type = import_type,
+                            i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                        ON CREATE SET i.imported_name = imported_name, i.import_type = import_type,
+                            i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                    """)
+                    total_imports_inserted += len(chunk)
+            else:
+                df_imports = pd.DataFrame(all_imports)
+                self.conn.execute("""
+                    LOAD FROM df_imports
+                    MERGE (i:Import {id: id})
+                    ON MATCH SET i.imported_name = imported_name, i.import_type = import_type,
+                        i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                    ON CREATE SET i.imported_name = imported_name, i.import_type = import_type,
+                        i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
+                """)
+                total_imports_inserted += len(all_imports)
+            console.print(f"[green]✓ Total imports inserted: {total_imports_inserted}[/green]")
 
-        # 6. Batch insert decorators
+        # 6. Insert remaining decorators (in chunks if needed)
         if all_decorators:
-            df_decorators = pd.DataFrame(all_decorators)
-            self.conn.execute("""
-                LOAD FROM df_decorators
-                MERGE (d:Decorator {id: id})
-                ON MATCH SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
-                ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_decorators)} decorators...[/cyan]")
+            # If remaining decorators are still too many, chunk them
+            if len(all_decorators) > 500:
+                for i in range(0, len(all_decorators), 500):
+                    chunk = all_decorators[i:i+500]
+                    df_decorators = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_decorators
+                        MERGE (d:Decorator {id: id})
+                        ON MATCH SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                        ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                    """)
+                    total_decorators_inserted += len(chunk)
+            else:
+                df_decorators = pd.DataFrame(all_decorators)
+                self.conn.execute("""
+                    LOAD FROM df_decorators
+                    MERGE (d:Decorator {id: id})
+                    ON MATCH SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                    ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
+                """)
+                total_decorators_inserted += len(all_decorators)
+            console.print(f"[green]✓ Total decorators inserted: {total_decorators_inserted}[/green]")
 
-        # 7. Batch insert attributes
+        # 7. Insert remaining attributes (in chunks if needed)
         if all_attributes:
-            df_attributes = pd.DataFrame(all_attributes)
-            self.conn.execute("""
-                LOAD FROM df_attributes
-                MERGE (a:Attribute {id: id})
-                ON MATCH SET a.name = name, a.class_name = class_name, a.file = file,
-                    a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
-                ON CREATE SET a.name = name, a.class_name = class_name, a.file = file,
-                    a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_attributes)} attributes...[/cyan]")
+            # If remaining attributes are still too many, chunk them
+            if len(all_attributes) > 500:
+                for i in range(0, len(all_attributes), 500):
+                    chunk = all_attributes[i:i+500]
+                    df_attributes = pd.DataFrame(chunk)
+                    self.conn.execute("""
+                        LOAD FROM df_attributes
+                        MERGE (a:Attribute {id: id})
+                        ON MATCH SET a.name = name, a.class_name = class_name, a.file = file,
+                            a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                        ON CREATE SET a.name = name, a.class_name = class_name, a.file = file,
+                            a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                    """)
+                    total_attributes_inserted += len(chunk)
+            else:
+                df_attributes = pd.DataFrame(all_attributes)
+                self.conn.execute("""
+                    LOAD FROM df_attributes
+                    MERGE (a:Attribute {id: id})
+                    ON MATCH SET a.name = name, a.class_name = class_name, a.file = file,
+                        a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                    ON CREATE SET a.name = name, a.class_name = class_name, a.file = file,
+                        a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
+                """)
+                total_attributes_inserted += len(all_attributes)
+            console.print(f"[green]✓ Total attributes inserted: {total_attributes_inserted}[/green]")
 
-        # 8. Batch insert exceptions
+        # 8. Insert remaining exceptions (in chunks if needed)
+        # NOTE: Use COPY instead of MERGE for exceptions to avoid segfault
         if all_exceptions:
-            df_exceptions = pd.DataFrame(all_exceptions)
-            self.conn.execute("""
-                LOAD FROM df_exceptions
-                MERGE (e:Exception {id: id})
-                ON MATCH SET e.name = name, e.file = file, e.line_number = line_number
-                ON CREATE SET e.name = name, e.file = file, e.line_number = line_number
-            """)
+            console.print(f"[cyan]Inserting remaining {len(all_exceptions)} exceptions...[/cyan]")
+            # Always chunk exceptions into smaller batches
+            for i in range(0, len(all_exceptions), 100):
+                chunk = all_exceptions[i:i+100]
+                df_exceptions = pd.DataFrame(chunk)
+                self.conn.execute("""
+                    COPY Exception FROM df_exceptions (ignore_errors=true)
+                """)
+                total_exceptions_inserted += len(chunk)
+            console.print(f"[green]✓ Total exceptions inserted: {total_exceptions_inserted}[/green]")
 
-        print(f"Batch inserted: {len(all_files)} files, {len(all_functions)} functions, "
-              f"{len(all_classes)} classes, {len(all_variables)} variables, "
-              f"{len(all_imports)} imports, {len(all_decorators)} decorators, "
-              f"{len(all_attributes)} attributes, {len(all_exceptions)} exceptions")
+        console.print(f"[green]✓ Batch insert complete: {len(all_files)} files, {total_functions_inserted} functions, "
+              f"{total_classes_inserted} classes, {total_variables_inserted} variables, "
+              f"{total_imports_inserted} imports, {total_decorators_inserted} decorators, "
+              f"{total_attributes_inserted} attributes, {total_exceptions_inserted} exceptions[/green]")
 
-    def batch_add_all_edges_from_results(self, results) -> None:
-        """Batch add all edges from multiple FileAnalysis results.
+    def batch_add_all_edges_from_results(self, results, chunk_size: int = None) -> None:
+        """Batch add all edges from FileAnalysis results AT ONCE.
 
-        This creates edges between nodes that were batch inserted by batch_add_all_from_results().
+        This MUST process ALL files in a single batch operation.
+        Chunking causes segmentation faults with KuzuDB!
         Must be called AFTER batch_add_all_from_results().
 
         Args:
             results: List of FileAnalysis objects
+            chunk_size: Ignored (kept for API compatibility)
 
         Raises:
             RuntimeError: If database is in read-only mode
@@ -2603,8 +2842,19 @@ class DependencyGraph:
         try:
             import pandas as pd
         except ImportError:
-            print("Warning: pandas not installed, cannot batch insert edges")
+            console.print("[yellow]Warning: pandas not installed, cannot batch insert edges[/yellow]")
             return None
+
+        # Process ALL results at once - chunking causes crashes!
+        self._batch_add_edges_chunk(results, pd)
+
+    def _batch_add_edges_chunk(self, results, pd) -> None:
+        """Helper method to batch insert edges for a chunk of results.
+
+        Args:
+            results: List of FileAnalysis objects (chunk)
+            pd: pandas module
+        """
 
         # Collect all edges by type
         all_contains_function = []
@@ -2746,7 +2996,7 @@ class DependencyGraph:
                 MERGE (c)-[:HAS_ATTRIBUTE]->(a)
             """)
 
-        print(f"Batch inserted edges: {len(all_contains_function)} CONTAINS_FUNCTION, "
+        console.print(f"[green]Batch inserted edges: {len(all_contains_function)} CONTAINS_FUNCTION, "
               f"{len(all_contains_class)} CONTAINS_CLASS, {len(all_contains_variable)} CONTAINS_VARIABLE, "
               f"{len(all_method_of)} METHOD_OF, {len(all_inherits)} INHERITS, "
-              f"{len(all_has_import)} HAS_IMPORT, {len(all_has_attribute)} HAS_ATTRIBUTE")
+              f"{len(all_has_import)} HAS_IMPORT, {len(all_has_attribute)} HAS_ATTRIBUTE[/green]")

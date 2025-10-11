@@ -10,7 +10,7 @@ import hashlib
 import json
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -193,40 +193,59 @@ class CodeAnalyzer:
             logger.error(f"Error computing hash for {file_path}: {e}")
             return ""
 
-    def _run_parallel_extractions(self, tree: ast.AST, result: FileAnalysis) -> None:
-        """Run independent extraction methods in parallel for better performance.
+    def _run_extractions(self, tree: ast.AST, result: FileAnalysis) -> None:
+        """Run extraction methods sequentially.
 
         Args:
             tree: AST tree
             result: FileAnalysis to populate
         """
-        # Define extraction functions that can run in parallel
-        independent_extractions: List[Tuple[Callable, Tuple]] = [
-            (self._extract_functions_ast, (tree, result)),
-            (self._extract_imports_ast, (tree, result)),
-            (self._extract_variables_ast, (tree, result)),
-            (self._extract_imports_detailed, (tree, result)),
-            (self._extract_decorators, (tree, result)),
-            (self._extract_exceptions, (tree, result)),
-            (self._extract_attributes, (tree, result)),
-            (self._extract_module_info, (result,)),
-        ]
+        # Run extractions sequentially (faster due to no thread pool overhead)
+        try:
+            self._extract_functions_ast(tree, result)
+        except Exception as e:
+            logger.error(f"Function extraction failed: {e}")
 
-        # Run independent extractions in parallel (use all available CPU cores)
-        with ThreadPoolExecutor(max_workers=os.cpu_count() or 8) as executor:
-            futures = [
-                executor.submit(func, *args) for func, args in independent_extractions
-            ]
-            # Wait for all to complete
-            for future in futures:
-                try:
-                    future.result()
-                except Exception as e:
-                    logger.error(f"Extraction failed: {e}")
+        try:
+            self._extract_imports_ast(tree, result)
+        except Exception as e:
+            logger.error(f"Import extraction failed: {e}")
 
-        # Run dependent extractions sequentially
+        try:
+            self._extract_variables_ast(tree, result)
+        except Exception as e:
+            logger.error(f"Variable extraction failed: {e}")
+
+        try:
+            self._extract_imports_detailed(tree, result)
+        except Exception as e:
+            logger.error(f"Detailed import extraction failed: {e}")
+
+        try:
+            self._extract_decorators(tree, result)
+        except Exception as e:
+            logger.error(f"Decorator extraction failed: {e}")
+
+        try:
+            self._extract_exceptions(tree, result)
+        except Exception as e:
+            logger.error(f"Exception extraction failed: {e}")
+
+        try:
+            self._extract_attributes(tree, result)
+        except Exception as e:
+            logger.error(f"Attribute extraction failed: {e}")
+
+        try:
+            self._extract_module_info(result)
+        except Exception as e:
+            logger.error(f"Module info extraction failed: {e}")
+
         # Extract classes (depends on functions being extracted first)
-        self._extract_classes_ast(tree, result)
+        try:
+            self._extract_classes_ast(tree, result)
+        except Exception as e:
+            logger.error(f"Class extraction failed: {e}")
 
     def analyze_file(
         self,
@@ -289,8 +308,8 @@ class CodeAnalyzer:
                     description=f"  └─ {file_name}: Running extractions...",
                 )
 
-            # Run all AST extractions (parallel for independent, sequential for dependent)
-            self._run_parallel_extractions(tree, result)
+            # Run all AST extractions sequentially
+            self._run_extractions(tree, result)
 
             if sub_task_id is not None:
                 file_name = Path(file_path).name
@@ -304,36 +323,30 @@ class CodeAnalyzer:
             try:
                 astroid_module = astroid.parse(content, module_name=file_path.stem)
 
-                # Run astroid extractions in parallel
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    astroid_extractions = [
-                        executor.submit(
-                            self._extract_function_calls_astroid, astroid_module, result
-                        ),
-                        executor.submit(
-                            self._extract_variable_usage_astroid, astroid_module, result
-                        ),
-                    ]
-                    for future in astroid_extractions:
-                        try:
-                            future.result()
-                        except Exception as e:
-                            logger.error(f"Astroid extraction failed: {e}")
+                # Run astroid extractions sequentially
+                try:
+                    self._extract_function_calls_astroid(astroid_module, result)
+                except Exception as e:
+                    logger.error(f"Astroid function call extraction failed: {e}")
+
+                try:
+                    self._extract_variable_usage_astroid(astroid_module, result)
+                except Exception as e:
+                    logger.error(f"Astroid variable usage extraction failed: {e}")
             except Exception as e:
                 logger.warning(
                     f"Astroid analysis failed for {file_path}, falling back to ast: {e}"
                 )
-                # Fallback to simpler ast-based call extraction (parallel)
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    fallback_extractions = [
-                        executor.submit(self._extract_function_calls_ast, tree, result),
-                        executor.submit(self._extract_variable_usage_ast, tree, result),
-                    ]
-                    for future in fallback_extractions:
-                        try:
-                            future.result()
-                        except Exception as e:
-                            logger.error(f"Fallback extraction failed: {e}")
+                # Fallback to simpler ast-based call extraction
+                try:
+                    self._extract_function_calls_ast(tree, result)
+                except Exception as e:
+                    logger.error(f"Fallback function call extraction failed: {e}")
+
+                try:
+                    self._extract_variable_usage_ast(tree, result)
+                except Exception as e:
+                    logger.error(f"Fallback variable usage extraction failed: {e}")
 
             if sub_task_id is not None:
                 file_name = Path(file_path).name
@@ -1235,8 +1248,8 @@ class CodeAnalyzer:
             )
 
             if parallel:
-                # Use ThreadPoolExecutor for parallel analysis (use all available CPU cores)
-                with ThreadPoolExecutor(max_workers=os.cpu_count() or 8) as executor:
+                # Use ProcessPoolExecutor for true parallel CPU-bound processing
+                with ProcessPoolExecutor(max_workers=os.cpu_count() or 8) as executor:
                     # Submit all files for analysis
                     future_to_file = {
                         executor.submit(
@@ -1258,7 +1271,7 @@ class CodeAnalyzer:
                                 # Show which file just completed
                                 progress.update(
                                     task,
-                                    description=f"Analyzing files... (completed {py_file.name})",
+                                    description="Analyzing files...",
                                 )
                         except Exception as e:
                             logger.error(f"Failed to analyze {py_file}: {e}")
@@ -1278,7 +1291,7 @@ class CodeAnalyzer:
                             # Show which file just completed
                             progress.update(
                                 task,
-                                description=f"Analyzing files... (completed {py_file.name})",
+                                description="Analyzing files...",
                             )
                     except Exception as e:
                         logger.error(f"Failed to analyze {py_file}: {e}")
@@ -1371,28 +1384,24 @@ def main():
     parser = argparse.ArgumentParser(
         description="Analyze Python code to extract functions, classes, and dependencies"
     )
-    parser.add_argument(
-        "path",
-        type=Path,
-        help="File or directory to analyze"
-    )
+    parser.add_argument("path", type=Path, help="File or directory to analyze")
     parser.add_argument(
         "--parallel",
         action="store_true",
         default=True,
-        help="Use parallel processing for directory analysis (default: True)"
+        help="Use parallel processing for directory analysis (default: True)",
     )
     parser.add_argument(
         "--no-parallel",
         dest="parallel",
         action="store_false",
-        help="Disable parallel processing"
+        help="Disable parallel processing",
     )
     parser.add_argument(
         "--verbose-progress",
         action="store_true",
         default=False,
-        help="Show detailed nested progress bars for each file being analyzed"
+        help="Show detailed nested progress bars for each file being analyzed",
     )
 
     args = parser.parse_args()
@@ -1406,7 +1415,7 @@ def main():
         results = analyzer.analyze_directory(
             args.path,
             parallel=args.parallel,
-            verbose_progress=args.verbose_progress  # Pass the new flag
+            verbose_progress=args.verbose_progress,  # Pass the new flag
         )
         _display_directory_analysis(results)
     else:

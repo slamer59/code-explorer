@@ -166,8 +166,8 @@ def analyze(
         if no_source:
             return None
         if source_lines and source_code:
-            lines = source_code.split('\n')
-            return '\n'.join(lines[:source_lines])
+            lines = source_code.split("\n")
+            return "\n".join(lines[:source_lines])
         return source_code
 
     # Analyze directory
@@ -176,7 +176,6 @@ def analyze(
             target_path,
             parallel=(workers > 1),
             exclude_patterns=list(exclude) if exclude else None,
-            verbose_progress=verbose_progress
         )
 
         # Populate graph with results using BATCH operations
@@ -194,43 +193,62 @@ def analyze(
         graph.batch_add_all_edges_from_results(results)
 
         # Function calls still need special handling (cross-file references)
-        console.print("[cyan]Processing function calls...[/cyan]")
+        # Count total calls first for progress tracking
+        total_calls = sum(len(r.function_calls) for r in results)
+        console.print(f"[cyan]Processing {total_calls} function calls...[/cyan]")
+
         call_count = 0
-        for result in results:
-            for call in result.function_calls:
-                # Try to find the called function in the graph
-                caller_file = result.file_path
-                caller_func = call.caller_function
-                called_name = call.called_name
-                call_line = call.call_line
+        processed_count = 0
 
-                # Find caller function start_line
-                caller_start_line = None
-                for func in result.functions:
-                    if func.name == caller_func:
-                        caller_start_line = func.start_line
-                        break
+        # Use Rich progress bar for function call processing
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            TimeElapsedColumn(),
+            console=console
+        ) as progress:
+            task = progress.add_task("Resolving function calls", total=total_calls)
 
-                if caller_start_line is None:
-                    continue  # Skip if caller function not found
+            for result in results:
+                for call in result.function_calls:
+                    processed_count += 1
+                    progress.update(task, advance=1)
 
-                # Find matching callee function (simple name matching)
-                for func_result in results:
-                    for f in func_result.functions:
-                        if f.name == called_name:
-                            graph.add_call(
-                                caller_file=caller_file,
-                                caller_function=caller_func,
-                                caller_start_line=caller_start_line,
-                                callee_file=f.file,
-                                callee_function=f.name,
-                                callee_start_line=f.start_line,
-                                call_line=call_line
-                            )
-                            call_count += 1
+                    # Try to find the called function in the graph
+                    caller_file = result.file_path
+                    caller_func = call.caller_function
+                    called_name = call.called_name
+                    call_line = call.call_line
+
+                    # Find caller function start_line
+                    caller_start_line = None
+                    for func in result.functions:
+                        if func.name == caller_func:
+                            caller_start_line = func.start_line
                             break
 
-        console.print(f"[green]Added {call_count} function call edges[/green]")
+                    if caller_start_line is None:
+                        continue  # Skip if caller function not found
+
+                    # Find matching callee function (simple name matching)
+                    for func_result in results:
+                        for f in func_result.functions:
+                            if f.name == called_name:
+                                graph.add_call(
+                                    caller_file=caller_file,
+                                    caller_function=caller_func,
+                                    caller_start_line=caller_start_line,
+                                    callee_file=f.file,
+                                    callee_function=f.name,
+                                    callee_start_line=f.start_line,
+                                    call_line=call_line,
+                                )
+                                call_count += 1
+                                break
+
+        console.print(f"[green]✓ Added {call_count} function call edges ({processed_count} calls processed, {processed_count - call_count} unresolved)[/green]")
 
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)
@@ -271,9 +289,11 @@ def analyze(
             console.print(f"[dim]Use --refresh to force re-analysis of all files[/dim]")
 
     except Exception as e:
-        console.print(f"[red]Error during analysis:[/red] {e}")
+        from rich import markup
+        console.print(f"[red]Error during analysis:[/red] {markup.escape(str(e))}")
         import traceback
-        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+
+        console.print(f"[dim]{markup.escape(traceback.format_exc())}[/dim]")
         sys.exit(1)
 
 
@@ -357,9 +377,7 @@ def impact(
         sys.exit(1)
 
     # Find function
-    console.print(
-        f"[cyan]Analyzing impact of:[/cyan] {file_name}::{function_name}"
-    )
+    console.print(f"[cyan]Analyzing impact of:[/cyan] {file_name}::{function_name}")
 
     direction = "downstream" if downstream else "upstream"
     console.print(f"[cyan]Direction:[/cyan] {direction.title()}")
@@ -370,7 +388,7 @@ def impact(
             file=file_name,
             function=function_name,
             direction=direction,
-            max_depth=max_depth
+            max_depth=max_depth,
         )
 
         if not results:
@@ -385,6 +403,7 @@ def impact(
     except Exception as e:
         console.print(f"[red]Error during impact analysis:[/red] {e}")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         sys.exit(1)
 
@@ -495,6 +514,7 @@ def trace(
     except Exception as e:
         console.print(f"[red]Error during trace:[/red] {e}")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         sys.exit(1)
 
@@ -570,10 +590,18 @@ def stats(db_path: Optional[str], top: int) -> None:
 
         # Show new node types if schema v2
         if stats_data.get("schema_version") == "v2":
-            table.add_row("Total imports (detailed)", str(stats_data.get("total_imports", 0)))
-            table.add_row("Total decorators", str(stats_data.get("total_decorators", 0)))
-            table.add_row("Total attributes", str(stats_data.get("total_attributes", 0)))
-            table.add_row("Total exceptions", str(stats_data.get("total_exceptions", 0)))
+            table.add_row(
+                "Total imports (detailed)", str(stats_data.get("total_imports", 0))
+            )
+            table.add_row(
+                "Total decorators", str(stats_data.get("total_decorators", 0))
+            )
+            table.add_row(
+                "Total attributes", str(stats_data.get("total_attributes", 0))
+            )
+            table.add_row(
+                "Total exceptions", str(stats_data.get("total_exceptions", 0))
+            )
             table.add_row("Total modules", str(stats_data.get("total_modules", 0)))
 
         console.print(table)
@@ -606,6 +634,7 @@ def stats(db_path: Optional[str], top: int) -> None:
     except Exception as e:
         console.print(f"[red]Error retrieving statistics:[/red] {e}")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         sys.exit(1)
 
@@ -700,13 +729,12 @@ def visualize(
                 focus_function=function,
                 file=target,
                 max_depth=max_depth,
-                highlight_impact=True
+                highlight_impact=True,
             )
         else:
             # Generate module diagram
             diagram = visualizer.generate_module_graph(
-                file=target,
-                include_imports=True
+                file=target, include_imports=True
             )
 
         # Write to file
@@ -723,6 +751,7 @@ def visualize(
     except Exception as e:
         console.print(f"[red]Error generating diagram:[/red] {e}")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         sys.exit(1)
 

@@ -636,3 +636,111 @@ class BatchOperations:
             console.print(f"[green]✓ {len(all_has_attribute)} HAS_ATTRIBUTE edges[/green]")
 
         console.print("[green]✓ All structural edges inserted[/green]")
+
+    def batch_insert_call_edges(self, all_matched_calls, chunk_size: int = 1000) -> None:
+        """Batch insert CALLS edges from matched function calls.
+
+        Processes matched calls in chunks and uses pandas DataFrame with KuzuDB's LOAD FROM
+        for efficient batch insertion.
+
+        Args:
+            all_matched_calls: List of dicts with keys: caller_file, caller_function,
+                             caller_start_line, callee_file, callee_function,
+                             callee_start_line, call_line
+            chunk_size: Number of edges to process per chunk (default: 1000)
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+
+        if not all_matched_calls:
+            console.print("[yellow]No matched calls to insert[/yellow]")
+            return
+
+        try:
+            import pandas as pd
+        except ImportError:
+            console.print(
+                "[yellow]Warning: pandas not installed, cannot batch insert call edges[/yellow]"
+            )
+            return
+
+        from rich.progress import (
+            Progress,
+            SpinnerColumn,
+            TextColumn,
+            BarColumn,
+            MofNCompleteColumn,
+        )
+
+        total_calls = len(all_matched_calls)
+        total_inserted = 0
+        total_errors = 0
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task(
+                "[cyan]Inserting CALLS edges...", total=total_calls
+            )
+
+            # Process in chunks
+            for i in range(0, total_calls, chunk_size):
+                chunk = all_matched_calls[i : i + chunk_size]
+                chunk_edges = []
+
+                # Prepare edge data for this chunk
+                for call in chunk:
+                    try:
+                        caller_id = self._make_function_id(
+                            call["caller_file"],
+                            call["caller_function"],
+                            call["caller_start_line"],
+                        )
+                        callee_id = self._make_function_id(
+                            call["callee_file"],
+                            call["callee_function"],
+                            call["callee_start_line"],
+                        )
+                        chunk_edges.append(
+                            {
+                                "caller_id": caller_id,
+                                "callee_id": callee_id,
+                                "call_line": call["call_line"],
+                            }
+                        )
+                    except Exception as e:
+                        total_errors += 1
+                        continue
+
+                # Batch insert this chunk using DataFrame
+                if chunk_edges:
+                    try:
+                        df_calls = pd.DataFrame(chunk_edges)
+                        self.conn.execute("""
+                            LOAD FROM df_calls
+                            MATCH (caller:Function {id: caller_id}), (callee:Function {id: callee_id})
+                            CREATE (caller)-[:CALLS {call_line: call_line}]->(callee)
+                        """)
+                        total_inserted += len(chunk_edges)
+                    except Exception as e:
+                        # Some functions may not exist in the graph
+                        total_errors += len(chunk_edges)
+                        console.print(
+                            f"[yellow]⚠ Error inserting chunk (functions may not exist): {str(e)[:100]}[/yellow]"
+                        )
+
+                progress.update(task, advance=len(chunk))
+
+        console.print(
+            f"[green]✓ {total_inserted} CALLS edges inserted[/green]"
+        )
+        if total_errors > 0:
+            console.print(
+                f"[yellow]⚠ {total_errors} calls skipped (functions not found in graph)[/yellow]"
+            )

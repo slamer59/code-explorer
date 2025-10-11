@@ -529,3 +529,35 @@ class DependencyGraph:
             )
 
         return self._batch_ops.batch_add_all_edges_from_results(results, chunk_size)
+
+    def batch_insert_call_edges(self, all_matched_calls, chunk_size: int = 1000) -> None:
+        """Batch insert function call edges in chunks.
+
+        Args:
+            all_matched_calls: List of dicts with call edge data
+            chunk_size: Number of edges per chunk (default: 1000)
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+        # Lazy import batch operations
+        from code_explorer.graph.batch_operations import BatchOperations
+
+        if not hasattr(self, '_batch_ops'):
+            helper_methods = {
+                "to_relative_path": self._to_relative_path,
+                "make_function_id": self._make_function_id,
+                "make_variable_id": self._make_variable_id,
+                "make_class_id": self._make_class_id,
+                "make_import_id": self._make_import_id,
+                "make_decorator_id": self._make_decorator_id,
+                "make_attribute_id": self._make_attribute_id,
+                "make_exception_id": self._make_exception_id,
+                "make_module_id": self._make_module_id,
+            }
+            self._batch_ops = BatchOperations(
+                self.conn, self.read_only, self.project_root, helper_methods
+            )
+
+        return self._batch_ops.batch_insert_call_edges(all_matched_calls, chunk_size)

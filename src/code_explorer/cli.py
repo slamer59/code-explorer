@@ -6,11 +6,13 @@ Provides commands for analyzing Python codebases and tracking dependencies.
 """
 
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
 import click
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -151,6 +153,9 @@ def analyze(
         )
         console.print(f"[dim]Details: {e}[/dim]")
         sys.exit(1)
+
+    # Start timing
+    start_time = time.time()
 
     target_path = Path(path).resolve()
 
@@ -298,12 +303,11 @@ def analyze(
                     all_matched_calls.extend(matched_calls)
                     progress.update(task, advance=1)
 
-        # Step 4: Insert matched calls into database
+        # Step 4: Insert matched calls into database (BATCH MODE)
         console.print(
             f"[cyan]Inserting {len(all_matched_calls)} resolved call edges...[/cyan]"
         )
-        for call_data in all_matched_calls:
-            graph.add_call(**call_data)
+        graph.batch_insert_call_edges(all_matched_calls, chunk_size=1000)
 
         console.print(
             f"[green]✓ Added {len(all_matched_calls)} function call edges ({total_calls} calls processed, {total_calls - len(all_matched_calls)} unresolved)[/green]"
@@ -346,6 +350,23 @@ def analyze(
         console.print(f"\n[green]Graph persisted to:[/green] {db_path}")
         if files_skipped > 0:
             console.print(f"[dim]Use --refresh to force re-analysis of all files[/dim]")
+
+        # Display timing information
+        elapsed_time = time.time() - start_time
+        minutes, seconds = divmod(elapsed_time, 60)
+
+        if minutes > 0:
+            time_str = f"{int(minutes)}m {seconds:.2f}s"
+        else:
+            time_str = f"{seconds:.2f}s"
+
+        timing_panel = Panel(
+            f"[bold green]Total analysis time:[/bold green] [yellow]{time_str}[/yellow]",
+            border_style="green",
+            padding=(0, 2)
+        )
+        console.print("\n")
+        console.print(timing_panel)
 
     except Exception as e:
         from rich import markup

@@ -4,8 +4,8 @@ Comprehensive pytest test suite for the code-explorer project.
 
 ## Test Summary
 
-**Total Tests: 92**
-- Unit Tests: 74
+**Total Tests: 96**
+- Unit Tests: 78 (including 4 new read-only mode tests)
 - Integration Tests: 8
 - Performance Tests: 10
 
@@ -25,7 +25,7 @@ Tests for the code analysis module using AST and astroid:
 - **Directory Analysis**: Sequential processing, parallel processing, exclusion patterns
 - **Edge Cases**: Empty directories, large files
 
-### 2. test_graph.py (22 tests)
+### 2. test_graph.py (26 tests)
 Tests for the KuzuDB-backed dependency graph:
 
 - **Initialization**: Database creation, schema setup
@@ -37,6 +37,7 @@ Tests for the KuzuDB-backed dependency graph:
 - **Cross-file Dependencies**: Multi-file function calls
 - **Persistence**: Database reopening, data persistence
 - **Cleanup**: clear_all operation
+- **Read-only Mode**: Initialization, write prevention, read allowance, flag attribute (4 new tests)
 
 ### 3. test_impact.py (15 tests)
 Tests for impact analysis functionality:

@@ -2,6 +2,7 @@
 Backward compatibility redirect.
 Import from the new modular structure.
 """
+
 from code_explorer.analyzer.base_analyzer import CodeAnalyzer
 from code_explorer.analyzer.models import (
     AttributeInfo,

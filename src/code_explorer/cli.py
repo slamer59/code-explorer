@@ -34,17 +34,17 @@ def _process_call_chunk_worker(args):
     matched_calls = []
 
     for call_data in chunk_data:
-        caller_file = call_data['caller_file']
-        caller_func = call_data['caller_func']
-        called_name = call_data['called_name']
-        call_line = call_data['call_line']
+        caller_file = call_data["caller_file"]
+        caller_func = call_data["caller_func"]
+        called_name = call_data["called_name"]
+        call_line = call_data["call_line"]
 
         # Find caller function start_line
         caller_funcs = file_functions_dict.get(caller_file, [])
         caller_start_line = None
         for func in caller_funcs:
-            if func['name'] == caller_func:
-                caller_start_line = func['start_line']
+            if func["name"] == caller_func:
+                caller_start_line = func["start_line"]
                 break
 
         if caller_start_line is None:
@@ -54,15 +54,17 @@ def _process_call_chunk_worker(args):
         callees = function_index_dict.get(called_name, [])
         if callees:
             callee_file, callee_func = callees[0]  # Take first match
-            matched_calls.append({
-                'caller_file': caller_file,
-                'caller_function': caller_func,
-                'caller_start_line': caller_start_line,
-                'callee_file': callee_file,
-                'callee_function': callee_func['name'],
-                'callee_start_line': callee_func['start_line'],
-                'call_line': call_line
-            })
+            matched_calls.append(
+                {
+                    "caller_file": caller_file,
+                    "caller_function": caller_func,
+                    "caller_start_line": caller_start_line,
+                    "callee_file": callee_file,
+                    "callee_function": callee_func["name"],
+                    "callee_start_line": callee_func["start_line"],
+                    "call_line": call_line,
+                }
+            )
 
     return matched_calls
 
@@ -141,9 +143,6 @@ def analyze(
     workers: int,
     db_path: Optional[str],
     refresh: bool,
-    no_source: bool,
-    source_lines: Optional[int],
-    verbose_progress: bool,
 ) -> None:
     """Analyze Python codebase and build dependency graph.
 
@@ -202,16 +201,6 @@ def analyze(
     # Initialize analyzer
     analyzer = CodeAnalyzer()
 
-    # Helper function to prepare source code based on flags
-    def prepare_source(source_code: Optional[str]) -> Optional[str]:
-        """Process source code according to storage flags."""
-        if no_source:
-            return None
-        if source_lines and source_code:
-            lines = source_code.split("\n")
-            return "\n".join(lines[:source_lines])
-        return source_code
-
     # Analyze directory
     try:
         results = analyzer.analyze_directory(
@@ -251,47 +240,62 @@ def analyze(
             # Convert function objects to dicts
             func_dicts = []
             for func in result.functions:
-                func_dicts.append({
-                    'name': func.name,
-                    'start_line': func.start_line,
-                    'file': func.file
-                })
+                func_dicts.append(
+                    {
+                        "name": func.name,
+                        "start_line": func.start_line,
+                        "file": func.file,
+                    }
+                )
             file_functions_dict[result.file_path] = func_dicts
 
             # Build index
             for func_dict in func_dicts:
-                if func_dict['name'] not in function_index_dict:
-                    function_index_dict[func_dict['name']] = []
-                function_index_dict[func_dict['name']].append((result.file_path, func_dict))
+                if func_dict["name"] not in function_index_dict:
+                    function_index_dict[func_dict["name"]] = []
+                function_index_dict[func_dict["name"]].append(
+                    (result.file_path, func_dict)
+                )
 
-        console.print(f"[green]✓ Indexed {len(function_index_dict)} unique function names[/green]")
+        console.print(
+            f"[green]✓ Indexed {len(function_index_dict)} unique function names[/green]"
+        )
 
         # Step 2: Prepare call data for parallel processing
         console.print("[cyan]Preparing call data for parallel processing...[/cyan]")
         all_call_data = []
         for result in results:
             for call in result.function_calls:
-                all_call_data.append({
-                    'caller_file': result.file_path,
-                    'caller_func': call.caller_function,
-                    'called_name': call.called_name,
-                    'call_line': call.call_line
-                })
+                all_call_data.append(
+                    {
+                        "caller_file": result.file_path,
+                        "caller_func": call.caller_function,
+                        "called_name": call.called_name,
+                        "call_line": call.call_line,
+                    }
+                )
 
         # Step 3: Process calls in parallel using multiprocessing
-        from concurrent.futures import ProcessPoolExecutor, as_completed
         import os
+        from concurrent.futures import ProcessPoolExecutor, as_completed
 
         num_workers = min(os.cpu_count() or 4, 8)
         chunk_size = max(100, len(all_call_data) // (num_workers * 4))
 
-        console.print(f"[cyan]Resolving calls with {num_workers} workers (chunk size: {chunk_size})...[/cyan]")
+        console.print(
+            f"[cyan]Resolving calls with {num_workers} workers (chunk size: {chunk_size})...[/cyan]"
+        )
 
         # Split into chunks and prepare arguments for workers
-        chunks = [all_call_data[i:i+chunk_size] for i in range(0, len(all_call_data), chunk_size)]
+        chunks = [
+            all_call_data[i : i + chunk_size]
+            for i in range(0, len(all_call_data), chunk_size)
+        ]
 
         # Prepare args: each chunk needs (chunk_data, file_functions_dict, function_index_dict)
-        worker_args = [(chunk, file_functions_dict, function_index_dict) for chunk in chunks]
+        worker_args = [
+            (chunk, file_functions_dict, function_index_dict) for chunk in chunks
+        ]
 
         all_matched_calls = []
         with Progress(
@@ -300,12 +304,15 @@ def analyze(
             BarColumn(),
             MofNCompleteColumn(),
             TimeElapsedColumn(),
-            console=console
+            console=console,
         ) as progress:
             task = progress.add_task("Resolving function calls", total=len(chunks))
 
             with ProcessPoolExecutor(max_workers=num_workers) as executor:
-                futures = {executor.submit(_process_call_chunk_worker, args): i for i, args in enumerate(worker_args)}
+                futures = {
+                    executor.submit(_process_call_chunk_worker, args): i
+                    for i, args in enumerate(worker_args)
+                }
 
                 for future in as_completed(futures):
                     matched_calls = future.result()
@@ -313,11 +320,15 @@ def analyze(
                     progress.update(task, advance=1)
 
         # Step 4: Insert matched calls into database
-        console.print(f"[cyan]Inserting {len(all_matched_calls)} resolved call edges...[/cyan]")
+        console.print(
+            f"[cyan]Inserting {len(all_matched_calls)} resolved call edges...[/cyan]"
+        )
         for call_data in all_matched_calls:
             graph.add_call(**call_data)
 
-        console.print(f"[green]✓ Added {len(all_matched_calls)} function call edges ({total_calls} calls processed, {total_calls - len(all_matched_calls)} unresolved)[/green]")
+        console.print(
+            f"[green]✓ Added {len(all_matched_calls)} function call edges ({total_calls} calls processed, {total_calls - len(all_matched_calls)} unresolved)[/green]"
+        )
 
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)
@@ -359,6 +370,7 @@ def analyze(
 
     except Exception as e:
         from rich import markup
+
         console.print(f"[red]Error during analysis:[/red] {markup.escape(str(e))}")
         import traceback
 

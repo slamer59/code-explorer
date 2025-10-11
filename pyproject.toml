@@ -12,6 +12,7 @@ dependencies = [
     "rich>=13.0",
     "astroid>=3.0",
     "kuzu>=0.0.1",
+    "pandas>=2.0",
 ]
 
 [project.optional-dependencies]

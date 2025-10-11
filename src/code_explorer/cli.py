@@ -187,11 +187,14 @@ def analyze(
 
     # Analyze directory
     try:
+        step_start = time.time()
         results = analyzer.analyze_directory(
             target_path,
             parallel=(workers > 1),
             exclude_patterns=list(exclude) if exclude else None,
         )
+        analysis_time = time.time() - step_start
+        console.print(f"[dim]⏱  File analysis: {analysis_time:.2f}s[/dim]")
 
         # Populate graph with results using BATCH operations
         console.print("\n[cyan]Building dependency graph...[/cyan]")
@@ -201,11 +204,17 @@ def analyze(
 
         # BATCH INSERT: All nodes at once (MUCH faster than one-by-one!)
         console.print("[cyan]Batch inserting nodes...[/cyan]")
+        step_start = time.time()
         graph.batch_add_all_from_results(results)
+        nodes_time = time.time() - step_start
+        console.print(f"[dim]⏱  Node insertion: {nodes_time:.2f}s[/dim]")
 
         # BATCH INSERT: All edges at once
         console.print("[cyan]Batch inserting edges...[/cyan]")
+        step_start = time.time()
         graph.batch_add_all_edges_from_results(results)
+        edges_time = time.time() - step_start
+        console.print(f"[dim]⏱  Edge insertion: {edges_time:.2f}s[/dim]")
 
         # Function calls still need special handling (cross-file references)
         # Count total calls first for progress tracking
@@ -282,6 +291,7 @@ def analyze(
         ]
 
         all_matched_calls = []
+        step_start = time.time()
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -303,11 +313,17 @@ def analyze(
                     all_matched_calls.extend(matched_calls)
                     progress.update(task, advance=1)
 
+        resolve_time = time.time() - step_start
+        console.print(f"[dim]⏱  Call resolution: {resolve_time:.2f}s[/dim]")
+
         # Step 4: Insert matched calls into database (BATCH MODE)
         console.print(
             f"[cyan]Inserting {len(all_matched_calls)} resolved call edges...[/cyan]"
         )
+        step_start = time.time()
         graph.batch_insert_call_edges(all_matched_calls, chunk_size=1000)
+        calls_insert_time = time.time() - step_start
+        console.print(f"[dim]⏱  Call edge insertion: {calls_insert_time:.2f}s[/dim]")
 
         console.print(
             f"[green]✓ Added {len(all_matched_calls)} function call edges ({total_calls} calls processed, {total_calls - len(all_matched_calls)} unresolved)[/green]"
@@ -360,10 +376,20 @@ def analyze(
         else:
             time_str = f"{seconds:.2f}s"
 
+        # Create timing breakdown
+        timing_text = f"[bold green]Total analysis time:[/bold green] [yellow]{time_str}[/yellow]\n\n"
+        timing_text += "[bold cyan]Breakdown:[/bold cyan]\n"
+        timing_text += f"  • File analysis: [yellow]{analysis_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Node insertion: [yellow]{nodes_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Edge insertion: [yellow]{edges_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Call resolution: [yellow]{resolve_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Call edge insertion: [yellow]{calls_insert_time:.2f}s[/yellow]"
+
         timing_panel = Panel(
-            f"[bold green]Total analysis time:[/bold green] [yellow]{time_str}[/yellow]",
+            timing_text,
             border_style="green",
-            padding=(0, 2)
+            padding=(0, 2),
+            title="[bold white]⏱  Performance Metrics[/bold white]"
         )
         console.print("\n")
         console.print(timing_panel)

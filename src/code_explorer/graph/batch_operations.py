@@ -5,7 +5,9 @@ Extracted from original graph.py lines 2395-3107.
 This is a stub implementation - full batch operations will be implemented as needed.
 """
 
+import gc
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +15,18 @@ import kuzu
 from rich.console import Console
 
 console = Console()
+
+
+def _get_memory_mb() -> float:
+    """Get current process memory usage in MB."""
+    try:
+        import psutil
+
+        process = psutil.Process()
+        return process.memory_info().rss / 1024 / 1024
+    except ImportError:
+        # Fallback if psutil not available
+        return 0.0
 
 
 class BatchOperations:
@@ -91,6 +105,9 @@ class BatchOperations:
             results: List of FileAnalysis objects (chunk)
             pd: pandas module
         """
+        start_memory = _get_memory_mb()
+        console.print(f"[dim]💾 Memory at start of batch: {start_memory:.1f}MB[/dim]")
+
         # Constants for chunking all data types (avoid memory exhaustion)
         FUNCTION_CHUNK_SIZE = 500  # Heavy (has source code)
         CLASS_CHUNK_SIZE = 500  # Heavy (has source code)
@@ -244,7 +261,10 @@ class BatchOperations:
 
             # Insert functions in chunks to avoid memory exhaustion
             if len(all_functions) >= FUNCTION_CHUNK_SIZE:
+                mem_before = _get_memory_mb()
                 df_functions = pd.DataFrame(all_functions)
+                mem_after_df = _get_memory_mb()
+
                 self.conn.execute("""
                     LOAD FROM df_functions
                     MERGE (f:Function {id: id})
@@ -253,11 +273,20 @@ class BatchOperations:
                     ON CREATE SET f.name = name, f.file = file, f.start_line = start_line,
                         f.end_line = end_line, f.is_public = is_public, f.source_code = source_code
                 """)
+                mem_after_exec = _get_memory_mb()
+
                 total_functions_inserted += len(all_functions)
-                console.print(
-                    f"[cyan]  → Inserted {total_functions_inserted} functions so far...[/cyan]"
-                )
-                all_functions = []  # Clear for next chunk
+                all_functions = []  # Clear list
+                mem_after_clear = _get_memory_mb()
+
+                del df_functions  # Explicitly delete DataFrame
+                gc.collect()  # Force garbage collection
+                mem_after_gc = _get_memory_mb()
+
+                # console.print(
+                #     f"[cyan]  → Flushed {total_functions_inserted} Function items "
+                #     f"(mem: {mem_before:.1f}→{mem_after_df:.1f}→{mem_after_exec:.1f}→{mem_after_clear:.1f}→{mem_after_gc:.1f}MB)[/cyan]"
+                # )
 
             # Insert classes in chunks
             if len(all_classes) >= CLASS_CHUNK_SIZE:
@@ -278,7 +307,10 @@ class BatchOperations:
 
             # Insert imports in chunks
             if len(all_imports) >= IMPORT_CHUNK_SIZE:
+                mem_before = _get_memory_mb()
                 df_imports = pd.DataFrame(all_imports)
+                mem_after_df = _get_memory_mb()
+
                 self.conn.execute("""
                     LOAD FROM df_imports
                     MERGE (i:Import {id: id})
@@ -287,11 +319,20 @@ class BatchOperations:
                     ON CREATE SET i.imported_name = imported_name, i.import_type = import_type,
                         i.alias = alias, i.line_number = line_number, i.is_relative = is_relative, i.file = file
                 """)
+                mem_after_exec = _get_memory_mb()
+
                 total_imports_inserted += len(all_imports)
-                console.print(
-                    f"[cyan]  → Inserted {total_imports_inserted} imports so far...[/cyan]"
-                )
                 all_imports = []
+                mem_after_clear = _get_memory_mb()
+
+                del df_imports
+                gc.collect()
+                mem_after_gc = _get_memory_mb()
+
+                # console.print(
+                #     f"[cyan]  → Flushed {total_imports_inserted} Import items "
+                #     f"(mem: {mem_before:.1f}→{mem_after_df:.1f}→{mem_after_exec:.1f}→{mem_after_clear:.1f}→{mem_after_gc:.1f}MB)[/cyan]"
+                # )
 
             # Insert variables in chunks
             if len(all_variables) >= VARIABLE_CHUNK_SIZE:
@@ -325,7 +366,10 @@ class BatchOperations:
 
             # Insert attributes in chunks
             if len(all_attributes) >= ATTRIBUTE_CHUNK_SIZE:
+                mem_before = _get_memory_mb()
                 df_attributes = pd.DataFrame(all_attributes)
+                mem_after_df = _get_memory_mb()
+
                 self.conn.execute("""
                     LOAD FROM df_attributes
                     MERGE (a:Attribute {id: id})
@@ -334,11 +378,20 @@ class BatchOperations:
                     ON CREATE SET a.name = name, a.class_name = class_name, a.file = file,
                         a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
                 """)
+                mem_after_exec = _get_memory_mb()
+
                 total_attributes_inserted += len(all_attributes)
-                console.print(
-                    f"[cyan]  → Inserted {total_attributes_inserted} attributes so far...[/cyan]"
-                )
                 all_attributes = []
+                mem_after_clear = _get_memory_mb()
+
+                del df_attributes
+                gc.collect()
+                mem_after_gc = _get_memory_mb()
+
+                # console.print(
+                #     f"[cyan]  → Flushed {total_attributes_inserted} Attribute items "
+                #     f"(mem: {mem_before:.1f}→{mem_after_df:.1f}→{mem_after_exec:.1f}→{mem_after_clear:.1f}→{mem_after_gc:.1f}MB)[/cyan]"
+                # )
 
             # Insert exceptions in chunks (use COPY to avoid segfault)
             if len(all_exceptions) >= EXCEPTION_CHUNK_SIZE:
@@ -428,7 +481,9 @@ class BatchOperations:
                 ON CREATE SET d.name = name, d.file = file, d.line_number = line_number, d.arguments = arguments
             """)
             total_decorators_inserted += len(all_decorators)
-        console.print(f"[green]✓ {total_decorators_inserted} decorators inserted[/green]")
+        console.print(
+            f"[green]✓ {total_decorators_inserted} decorators inserted[/green]"
+        )
 
         # Attributes
         if all_attributes:
@@ -442,7 +497,9 @@ class BatchOperations:
                     a.definition_line = definition_line, a.type_hint = type_hint, a.is_class_attribute = is_class_attribute
             """)
             total_attributes_inserted += len(all_attributes)
-        console.print(f"[green]✓ {total_attributes_inserted} attributes inserted[/green]")
+        console.print(
+            f"[green]✓ {total_attributes_inserted} attributes inserted[/green]"
+        )
 
         # Exceptions (use COPY)
         if all_exceptions:
@@ -451,7 +508,18 @@ class BatchOperations:
                 COPY Exception FROM df_exceptions (ignore_errors=true)
             """)
             total_exceptions_inserted += len(all_exceptions)
-        console.print(f"[green]✓ {total_exceptions_inserted} exceptions inserted[/green]")
+            del df_exceptions
+        console.print(
+            f"[green]✓ {total_exceptions_inserted} exceptions inserted[/green]"
+        )
+
+        # Final cleanup and memory report
+        gc.collect()
+        end_memory = _get_memory_mb()
+        memory_growth = end_memory - start_memory
+        console.print(
+            f"[dim]💾 Memory at end of batch: {end_memory:.1f}MB (Δ {memory_growth:+.1f}MB)[/dim]"
+        )
 
     def batch_add_all_edges_from_results(self, results, chunk_size: int = None) -> None:
         """Batch add all edges from FileAnalysis results AT ONCE.
@@ -487,6 +555,11 @@ class BatchOperations:
             results: List of FileAnalysis objects (chunk)
             pd: pandas module
         """
+        start_memory = _get_memory_mb()
+        console.print(
+            f"[dim]💾 Memory at start of edge batch: {start_memory:.1f}MB[/dim]"
+        )
+
         # Collect all edges by type
         all_contains_function = []
         all_contains_class = []
@@ -569,7 +642,9 @@ class BatchOperations:
                 MATCH (f:File {path: file_path}), (fn:Function {id: function_id})
                 MERGE (f)-[:CONTAINS_FUNCTION]->(fn)
             """)
-            console.print(f"[green]✓ {len(all_contains_function)} CONTAINS_FUNCTION edges[/green]")
+            console.print(
+                f"[green]✓ {len(all_contains_function)} CONTAINS_FUNCTION edges[/green]"
+            )
 
         # 2. CONTAINS_CLASS edges
         if all_contains_class:
@@ -579,7 +654,9 @@ class BatchOperations:
                 MATCH (f:File {path: file_path}), (c:Class {id: class_id})
                 MERGE (f)-[:CONTAINS_CLASS]->(c)
             """)
-            console.print(f"[green]✓ {len(all_contains_class)} CONTAINS_CLASS edges[/green]")
+            console.print(
+                f"[green]✓ {len(all_contains_class)} CONTAINS_CLASS edges[/green]"
+            )
 
         # 3. CONTAINS_VARIABLE edges
         if all_contains_variable:
@@ -589,7 +666,9 @@ class BatchOperations:
                 MATCH (f:File {path: file_path}), (v:Variable {id: variable_id})
                 MERGE (f)-[:CONTAINS_VARIABLE]->(v)
             """)
-            console.print(f"[green]✓ {len(all_contains_variable)} CONTAINS_VARIABLE edges[/green]")
+            console.print(
+                f"[green]✓ {len(all_contains_variable)} CONTAINS_VARIABLE edges[/green]"
+            )
 
         # 4. METHOD_OF edges
         if all_method_of:
@@ -613,7 +692,9 @@ class BatchOperations:
                 console.print(f"[green]✓ {len(all_inherits)} INHERITS edges[/green]")
             except Exception as e:
                 # Some base classes may not exist in the codebase (e.g., external libraries)
-                console.print(f"[yellow]⚠ Some INHERITS edges could not be created (external base classes)[/yellow]")
+                console.print(
+                    f"[yellow]⚠ Some INHERITS edges could not be created (external base classes)[/yellow]"
+                )
 
         # 6. HAS_IMPORT edges
         if all_has_import:
@@ -633,11 +714,23 @@ class BatchOperations:
                 MATCH (c:Class {file: file_path, name: class_name}), (a:Attribute {id: attribute_id})
                 MERGE (c)-[:HAS_ATTRIBUTE]->(a)
             """)
-            console.print(f"[green]✓ {len(all_has_attribute)} HAS_ATTRIBUTE edges[/green]")
+            console.print(
+                f"[green]✓ {len(all_has_attribute)} HAS_ATTRIBUTE edges[/green]"
+            )
 
         console.print("[green]✓ All structural edges inserted[/green]")
 
-    def batch_insert_call_edges(self, all_matched_calls, chunk_size: int = 1000) -> None:
+        # Memory cleanup and report
+        gc.collect()
+        end_memory = _get_memory_mb()
+        memory_growth = end_memory - start_memory
+        console.print(
+            f"[dim]💾 Memory at end of edge batch: {end_memory:.1f}MB (Δ {memory_growth:+.1f}MB)[/dim]"
+        )
+
+    def batch_insert_call_edges(
+        self, all_matched_calls, chunk_size: int = 1000
+    ) -> None:
         """Batch insert CALLS edges from matched function calls.
 
         Processes matched calls in chunks and uses pandas DataFrame with KuzuDB's LOAD FROM
@@ -667,11 +760,11 @@ class BatchOperations:
             return
 
         from rich.progress import (
+            BarColumn,
+            MofNCompleteColumn,
             Progress,
             SpinnerColumn,
             TextColumn,
-            BarColumn,
-            MofNCompleteColumn,
         )
 
         total_calls = len(all_matched_calls)
@@ -737,9 +830,7 @@ class BatchOperations:
 
                 progress.update(task, advance=len(chunk))
 
-        console.print(
-            f"[green]✓ {total_inserted} CALLS edges inserted[/green]"
-        )
+        console.print(f"[green]✓ {total_inserted} CALLS edges inserted[/green]")
         if total_errors > 0:
             console.print(
                 f"[yellow]⚠ {total_errors} calls skipped (functions not found in graph)[/yellow]"

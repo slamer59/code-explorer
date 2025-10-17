@@ -390,6 +390,23 @@ def export_to_parquet(
 
             # HAS_ATTRIBUTE edge - moved after local lookups are built
 
+        # Exception nodes and edges
+        # Deduplicate exceptions by unique key to prevent ID collisions
+        seen_excs = set()
+        for exc in result.exceptions:
+            exc_key = (file_path, exc.name, exc.line_number, exc.context, exc.function_name or "")
+            if exc_key in seen_excs:
+                continue  # Skip duplicate
+            seen_excs.add(exc_key)
+
+            exc_id = make_exception_id(file_path, exc.name, exc.line_number, exc.context, exc.function_name, project_root)
+            exceptions_data.append({
+                "id": exc_id,
+                "name": exc.name,
+                "file": rel_file_path,
+                "line_number": exc.line_number,
+            })
+
         # Build local lookup dictionaries for this file's edge creation
         # Only look at items from this file by filtering on rel_file_path
         local_funcs = {}  # name -> data dict
@@ -445,19 +462,14 @@ def export_to_parquet(
                 })
 
         # DECORATED_BY edges - using local lookups
+        # Note: Schema only supports Function -> Decorator, not Class -> Decorator
         for dec in result.decorators:
             dec_key = (dec.name, dec.line_number)
             if dec_key in local_decorators:
                 dec_id = local_decorators[dec_key]["id"]
+                # Only create edges for functions, as schema doesn't support Class -> Decorator
                 if dec.target_type == "function" and dec.target_name in local_funcs:
                     target_id = local_funcs[dec.target_name]["id"]
-                    decorated_by_data.append({
-                        "from": target_id,
-                        "to": dec_id,
-                        "position": 0,
-                    })
-                elif dec.target_type == "class" and dec.target_name in local_classes:
-                    target_id = local_classes[dec.target_name]["id"]
                     decorated_by_data.append({
                         "from": target_id,
                         "to": dec_id,
@@ -487,25 +499,6 @@ def export_to_parquet(
                     "line_number": exc.line_number,
                     "context": exc.context,
                 })
-
-        # Exception nodes and edges
-        # Deduplicate exceptions by unique key to prevent ID collisions
-        seen_excs = set()
-        for exc in result.exceptions:
-            exc_key = (file_path, exc.name, exc.line_number, exc.context, exc.function_name or "")
-            if exc_key in seen_excs:
-                continue  # Skip duplicate
-            seen_excs.add(exc_key)
-
-            exc_id = make_exception_id(file_path, exc.name, exc.line_number, exc.context, exc.function_name, project_root)
-            exceptions_data.append({
-                "id": exc_id,
-                "name": exc.name,
-                "file": rel_file_path,
-                "line_number": exc.line_number,
-            })
-
-            # HANDLES_EXCEPTION edge - moved after local lookups are built
 
         # Note: ACCESSES edges are not directly available in FileAnalysis
         # They would need to be extracted from function bodies or added to the analyzer

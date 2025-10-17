@@ -152,7 +152,9 @@ def analyze(
 
     # Display exclusion info
     if include:
-        console.print(f"[cyan]Including (overriding defaults):[/cyan] {', '.join(include)}")
+        console.print(
+            f"[cyan]Including (overriding defaults):[/cyan] {', '.join(include)}"
+        )
     if final_exclusions:
         console.print(f"[dim]Excluding:[/dim] {', '.join(final_exclusions)}")
 
@@ -189,7 +191,7 @@ def analyze(
         files_skipped = 0
 
         # Set up parquet directory
-        parquet_dir = Path('.code-explorer') / 'parquet'
+        parquet_dir = Path(".code-explorer") / "parquet"
         parquet_dir.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -211,9 +213,11 @@ def analyze(
             )
 
             # Export everything including CALLS
-            console.print("[cyan]Exporting to Parquet (including CALLS edges)...[/cyan]")
+            console.print("[cyan]Exporting to Parquet...[/cyan]")
             step_start = time.time()
-            graph._export_results_to_parquet(results, parquet_dir, resolved_calls=all_matched_calls)
+            graph._export_results_to_parquet(
+                results, parquet_dir, resolved_calls=all_matched_calls
+            )
             export_time = time.time() - step_start
             console.print(f"[dim]⏱  Parquet export: {export_time:.2f}s[/dim]")
 
@@ -224,8 +228,8 @@ def analyze(
             load_time = time.time() - step_start
 
             # Extract node and edge times for backward compatibility
-            nodes_time = sum(time for time, _ in stats.get('node_times', {}).values())
-            edges_time = sum(time for time, _ in stats.get('edge_times', {}).values())
+            nodes_time = sum(time for time, _ in stats.get("node_times", {}).values())
+            edges_time = sum(time for time, _ in stats.get("edge_times", {}).values())
 
             console.print(
                 f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
@@ -234,7 +238,7 @@ def analyze(
             )
 
             # Clean up temporary Parquet files
-            shutil.rmtree(parquet_dir)
+            # shutil.rmtree(parquet_dir)
 
             # CALLS are now loaded via COPY FROM, no separate insert needed
             calls_insert_time = 0  # Included in load_time
@@ -297,17 +301,21 @@ def analyze(
         timing_text += "[bold cyan]Breakdown:[/bold cyan]\n"
         timing_text += f"  • File analysis: [yellow]{analysis_time:.2f}s[/yellow]\n"
         timing_text += f"  • Parquet export: [yellow]{export_time:.2f}s[/yellow]\n"
-        timing_text += f"  • Graph load (COPY FROM): [yellow]{load_time:.2f}s[/yellow]\n"
+        timing_text += (
+            f"  • Graph load (COPY FROM): [yellow]{load_time:.2f}s[/yellow]\n"
+        )
         timing_text += f"    - Node insertion: [yellow]{nodes_time:.2f}s[/yellow]\n"
         timing_text += f"    - Edge insertion: [yellow]{edges_time:.2f}s[/yellow]\n"
         timing_text += f"  • Call resolution: [yellow]{resolve_time:.2f}s[/yellow]\n"
-        timing_text += f"  • Call edge insertion: [yellow]{calls_insert_time:.2f}s[/yellow]"
+        timing_text += (
+            f"  • Call edge insertion: [yellow]{calls_insert_time:.2f}s[/yellow]"
+        )
 
         timing_panel = Panel(
             timing_text,
             border_style="green",
             padding=(0, 2),
-            title="[bold white]⏱  Performance Metrics[/bold white]"
+            title="[bold white]⏱  Performance Metrics[/bold white]",
         )
         console.print("\n")
         console.print(timing_panel)

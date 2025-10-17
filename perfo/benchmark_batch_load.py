@@ -1,7 +1,7 @@
 """
 Benchmark for current batch loading performance.
 
-Tests the existing batch operations from batch_operations.py
+Tests the Parquet export and bulk loading workflow
 to establish baseline performance metrics.
 """
 

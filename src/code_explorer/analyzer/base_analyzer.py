@@ -156,13 +156,13 @@ class CodeAnalyzer:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            if sub_task_id is not None:
-                file_name = Path(file_path).name
-                progress.update(
-                    sub_task_id,
-                    completed=10,
-                    description=f"  └─ {file_name}: Parsing AST...",
-                )
+            # if sub_task_id is not None:
+            #     file_name = Path(file_path).name
+            #     progress.update(
+            #         sub_task_id,
+            #         completed=10,
+            #         description=f"  └─ {file_name}: Parsing AST...",
+            #     )
 
             # Parse with ast for basic structure
             try:

@@ -7,7 +7,7 @@ This module provides a refactored structure for the dependency graph:
 - node_operations: Node CRUD operations
 - edge_operations: Edge CRUD operations
 - queries: Query operations
-- batch_operations: Batch insert operations
+- bulk_loader: High-performance bulk loading from Parquet
 - graph: Main DependencyGraph facade
 """
 
@@ -23,6 +23,12 @@ from code_explorer.graph.models import (
     ModuleNode,
     VariableNode,
 )
+from code_explorer.graph.bulk_loader import (
+    load_from_parquet,
+    load_from_parquet_sync,
+    create_schema,
+    preprocess_files_parquet,
+)
 
 __all__ = [
     "DependencyGraph",
@@ -34,4 +40,8 @@ __all__ = [
     "AttributeNode",
     "ExceptionNode",
     "ModuleNode",
+    "load_from_parquet",
+    "load_from_parquet_sync",
+    "create_schema",
+    "preprocess_files_parquet",
 ]

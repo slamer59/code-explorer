@@ -5,10 +5,12 @@ This module provides a refactored structure for code analysis:
 - models: Data classes for analysis results
 - base_analyzer: Main CodeAnalyzer orchestrator
 - extractors: Specialized extraction classes
+- call_resolver: Fast function call resolution using Polars
 """
 
 # Backward compatibility: Export everything
 from code_explorer.analyzer.base_analyzer import CodeAnalyzer
+from code_explorer.analyzer.call_resolver import CallResolver
 from code_explorer.analyzer.models import (
     AttributeInfo,
     ClassInfo,
@@ -26,6 +28,7 @@ from code_explorer.analyzer.models import (
 
 __all__ = [
     "CodeAnalyzer",
+    "CallResolver",
     "FileAnalysis",
     "FunctionInfo",
     "ClassInfo",

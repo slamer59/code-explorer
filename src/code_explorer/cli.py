@@ -5,6 +5,7 @@ Command-line interface for Code Explorer.
 Provides commands for analyzing Python codebases and tracking dependencies.
 """
 
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -25,50 +26,6 @@ from rich.progress import (
 from rich.table import Table
 
 console = Console()
-
-
-def _process_call_chunk_worker(args):
-    """Worker function to resolve function calls in a chunk.
-
-    Must be at module level for multiprocessing pickling.
-    """
-    chunk_data, file_functions_dict, function_index_dict = args
-    matched_calls = []
-
-    for call_data in chunk_data:
-        caller_file = call_data["caller_file"]
-        caller_func = call_data["caller_func"]
-        called_name = call_data["called_name"]
-        call_line = call_data["call_line"]
-
-        # Find caller function start_line
-        caller_funcs = file_functions_dict.get(caller_file, [])
-        caller_start_line = None
-        for func in caller_funcs:
-            if func["name"] == caller_func:
-                caller_start_line = func["start_line"]
-                break
-
-        if caller_start_line is None:
-            continue
-
-        # Find matching callee using index (O(1) lookup!)
-        callees = function_index_dict.get(called_name, [])
-        if callees:
-            callee_file, callee_func = callees[0]  # Take first match
-            matched_calls.append(
-                {
-                    "caller_file": caller_file,
-                    "caller_function": caller_func,
-                    "caller_start_line": caller_start_line,
-                    "callee_file": callee_file,
-                    "callee_function": callee_func["name"],
-                    "callee_start_line": callee_func["start_line"],
-                    "call_line": call_line,
-                }
-            )
-
-    return matched_calls
 
 
 @click.group()
@@ -225,138 +182,68 @@ def analyze(
         analysis_time = time.time() - step_start
         console.print(f"[dim]⏱  File analysis: {analysis_time:.2f}s[/dim]")
 
-        # Populate graph with results using BATCH operations
+        # Populate graph with results using Parquet export + COPY FROM (23x faster!)
         console.print("\n[cyan]Building dependency graph...[/cyan]")
 
         files_processed = len(results)
         files_skipped = 0
 
-        # BATCH INSERT: All nodes at once (MUCH faster than one-by-one!)
-        console.print("[cyan]Batch inserting nodes...[/cyan]")
-        step_start = time.time()
-        graph.batch_add_all_from_results(results)
-        nodes_time = time.time() - step_start
-        console.print(f"[dim]⏱  Node insertion: {nodes_time:.2f}s[/dim]")
+        # Set up parquet directory
+        parquet_dir = Path('.code-explorer') / 'parquet'
+        parquet_dir.mkdir(parents=True, exist_ok=True)
 
-        # BATCH INSERT: All edges at once
-        console.print("[cyan]Batch inserting edges...[/cyan]")
-        step_start = time.time()
-        graph.batch_add_all_edges_from_results(results)
-        edges_time = time.time() - step_start
-        console.print(f"[dim]⏱  Edge insertion: {edges_time:.2f}s[/dim]")
+        try:
+            # Resolve function calls BEFORE export using CallResolver
+            total_calls = sum(len(r.function_calls) for r in results)
+            console.print(f"[cyan]Resolving {total_calls:,} function calls...[/cyan]")
 
-        # Function calls still need special handling (cross-file references)
-        # Count total calls first for progress tracking
-        total_calls = sum(len(r.function_calls) for r in results)
-        console.print(f"[cyan]Processing {total_calls} function calls...[/cyan]")
+            from code_explorer.analyzer.call_resolver import CallResolver
 
-        # Step 1: Build function index for O(1) lookups (instead of O(n²))
-        console.print("[cyan]Building function index...[/cyan]")
-        from collections import defaultdict
+            step_start = time.time()
+            resolver = CallResolver(results)
+            all_matched_calls = resolver.resolve_all_calls()
+            resolve_time = time.time() - step_start
 
-        # Convert to picklable dicts for multiprocessing
-        function_index_dict = {}  # name -> [(file, func_dict), ...]
-        file_functions_dict = {}  # file -> [func_dict, ...]
+            console.print(
+                f"[green]✓[/green] Resolved {len(all_matched_calls):,} calls "
+                f"({total_calls - len(all_matched_calls):,} unresolved) "
+                f"in {resolve_time:.2f}s"
+            )
 
-        for result in results:
-            # Convert function objects to dicts
-            func_dicts = []
-            for func in result.functions:
-                func_dicts.append(
-                    {
-                        "name": func.name,
-                        "start_line": func.start_line,
-                        "file": func.file,
-                    }
-                )
-            file_functions_dict[result.file_path] = func_dicts
+            # Export everything including CALLS
+            console.print("[cyan]Exporting to Parquet (including CALLS edges)...[/cyan]")
+            step_start = time.time()
+            graph._export_results_to_parquet(results, parquet_dir, resolved_calls=all_matched_calls)
+            export_time = time.time() - step_start
+            console.print(f"[dim]⏱  Parquet export: {export_time:.2f}s[/dim]")
 
-            # Build index
-            for func_dict in func_dicts:
-                if func_dict["name"] not in function_index_dict:
-                    function_index_dict[func_dict["name"]] = []
-                function_index_dict[func_dict["name"]].append(
-                    (result.file_path, func_dict)
-                )
+            # Load everything ONCE (including CALLS via COPY FROM)
+            console.print("[cyan]Loading graph data using COPY FROM...[/cyan]")
+            step_start = time.time()
+            stats = graph.load_from_parquet(parquet_dir)
+            load_time = time.time() - step_start
 
-        console.print(
-            f"[green]✓ Indexed {len(function_index_dict)} unique function names[/green]"
-        )
+            # Extract node and edge times for backward compatibility
+            nodes_time = sum(time for time, _ in stats.get('node_times', {}).values())
+            edges_time = sum(time for time, _ in stats.get('edge_times', {}).values())
 
-        # Step 2: Prepare call data for parallel processing
-        console.print("[cyan]Preparing call data for parallel processing...[/cyan]")
-        all_call_data = []
-        for result in results:
-            for call in result.function_calls:
-                all_call_data.append(
-                    {
-                        "caller_file": result.file_path,
-                        "caller_func": call.caller_function,
-                        "called_name": call.called_name,
-                        "call_line": call.call_line,
-                    }
-                )
+            console.print(
+                f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
+                f"{stats['total_edges']:,} edges in {stats['total_time']:.2f}s "
+                f"({(stats['total_nodes'] + stats['total_edges']) / stats['total_time']:.0f} rows/sec)"
+            )
 
-        # Step 3: Process calls in parallel using multiprocessing
-        import os
-        from concurrent.futures import ProcessPoolExecutor, as_completed
+            # Clean up temporary Parquet files
+            shutil.rmtree(parquet_dir)
 
-        num_workers = min(os.cpu_count() or 4, 8)
-        chunk_size = max(100, len(all_call_data) // (num_workers * 4))
+            # CALLS are now loaded via COPY FROM, no separate insert needed
+            calls_insert_time = 0  # Included in load_time
 
-        console.print(
-            f"[cyan]Resolving calls with {num_workers} workers (chunk size: {chunk_size})...[/cyan]"
-        )
-
-        # Split into chunks and prepare arguments for workers
-        chunks = [
-            all_call_data[i : i + chunk_size]
-            for i in range(0, len(all_call_data), chunk_size)
-        ]
-
-        # Prepare args: each chunk needs (chunk_data, file_functions_dict, function_index_dict)
-        worker_args = [
-            (chunk, file_functions_dict, function_index_dict) for chunk in chunks
-        ]
-
-        all_matched_calls = []
-        step_start = time.time()
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            TimeElapsedColumn(),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Resolving function calls", total=len(chunks))
-
-            with ProcessPoolExecutor(max_workers=num_workers) as executor:
-                futures = {
-                    executor.submit(_process_call_chunk_worker, args): i
-                    for i, args in enumerate(worker_args)
-                }
-
-                for future in as_completed(futures):
-                    matched_calls = future.result()
-                    all_matched_calls.extend(matched_calls)
-                    progress.update(task, advance=1)
-
-        resolve_time = time.time() - step_start
-        console.print(f"[dim]⏱  Call resolution: {resolve_time:.2f}s[/dim]")
-
-        # Step 4: Insert matched calls into database (BATCH MODE)
-        console.print(
-            f"[cyan]Inserting {len(all_matched_calls)} resolved call edges...[/cyan]"
-        )
-        step_start = time.time()
-        graph.batch_insert_call_edges(all_matched_calls, chunk_size=1000)
-        calls_insert_time = time.time() - step_start
-        console.print(f"[dim]⏱  Call edge insertion: {calls_insert_time:.2f}s[/dim]")
-
-        console.print(
-            f"[green]✓ Added {len(all_matched_calls)} function call edges ({total_calls} calls processed, {total_calls - len(all_matched_calls)} unresolved)[/green]"
-        )
+        except Exception as e:
+            console.print(f"[red]Error during graph loading: {e}[/red]")
+            # Keep Parquet files for debugging
+            console.print(f"[yellow]Parquet files preserved at: {parquet_dir}[/yellow]")
+            raise
 
         # Compute statistics
         error_files = sum(1 for r in results if r.errors)
@@ -409,8 +296,10 @@ def analyze(
         timing_text = f"[bold green]Total analysis time:[/bold green] [yellow]{time_str}[/yellow]\n\n"
         timing_text += "[bold cyan]Breakdown:[/bold cyan]\n"
         timing_text += f"  • File analysis: [yellow]{analysis_time:.2f}s[/yellow]\n"
-        timing_text += f"  • Node insertion: [yellow]{nodes_time:.2f}s[/yellow]\n"
-        timing_text += f"  • Edge insertion: [yellow]{edges_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Parquet export: [yellow]{export_time:.2f}s[/yellow]\n"
+        timing_text += f"  • Graph load (COPY FROM): [yellow]{load_time:.2f}s[/yellow]\n"
+        timing_text += f"    - Node insertion: [yellow]{nodes_time:.2f}s[/yellow]\n"
+        timing_text += f"    - Edge insertion: [yellow]{edges_time:.2f}s[/yellow]\n"
         timing_text += f"  • Call resolution: [yellow]{resolve_time:.2f}s[/yellow]\n"
         timing_text += f"  • Call edge insertion: [yellow]{calls_insert_time:.2f}s[/yellow]"
 

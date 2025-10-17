@@ -42,7 +42,6 @@ class SchemaManager:
                 CREATE NODE TABLE IF NOT EXISTS File(
                     path STRING,
                     language STRING,
-                    last_modified TIMESTAMP,
                     content_hash STRING,
                     PRIMARY KEY(path)
                 )

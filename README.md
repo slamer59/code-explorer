@@ -33,13 +33,13 @@ Code Explorer excels at analyzing complex Python codebases where understanding d
 
 ### Python Code Analyzer Comparison
 
-| Feature | Code Explorer | pylint/flake8 | IDE Navigation |
-|---------|---------------|---------------|----------------|
-| Relationship Analysis | ✅ Graph-based | ❌ Syntax only | ⚠️ Single file |
-| Impact Analysis | ✅ Multi-level | ❌ None | ⚠️ Limited |
-| Visualization | ✅ Diagrams | ❌ Text only | ❌ None |
-| Persistent Storage | ✅ Database | ❌ None | ❌ None |
-| CI/CD Integration | ✅ CLI-first | ⚠️ Limited | ❌ Not designed |
+| Feature               | Code Explorer | pylint/flake8 | IDE Navigation |
+| --------------------- | ------------- | ------------- | -------------- |
+| Relationship Analysis | ✅ Graph-based | ❌ Syntax only | ⚠️ Single file  |
+| Impact Analysis       | ✅ Multi-level | ❌ None        | ⚠️ Limited      |
+| Visualization         | ✅ Diagrams    | ❌ Text only   | ❌ None         |
+| Persistent Storage    | ✅ Database    | ❌ None        | ❌ None         |
+| CI/CD Integration     | ✅ CLI-first   | ⚠️ Limited     | ❌ Not designed |
 
 ---
 
@@ -478,7 +478,7 @@ The dependency analysis tool intelligently tracks changes:
 
 This makes the second and subsequent runs dramatically faster, perfect for development workflow.
 
-### AST vs Astroid for Code Analysis
+### AST vs astroid for Code Analysis
 
 Code Explorer uses both for comprehensive Python code analysis:
 

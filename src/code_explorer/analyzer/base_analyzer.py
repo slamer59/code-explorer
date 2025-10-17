@@ -4,15 +4,13 @@ Main CodeAnalyzer orchestrator.
 Refactored from analyzer.py to use extractor-based architecture.
 """
 
-import ast
 import hashlib
 import logging
 import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
-import astroid
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -30,6 +28,7 @@ from code_explorer.analyzer.extractors.functions import FunctionExtractor
 from code_explorer.analyzer.extractors.imports import ImportExtractor
 from code_explorer.analyzer.extractors.variables import VariableExtractor
 from code_explorer.analyzer.models import FileAnalysis, ModuleInfo
+from code_explorer.analyzer.parser import parse_python_file, get_parser_type, ParseError
 
 logger = logging.getLogger(__name__)
 
@@ -70,13 +69,14 @@ class CodeAnalyzer:
             logger.error(f"Error computing hash for {file_path}: {e}")
             return ""
 
-    def _run_extractions(self, tree: ast.AST, result: FileAnalysis) -> None:
+    def _run_extractions(self, tree: Any, result: FileAnalysis) -> None:
         """Run extraction methods sequentially using extractor instances.
 
         Refactored from analyzer.py lines 196-248.
+        Enhanced to support both AST and Tree-sitter parsing.
 
         Args:
-            tree: AST tree
+            tree: Parsed tree (ast.AST or Tree-sitter node)
             result: FileAnalysis to populate
         """
         # Run extractions sequentially (faster due to no thread pool overhead)
@@ -164,11 +164,11 @@ class CodeAnalyzer:
             #         description=f"  └─ {file_name}: Parsing AST...",
             #     )
 
-            # Parse with ast for basic structure
+            # Parse with Tree-sitter (with AST fallback)
             try:
-                tree = ast.parse(content, filename=str(file_path))
-            except SyntaxError as e:
-                result.errors.append(f"Syntax error: {e}")
+                tree = parse_python_file(content, filename=str(file_path))
+            except ParseError as e:
+                result.errors.append(f"Parse error: {e}")
                 if sub_task_id is not None:
                     file_name = Path(file_path).name
                     progress.update(
@@ -184,49 +184,8 @@ class CodeAnalyzer:
                     description=f"  └─ {file_name}: Running extractions...",
                 )
 
-            # Run all AST extractions sequentially
+            # Run all Tree-sitter extractions sequentially
             self._run_extractions(tree, result)
-
-            if sub_task_id is not None:
-                file_name = Path(file_path).name
-                progress.update(
-                    sub_task_id,
-                    completed=70,
-                    description=f"  └─ {file_name}: Astroid analysis...",
-                )
-
-            # Try astroid for better name resolution
-            try:
-                astroid_module = astroid.parse(content, module_name=file_path.stem)
-
-                # Run astroid extractions sequentially
-                try:
-                    self.function_extractor.extract_function_calls_astroid(
-                        astroid_module, result
-                    )
-                except Exception as e:
-                    logger.error(f"Astroid function call extraction failed: {e}")
-
-                try:
-                    self.variable_extractor.extract_variable_usage_astroid(
-                        astroid_module, result
-                    )
-                except Exception as e:
-                    logger.error(f"Astroid variable usage extraction failed: {e}")
-            except Exception as e:
-                logger.warning(
-                    f"Astroid analysis failed for {file_path}, falling back to ast: {e}"
-                )
-                # Fallback to simpler ast-based call extraction
-                try:
-                    self.function_extractor.extract_function_calls_ast(tree, result)
-                except Exception as e:
-                    logger.error(f"Fallback function call extraction failed: {e}")
-
-                try:
-                    self.variable_extractor.extract_variable_usage_ast(tree, result)
-                except Exception as e:
-                    logger.error(f"Fallback variable usage extraction failed: {e}")
 
             if sub_task_id is not None:
                 file_name = Path(file_path).name
@@ -291,13 +250,24 @@ class CodeAnalyzer:
 
                 module_name = ".".join(parts) if parts else file_path.stem
 
-                # Extract docstring
+                # Extract docstring using Tree-sitter
                 docstring = None
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
-                        tree = ast.parse(content)
-                        docstring = ast.get_docstring(tree)
+                        # Parse using Tree-sitter to extract module docstring
+                        from code_explorer.analyzer.parser import parse_python_file
+                        tree = parse_python_file(content, filename=str(file_path))
+                        # Check for module-level string literal (docstring)
+                        for child in tree.children:
+                            if hasattr(child, "type") and child.type == "expression_statement":
+                                # Check if the expression is a string
+                                expr = child.child_by_field_name("expression") if hasattr(child, "child_by_field_name") else None
+                                if expr and hasattr(expr, "type") and expr.type == "string":
+                                    docstring = expr.text.decode("utf-8") if isinstance(expr.text, bytes) else expr.text
+                                    # Remove quotes
+                                    docstring = docstring.strip("\"'")
+                                    break
                 except Exception as e:
                     logger.debug(f"Could not extract docstring from {file_path}: {e}")
 

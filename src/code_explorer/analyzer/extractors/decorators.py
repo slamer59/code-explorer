@@ -18,6 +18,55 @@ logger = logging.getLogger(__name__)
 class DecoratorExtractor(BaseExtractor):
     """Extracts decorator information from AST."""
 
+    def _sanitize_for_json(self, obj: Any) -> Any:
+        """Sanitize value to be JSON-serializable.
+
+        Converts non-JSON-serializable Python types to strings while preserving
+        JSON-safe types (str, int, float, bool, None, list, dict).
+
+        Args:
+            obj: Value to sanitize
+
+        Returns:
+            JSON-serializable version of the value
+        """
+        # Handle None
+        if obj is None:
+            return None
+
+        # Handle basic JSON-safe types
+        if isinstance(obj, (str, int, float, bool)):
+            return obj
+
+        # Handle complex numbers - convert to string
+        if isinstance(obj, complex):
+            return str(obj)
+
+        # Handle bytes - convert to string representation
+        if isinstance(obj, bytes):
+            return str(obj)
+
+        # Handle sets and frozensets - convert to list, then sanitize elements
+        if isinstance(obj, (set, frozenset)):
+            return str(sorted([self._sanitize_for_json(item) for item in obj]))
+
+        # Handle lists and tuples - sanitize each element
+        if isinstance(obj, (list, tuple)):
+            return [self._sanitize_for_json(item) for item in obj]
+
+        # Handle dictionaries - sanitize keys and values
+        if isinstance(obj, dict):
+            sanitized = {}
+            for key, value in obj.items():
+                # Convert non-string keys to strings
+                if not isinstance(key, str):
+                    key = str(key)
+                sanitized[key] = self._sanitize_for_json(value)
+            return sanitized
+
+        # For any other type, convert to string
+        return str(obj)
+
     def extract(self, tree: ast.AST, result: FileAnalysis) -> None:
         """Extract decorators using ast.
 
@@ -42,7 +91,7 @@ class DecoratorExtractor(BaseExtractor):
                         name=decorator_name,
                         file=result.file_path,
                         line_number=decorator.lineno,
-                        arguments=json.dumps(arguments),
+                        arguments=json.dumps(self._sanitize_for_json(arguments)),
                         target_name=target_name,
                         target_type=target_type,
                     )

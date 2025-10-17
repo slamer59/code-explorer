@@ -263,18 +263,6 @@ def export_to_parquet(
                 "to": func_id,
             })
 
-            # METHOD_OF edge (if parent_class exists)
-            if func.parent_class:
-                # Find class ID by matching class name
-                for cls in result.classes:
-                    if cls.name == func.parent_class:
-                        class_id = make_class_id(file_path, cls.name, cls.start_line, project_root)
-                        method_of_data.append({
-                            "from": func_id,
-                            "to": class_id,
-                        })
-                        break
-
         # Class nodes and edges
         # Deduplicate classes by unique key to prevent ID collisions
         seen_classes = set()
@@ -330,25 +318,7 @@ def export_to_parquet(
                 "to": var_id,
             })
 
-        # Variable usage -> REFERENCES edges
-        for usage in result.variable_usage:
-            # Find function ID
-            for func in result.functions:
-                if func.name == usage.function_name:
-                    func_id = make_function_id(file_path, func.name, func.start_line, project_root)
-
-                    # Find variable ID
-                    for var in result.variables:
-                        if var.name == usage.variable_name:
-                            var_id = make_variable_id(file_path, var.name, var.definition_line, var.scope, project_root)
-                            references_data.append({
-                                "from": func_id,
-                                "to": var_id,
-                                "line_number": usage.usage_line,
-                                "context": "",  # Use empty string as approved
-                            })
-                            break
-                    break
+        # Variable usage -> REFERENCES edges (moved after local lookups are built)
 
         # Import nodes and edges
         # Deduplicate imports by unique key to prevent ID collisions
@@ -394,29 +364,7 @@ def export_to_parquet(
                 "arguments": dec.arguments or "",
             })
 
-            # DECORATED_BY edge - generate target ID
-            if dec.target_type == "function":
-                # Find function by name
-                for func in result.functions:
-                    if func.name == dec.target_name:
-                        target_id = make_function_id(file_path, func.name, func.start_line, project_root)
-                        decorated_by_data.append({
-                            "from": target_id,
-                            "to": dec_id,
-                            "position": 0,  # Default position
-                        })
-                        break
-            elif dec.target_type == "class":
-                # Find class by name
-                for cls in result.classes:
-                    if cls.name == dec.target_name:
-                        target_id = make_class_id(file_path, cls.name, cls.start_line, project_root)
-                        decorated_by_data.append({
-                            "from": target_id,
-                            "to": dec_id,
-                            "position": 0,  # Default position
-                        })
-                        break
+            # DECORATED_BY edge - moved after local lookups are built
 
         # Attribute nodes and edges
         # Deduplicate attributes by unique key to prevent ID collisions
@@ -440,16 +388,105 @@ def export_to_parquet(
                 "is_class_attribute": attr.is_class_attribute,
             })
 
-            # HAS_ATTRIBUTE edge
-            # Find class ID by matching class name
-            for cls in result.classes:
-                if cls.name == attr.class_name:
-                    class_id = make_class_id(file_path, cls.name, cls.start_line, project_root)
-                    has_attribute_data.append({
-                        "from": class_id,
-                        "to": attr_id,
+            # HAS_ATTRIBUTE edge - moved after local lookups are built
+
+        # Build local lookup dictionaries for this file's edge creation
+        # Only look at items from this file by filtering on rel_file_path
+        local_funcs = {}  # name -> data dict
+        for func_data in functions_data:
+            if func_data["file"] == rel_file_path:
+                local_funcs[func_data["name"]] = func_data
+
+        local_classes = {}  # name -> data dict
+        for cls_data in classes_data:
+            if cls_data["file"] == rel_file_path:
+                local_classes[cls_data["name"]] = cls_data
+
+        local_vars = {}  # name -> data dict
+        for var_data in variables_data:
+            if var_data["file"] == rel_file_path:
+                local_vars[var_data["name"]] = var_data
+
+        local_decorators = {}  # (name, line_number) -> data dict
+        for dec_data in decorators_data:
+            if dec_data["file"] == rel_file_path:
+                local_decorators[(dec_data["name"], dec_data["line_number"])] = dec_data
+
+        local_attributes = {}  # (class_name, name, line) -> data dict
+        for attr_data in attributes_data:
+            if attr_data["file"] == rel_file_path:
+                local_attributes[(attr_data["class_name"], attr_data["name"], attr_data["definition_line"])] = attr_data
+
+        local_exceptions = {}  # (name, line_number) -> data dict
+        for exc_data in exceptions_data:
+            if exc_data["file"] == rel_file_path:
+                local_exceptions[(exc_data["name"], exc_data["line_number"])] = exc_data
+
+        # METHOD_OF edges - using local lookups
+        for func in result.functions:
+            if func.parent_class and func.parent_class in local_classes and func.name in local_funcs:
+                class_id = local_classes[func.parent_class]["id"]
+                func_id = local_funcs[func.name]["id"]
+                method_of_data.append({
+                    "from": func_id,
+                    "to": class_id,
+                })
+
+        # REFERENCES edges - using local lookups
+        for usage in result.variable_usage:
+            if usage.function_name in local_funcs and usage.variable_name in local_vars:
+                func_id = local_funcs[usage.function_name]["id"]
+                var_id = local_vars[usage.variable_name]["id"]
+                references_data.append({
+                    "from": func_id,
+                    "to": var_id,
+                    "line_number": usage.usage_line,
+                    "context": "",
+                })
+
+        # DECORATED_BY edges - using local lookups
+        for dec in result.decorators:
+            dec_key = (dec.name, dec.line_number)
+            if dec_key in local_decorators:
+                dec_id = local_decorators[dec_key]["id"]
+                if dec.target_type == "function" and dec.target_name in local_funcs:
+                    target_id = local_funcs[dec.target_name]["id"]
+                    decorated_by_data.append({
+                        "from": target_id,
+                        "to": dec_id,
+                        "position": 0,
                     })
-                    break
+                elif dec.target_type == "class" and dec.target_name in local_classes:
+                    target_id = local_classes[dec.target_name]["id"]
+                    decorated_by_data.append({
+                        "from": target_id,
+                        "to": dec_id,
+                        "position": 0,
+                    })
+
+        # HAS_ATTRIBUTE edges - using local lookups
+        for attr in result.attributes:
+            attr_key = (attr.class_name, attr.name, attr.definition_line)
+            if attr_key in local_attributes and attr.class_name in local_classes:
+                attr_id = local_attributes[attr_key]["id"]
+                class_id = local_classes[attr.class_name]["id"]
+                has_attribute_data.append({
+                    "from": class_id,
+                    "to": attr_id,
+                })
+
+        # HANDLES_EXCEPTION edges - using local lookups
+        for exc in result.exceptions:
+            exc_key = (exc.name, exc.line_number)
+            if exc_key in local_exceptions and exc.function_name and exc.function_name in local_funcs:
+                exc_id = local_exceptions[exc_key]["id"]
+                func_id = local_funcs[exc.function_name]["id"]
+                handles_exception_data.append({
+                    "from": func_id,
+                    "to": exc_id,
+                    "line_number": exc.line_number,
+                    "context": exc.context,
+                })
 
         # Exception nodes and edges
         # Deduplicate exceptions by unique key to prevent ID collisions
@@ -468,19 +505,7 @@ def export_to_parquet(
                 "line_number": exc.line_number,
             })
 
-            # HANDLES_EXCEPTION edge
-            if exc.function_name:
-                # Find function ID
-                for func in result.functions:
-                    if func.name == exc.function_name:
-                        func_id = make_function_id(file_path, func.name, func.start_line, project_root)
-                        handles_exception_data.append({
-                            "from": func_id,
-                            "to": exc_id,
-                            "line_number": exc.line_number,
-                            "context": exc.context,  # "raise" or "catch"
-                        })
-                        break
+            # HANDLES_EXCEPTION edge - moved after local lookups are built
 
         # Note: ACCESSES edges are not directly available in FileAnalysis
         # They would need to be extracted from function bodies or added to the analyzer

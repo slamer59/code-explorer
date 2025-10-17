@@ -489,7 +489,8 @@ class DependencyGraph:
                 "make_module_id": self._make_module_id,
             }
             self._batch_ops = BatchOperations(
-                self.conn, self.read_only, self.project_root, helper_methods
+                self.conn, self.read_only, self.project_root, helper_methods,
+                db_path=self.db_path, db=self.db
             )
 
         return self._batch_ops.batch_add_all_from_results(results, chunk_size)
@@ -525,7 +526,8 @@ class DependencyGraph:
                 "make_module_id": self._make_module_id,
             }
             self._batch_ops = BatchOperations(
-                self.conn, self.read_only, self.project_root, helper_methods
+                self.conn, self.read_only, self.project_root, helper_methods,
+                db_path=self.db_path, db=self.db
             )
 
         return self._batch_ops.batch_add_all_edges_from_results(results, chunk_size)
@@ -557,7 +559,8 @@ class DependencyGraph:
                 "make_module_id": self._make_module_id,
             }
             self._batch_ops = BatchOperations(
-                self.conn, self.read_only, self.project_root, helper_methods
+                self.conn, self.read_only, self.project_root, helper_methods,
+                db_path=self.db_path, db=self.db
             )
 
         return self._batch_ops.batch_insert_call_edges(all_matched_calls, chunk_size)

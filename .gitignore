@@ -22,3 +22,4 @@ demo_*.py
 
 # Code Explorer database
 .code-explorer/
+*.parquet

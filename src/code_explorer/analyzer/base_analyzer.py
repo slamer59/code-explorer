@@ -7,7 +7,7 @@ Refactored from analyzer.py to use extractor-based architecture.
 import hashlib
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -295,6 +295,7 @@ class CodeAnalyzer:
         parallel: bool = True,
         exclude_patterns: Optional[List[str]] = None,
         verbose_progress: bool = False,
+        max_workers: Optional[int] = None,
     ) -> List[FileAnalysis]:
         """Analyze all Python files in a directory recursively.
 
@@ -305,6 +306,7 @@ class CodeAnalyzer:
             parallel: Whether to use parallel processing
             exclude_patterns: Patterns to exclude (e.g., '__pycache__', 'tests')
             verbose_progress: Show detailed nested progress for each file (default: False)
+            max_workers: Number of worker threads (default: None, uses os.cpu_count())
 
         Returns:
             List of FileAnalysis results
@@ -349,8 +351,11 @@ class CodeAnalyzer:
             )
 
             if parallel:
-                # Use ProcessPoolExecutor for true parallel CPU-bound processing
-                with ProcessPoolExecutor(max_workers=os.cpu_count() or 8) as executor:
+                # Use ProcessPoolExecutor for CPU-bound parsing operations.
+                # Tree-sitter AST parsing is CPU-intensive and benefits from true parallelism.
+                # Threads are blocked by Python's GIL, making them ineffective for CPU-bound work.
+                # max_workers defaults to None which uses os.cpu_count()
+                with ProcessPoolExecutor(max_workers=max_workers) as executor:
                     # Submit all files for analysis
                     future_to_file = {
                         executor.submit(

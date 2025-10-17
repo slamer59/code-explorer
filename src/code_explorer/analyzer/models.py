@@ -5,7 +5,7 @@ Extracted from analyzer.py lines 32-170.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, List, Optional
 
 
 @dataclass

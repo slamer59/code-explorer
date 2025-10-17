@@ -362,6 +362,18 @@ class DependencyGraph:
         """Get statistics about the graph."""
         return self.queries.get_statistics(*args, **kwargs)
 
+    def get_functions_with_multiple_decorators(self, *args, **kwargs) -> List[dict]:
+        """Get functions that have multiple decorators applied."""
+        return self.queries.get_functions_with_multiple_decorators(*args, **kwargs)
+
+    def build_inheritance_edges(self) -> int:
+        """Build INHERITS edges from Class bases field.
+
+        Returns:
+            Number of INHERITS edges created
+        """
+        return self.edge_ops.build_inheritance_edges()
+
     def get_imports_for_file(self, *args, **kwargs) -> List[ImportNode]:
         """Get all imports in a file."""
         return self.queries.get_imports_for_file(*args, **kwargs)

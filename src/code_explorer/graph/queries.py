@@ -296,6 +296,40 @@ class QueryOperations:
             console.print(f"[red]Error getting classes in file {file}: {e}[/red]")
             return []
 
+    def get_functions_with_multiple_decorators(self) -> List[dict]:
+        """Get functions that have multiple decorators applied.
+
+        Returns:
+            List of dicts with: name, file, decorator_count, decorators (list of decorator names)
+        """
+        try:
+            result = self.conn.execute("""
+                MATCH (func:Function)-[:DECORATED_BY]->(dec:Decorator)
+                WITH func, COUNT(*) as decorator_count, COLLECT(dec.name) as decorators
+                WHERE decorator_count > 1
+                RETURN
+                    func.name as function_name,
+                    func.file as file_path,
+                    decorator_count,
+                    decorators
+                ORDER BY decorator_count DESC
+            """)
+
+            functions = []
+            while result.has_next():
+                row = result.get_next()
+                functions.append({
+                    "name": row[0],
+                    "file": row[1],
+                    "decorator_count": row[2],
+                    "decorators": row[3],
+                })
+
+            return functions
+        except Exception as e:
+            console.print(f"[red]Error getting functions with multiple decorators: {e}[/red]")
+            return []
+
     def get_statistics(self) -> Dict[str, any]:
         """Get statistics about the graph.
 
@@ -364,9 +398,32 @@ class QueryOperations:
                 except Exception:
                     pass
 
-            # Count call edges
-            result = self.conn.execute("MATCH ()-[c:CALLS]->() RETURN COUNT(*)")
-            total_call_edges = result.get_next()[0] if result.has_next() else 0
+            # Count all relationship types
+            edge_stats = {}
+            edge_types = [
+                "CONTAINS_FUNCTION",
+                "CONTAINS_CLASS",
+                "CONTAINS_VARIABLE",
+                "METHOD_OF",
+                "HAS_IMPORT",
+                "HAS_ATTRIBUTE",
+                "DECORATED_BY",
+                "REFERENCES",
+                "ACCESSES",
+                "HANDLES_EXCEPTION",
+                "CALLS",
+                "INHERITS",
+            ]
+
+            total_edges = 0
+            for edge_type in edge_types:
+                try:
+                    result = self.conn.execute(f"MATCH ()-[r:{edge_type}]->() RETURN COUNT(*)")
+                    count = result.get_next()[0] if result.has_next() else 0
+                    edge_stats[edge_type] = count
+                    total_edges += count
+                except Exception:
+                    edge_stats[edge_type] = 0
 
             # Get most-called functions
             result = self.conn.execute("""
@@ -393,8 +450,9 @@ class QueryOperations:
                 "total_attributes": total_attributes,
                 "total_exceptions": total_exceptions,
                 "total_modules": total_modules,
-                "total_edges": total_call_edges,
-                "function_calls": total_call_edges,
+                "total_edges": total_edges,
+                "edge_stats": edge_stats,
+                "function_calls": edge_stats.get("CALLS", 0),
                 "most_called_functions": most_called,
                 "schema_version": self.schema_version,
             }
@@ -411,6 +469,20 @@ class QueryOperations:
                 "total_exceptions": 0,
                 "total_modules": 0,
                 "total_edges": 0,
+                "edge_stats": {
+                    "CONTAINS_FUNCTION": 0,
+                    "CONTAINS_CLASS": 0,
+                    "CONTAINS_VARIABLE": 0,
+                    "METHOD_OF": 0,
+                    "HAS_IMPORT": 0,
+                    "HAS_ATTRIBUTE": 0,
+                    "DECORATED_BY": 0,
+                    "REFERENCES": 0,
+                    "ACCESSES": 0,
+                    "HANDLES_EXCEPTION": 0,
+                    "CALLS": 0,
+                    "INHERITS": 0,
+                },
                 "function_calls": 0,
                 "most_called_functions": [],
                 "schema_version": self.schema_version,

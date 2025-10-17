@@ -77,10 +77,11 @@ def cli() -> None:
     help="Override default exclusions (e.g., --include .venv to analyze virtual environment)",
 )
 @click.option(
+    "-w",
     "--workers",
     type=int,
-    default=4,
-    help="Number of parallel workers (default: 4)",
+    default=None,
+    help="Number of worker threads (default: auto-detect CPU count)",
 )
 @click.option(
     "--db-path",
@@ -186,8 +187,9 @@ def analyze(
         step_start = time.time()
         results = analyzer.analyze_directory(
             target_path,
-            parallel=(workers > 1),
+            parallel=True,
             exclude_patterns=final_exclusions,  # Pass list directly (can be empty)
+            max_workers=workers,
         )
         analysis_time = time.time() - step_start
         console.print(f"[dim]⏱  File analysis: {analysis_time:.2f}s[/dim]")
@@ -229,7 +231,7 @@ def analyze(
             export_time = time.time() - step_start
             console.print(f"[dim]⏱  Parquet export: {export_time:.2f}s[/dim]")
 
-            # Load everything ONCE (including CALLS via COPY FROM)
+            # Load everything ONCE (including CALLS and INHERITS via COPY FROM)
             console.print("[cyan]Loading graph data using COPY FROM...[/cyan]")
             step_start = time.time()
             stats = graph.load_from_parquet(parquet_dir)
@@ -289,6 +291,43 @@ def analyze(
         table.add_row("Modules detected", format_count(files_with_modules))
 
         console.print(table)
+        console.print()
+
+        # Display relationship statistics
+        edge_times = stats.get("edge_times", {})
+        if edge_times:
+            rel_table = create_summary_table("Relationship Statistics")
+
+            total_rel_edges = stats['total_edges']
+
+            for edge_type in [
+                "CONTAINS_FUNCTION",
+                "CONTAINS_CLASS",
+                "CONTAINS_VARIABLE",
+                "METHOD_OF",
+                "HAS_IMPORT",
+                "HAS_ATTRIBUTE",
+                "DECORATED_BY",
+                "REFERENCES",
+                "ACCESSES",
+                "HANDLES_EXCEPTION",
+                "CALLS",
+                "INHERITS",
+            ]:
+                count = edge_times.get(edge_type, (0, 0))[1]  # Get count from (time, count) tuple
+                if total_rel_edges > 0:
+                    percentage = (count / total_rel_edges) * 100
+                else:
+                    percentage = 0
+
+                if count > 0:
+                    rel_table.add_row(
+                        edge_type,
+                        f"{format_count(count)} ({percentage:.1f}%)"
+                    )
+
+            console.print(rel_table)
+
         console.print(f"\n[green]Graph persisted to:[/green] {db_path}")
         if files_skipped > 0:
             console.print(f"[dim]Use --refresh to force re-analysis of all files[/dim]")
@@ -312,10 +351,7 @@ def analyze(
         )
         timing_text += f"    - Node insertion: [yellow]{nodes_time:.2f}s[/yellow]\n"
         timing_text += f"    - Edge insertion: [yellow]{edges_time:.2f}s[/yellow]\n"
-        timing_text += f"  • Call resolution: [yellow]{resolve_time:.2f}s[/yellow]\n"
-        timing_text += (
-            f"  • Call edge insertion: [yellow]{calls_insert_time:.2f}s[/yellow]"
-        )
+        timing_text += f"  • Call resolution: [yellow]{resolve_time:.2f}s[/yellow]"
 
         timing_panel = Panel(
             timing_text,
@@ -662,6 +698,77 @@ def stats(db_path: Optional[str], top: int) -> None:
 
         console.print(overview_table)
         console.print()
+
+        # Relationship statistics
+        edge_stats = stats_data.get("edge_stats", {})
+        if edge_stats:
+            relationship_table = create_data_table(
+                "Relationship Types",
+                [
+                    ("Relationship", "left", "green"),
+                    ("Count", "right", "yellow"),
+                    ("% of Total", "right", "cyan"),
+                ]
+            )
+
+            total_edges = stats_data.get("total_edges", 0)
+
+            for edge_type in [
+                "CONTAINS_FUNCTION",
+                "CONTAINS_CLASS",
+                "CONTAINS_VARIABLE",
+                "METHOD_OF",
+                "HAS_IMPORT",
+                "HAS_ATTRIBUTE",
+                "DECORATED_BY",
+                "REFERENCES",
+                "ACCESSES",
+                "HANDLES_EXCEPTION",
+                "CALLS",
+                "INHERITS",
+            ]:
+                count = edge_stats.get(edge_type, 0)
+                if total_edges > 0:
+                    percentage = (count / total_edges) * 100
+                else:
+                    percentage = 0
+
+                relationship_table.add_row(
+                    edge_type,
+                    format_count(count),
+                    f"{percentage:.1f}%",
+                )
+
+            console.print(relationship_table)
+            console.print()
+
+        # Functions with multiple decorators
+        try:
+            multi_decorators = graph.get_functions_with_multiple_decorators()
+            if multi_decorators:
+                decorator_table = create_data_table(
+                    f"Functions with Multiple Decorators ({len(multi_decorators)} found)",
+                    [
+                        ("Function", "left", "green"),
+                        ("File", "left", "cyan"),
+                        ("Count", "right", "yellow"),
+                        ("Decorators", "left", "magenta"),
+                    ]
+                )
+
+                for func in multi_decorators[:top]:
+                    decorators_str = ", ".join(func["decorators"])
+                    decorator_table.add_row(
+                        func["name"],
+                        func["file"],
+                        format_count(func["decorator_count"]),
+                        decorators_str,
+                    )
+
+                console.print(decorator_table)
+                console.print()
+        except Exception:
+            pass
 
         # Most-called functions
         most_called = stats_data.get("most_called_functions", [])

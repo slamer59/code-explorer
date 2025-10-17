@@ -234,7 +234,7 @@ async def create_schema(conn: kuzu.AsyncConnection) -> None:
         )
     """)
 
-    # Edge tables - 10 tables (excluding INHERITS and CALLS per requirements)
+    # Edge tables - 12 tables (including CALLS and INHERITS)
     await conn.execute("""
         CREATE REL TABLE IF NOT EXISTS CONTAINS_FUNCTION(
             FROM File TO Function
@@ -299,6 +299,19 @@ async def create_schema(conn: kuzu.AsyncConnection) -> None:
             FROM Function TO Exception,
             line_number INT64,
             context STRING
+        )
+    """)
+
+    await conn.execute("""
+        CREATE REL TABLE IF NOT EXISTS CALLS(
+            FROM Function TO Function,
+            call_line INT64
+        )
+    """)
+
+    await conn.execute("""
+        CREATE REL TABLE IF NOT EXISTS INHERITS(
+            FROM Class TO Class
         )
     """)
 
@@ -402,7 +415,7 @@ async def load_from_parquet(
 
     **Load Order:**
     1. Nodes: File, Function, Class, Variable, Import, Decorator, Attribute, Exception
-    2. Edges: CONTAINS_*, METHOD_OF, HAS_*, DECORATED_BY, REFERENCES, ACCESSES, HANDLES_EXCEPTION
+    2. Edges: CONTAINS_*, METHOD_OF, HAS_*, DECORATED_BY, REFERENCES, ACCESSES, HANDLES_EXCEPTION, CALLS, INHERITS
 
     Args:
         conn: KuzuDB async connection
@@ -505,6 +518,8 @@ async def load_from_parquet(
         ("REFERENCES", "references.parquet"),
         ("ACCESSES", "accesses.parquet"),
         ("HANDLES_EXCEPTION", "handles_exception.parquet"),
+        ("CALLS", "calls.parquet"),
+        ("INHERITS", "inherits.parquet"),
     ]
 
     for table_name, filename in edge_mappings:

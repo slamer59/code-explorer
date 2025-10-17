@@ -219,6 +219,7 @@ def _process_batch(
         "deferred_decorated_by": [],
         "deferred_has_attribute": [],
         "deferred_handles_exception": [],
+        "deferred_inherits": [],
     }
 
     # Process each FileAnalysis result in the batch
@@ -300,6 +301,15 @@ def _process_batch(
                     "to": class_id,
                 }
             )
+
+            # Defer INHERITS edge creation for each base class
+            if cls.bases:
+                for base_name in cls.bases:
+                    base_name = base_name.strip()
+                    if base_name:
+                        batch_data["deferred_inherits"].append(
+                            (rel_file_path, cls.name, cls.start_line, base_name)
+                        )
 
         # Variable nodes and edges
         seen_vars = set()
@@ -490,7 +500,6 @@ def export_to_parquet(
         max_workers: Maximum number of worker threads (default: None = auto-detect)
 
     Note:
-        - INHERITS edges are skipped (not implemented)
         - REFERENCES context always uses empty string ""
         - DECORATED_BY generates target IDs from file + target_name + line
         - Empty DataFrames create Parquet files with 0 rows but correct schema
@@ -529,6 +538,7 @@ def export_to_parquet(
     references_data = []
     accesses_data = []
     handles_exception_data = []
+    inherits_data = []
 
     # Store raw edge data from FileAnalysis for deferred processing
     # This avoids the O(n²) lookup problem by deferring edge creation
@@ -537,6 +547,7 @@ def export_to_parquet(
     deferred_decorated_by = []  # (file_path, dec.target_name, dec.name, dec.line_number)
     deferred_has_attribute = []  # (file_path, attr.class_name, attr.name, attr.definition_line)
     deferred_handles_exception = []  # (file_path, exc.function_name, exc.name, exc.line_number, exc.context)
+    deferred_inherits = []  # (file_path, child_class_name, child_start_line, parent_base_name)
 
     # PARALLEL OPTIMIZATION: Split results into batches and process in parallel
     with Timer("parallel_batch_processing", silent=True) as processing_timer:
@@ -592,6 +603,7 @@ def export_to_parquet(
                 deferred_handles_exception.extend(
                     batch_data["deferred_handles_exception"]
                 )
+                deferred_inherits.extend(batch_data["deferred_inherits"])
 
     print(
         f"⏱️  Parallel batch processing: {processing_timer.elapsed:.3f}s ({len(batches)} batches, {len(results)} files)"
@@ -746,6 +758,22 @@ def export_to_parquet(
                         "to": exc_id,
                         "line_number": exc_line,
                         "context": exc_context,
+                    }
+                )
+
+        # Create INHERITS edges
+        for rel_file_path, child_name, child_start_line, parent_name in deferred_inherits:
+            child_key = (rel_file_path, child_name, child_start_line)
+            parent_key = (rel_file_path, parent_name)
+
+            # Try to find parent by name-based lookup first (same file)
+            if child_key in class_lookup and parent_key in class_by_name:
+                child_id = class_lookup[child_key]["id"]
+                parent_id = class_by_name[parent_key]["id"]
+                inherits_data.append(
+                    {
+                        "from": child_id,
+                        "to": parent_id,
                     }
                 )
     print(
@@ -918,6 +946,10 @@ def export_to_parquet(
         _write_edge_table(
             calls_data, ["from", "to", "line_number"], edges_dir / "calls.parquet"
         )
+
+        _write_edge_table(
+            inherits_data, ["from", "to"], edges_dir / "inherits.parquet"
+        )
     print(f"⏱️  Parquet file writing: {write_timer.elapsed:.3f}s")
 
 
@@ -998,6 +1030,4 @@ def _get_schema_for_columns(columns: List[str]) -> dict:
         "is_class_attribute": pl.Boolean,
     }
 
-    return {col: type_map.get(col, pl.Utf8) for col in columns}
-    return {col: type_map.get(col, pl.Utf8) for col in columns}
     return {col: type_map.get(col, pl.Utf8) for col in columns}

@@ -298,3 +298,91 @@ class EdgeOperations:
         except Exception as e:
             # Nodes may not exist yet
             pass
+
+    def build_inheritance_edges(self) -> int:
+        """Build INHERITS edges from Class bases field.
+
+        This method:
+        1. Finds all classes with non-empty bases field
+        2. Parses base class names (comma-separated or single)
+        3. Attempts to match base names to Class nodes in database
+        4. Creates INHERITS edges from child to parent
+
+        Returns:
+            Number of INHERITS edges created
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+
+        edges_created = 0
+
+        try:
+            # Get all classes with bases
+            result = self.conn.execute("""
+                MATCH (child:Class)
+                WHERE child.bases IS NOT NULL AND child.bases <> ''
+                RETURN child.name, child.file, child.start_line, child.bases
+            """)
+
+            classes_with_bases = []
+            while result.has_next():
+                row = result.get_next()
+                classes_with_bases.append({
+                    "name": row[0],
+                    "file": row[1],
+                    "start_line": row[2],
+                    "bases": row[3],
+                })
+
+            # For each class with bases
+            for cls in classes_with_bases:
+                # Parse base class names (comma-separated)
+                base_names = [b.strip() for b in cls["bases"].split(",")]
+
+                # Try to find and link each base class
+                for base_name in base_names:
+                    if not base_name:
+                        continue
+
+                    try:
+                        # Find parent class by name
+                        parent_result = self.conn.execute(
+                            "MATCH (parent:Class {name: $name}) RETURN parent.id LIMIT 1",
+                            {"name": base_name},
+                        )
+
+                        if parent_result.has_next():
+                            parent_id = parent_result.get_next()[0]
+
+                            # Find child class by name and file
+                            child_result = self.conn.execute(
+                                "MATCH (child:Class {name: $name, file: $file, start_line: $line}) RETURN child.id LIMIT 1",
+                                {
+                                    "name": cls["name"],
+                                    "file": cls["file"],
+                                    "line": cls["start_line"],
+                                },
+                            )
+
+                            if child_result.has_next():
+                                child_id = child_result.get_next()[0]
+
+                                # Create INHERITS edge
+                                self.conn.execute(
+                                    """
+                                    MATCH (child:Class {id: $child_id}), (parent:Class {id: $parent_id})
+                                    CREATE (child)-[:INHERITS]->(parent)
+                                """,
+                                    {"child_id": child_id, "parent_id": parent_id},
+                                )
+                                edges_created += 1
+                    except Exception:
+                        # Base class not found in database (external class), skip
+                        pass
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to build inheritance edges: {e}")
+
+        return edges_created

@@ -24,13 +24,14 @@ class FunctionExtractor(BaseExtractor):
             tree: Tree-sitter root node
             result: FileAnalysis to populate
         """
-        # Read file to extract source code
-        source_lines = None
-        try:
-            with open(result.file_path, "r", encoding="utf-8") as f:
-                source_lines = f.readlines()
-        except Exception as e:
-            logger.warning(f"Could not read source for {result.file_path}: {e}")
+        # Use cached source lines if available, otherwise read file
+        source_lines = result._source_lines
+        if source_lines is None:
+            try:
+                with open(result.file_path, "r", encoding="utf-8") as f:
+                    source_lines = f.readlines()
+            except Exception as e:
+                logger.warning(f"Could not read source for {result.file_path}: {e}")
 
         # Extract function definitions
         self._extract_function_definitions(tree, result, source_lines)

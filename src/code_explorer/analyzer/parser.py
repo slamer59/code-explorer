@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 # Type aliases
 TreeSitterNode = Any  # tree_sitter.Node
 
+# Parser singleton cache (thread-safe per process in multiprocessing)
+_parser_cache: Parser | None = None
+
 
 class ParserInitializationError(Exception):
     """Raised when Tree-sitter parser initialization fails."""
@@ -117,6 +120,9 @@ def get_python_parser() -> Parser:
     """
     Initialize and return a Tree-sitter parser for Python.
 
+    Returns a cached parser instance to avoid expensive re-initialization.
+    The cache is per-process, so multiprocessing workers each have their own.
+
     Returns:
         Parser: Configured Tree-sitter parser for Python
 
@@ -127,6 +133,12 @@ def get_python_parser() -> Parser:
         >>> parser = get_python_parser()
         >>> tree = parser.parse(b"def hello(): pass")
     """
+    global _parser_cache
+
+    # Return cached parser if available
+    if _parser_cache is not None:
+        return _parser_cache
+
     try:
         # Get Python language from tree-sitter-python
         py_language = Language(tree_sitter_python.language())
@@ -134,6 +146,9 @@ def get_python_parser() -> Parser:
         # Initialize parser
         parser = Parser()
         parser.language = py_language
+
+        # Cache for reuse in this process
+        _parser_cache = parser
 
         logger.debug("Tree-sitter Python parser initialized successfully")
         return parser

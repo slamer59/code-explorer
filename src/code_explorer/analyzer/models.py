@@ -147,3 +147,6 @@ class FileAnalysis:
     exceptions: List[ExceptionInfo] = field(default_factory=list)
     module_info: Optional[ModuleInfo] = None
     errors: List[str] = field(default_factory=list)
+    # Cached file content to avoid redundant reads (set by analyze_file)
+    _source_content: Optional[str] = field(default=None, repr=False)
+    _source_lines: Optional[List[str]] = field(default=None, repr=False)

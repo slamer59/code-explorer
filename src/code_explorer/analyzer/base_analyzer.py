@@ -7,7 +7,7 @@ Refactored from analyzer.py to use extractor-based architecture.
 import hashlib
 import logging
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -152,9 +152,13 @@ class CodeAnalyzer:
             )
 
         try:
-            # Read file content
+            # Read file content once and cache it
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
+
+            # Cache both content and source lines to avoid redundant reads
+            result._source_content = content
+            result._source_lines = content.splitlines(keepends=True)
 
             # if sub_task_id is not None:
             #     file_name = Path(file_path).name
@@ -250,24 +254,28 @@ class CodeAnalyzer:
 
                 module_name = ".".join(parts) if parts else file_path.stem
 
-                # Extract docstring using Tree-sitter
+                # Extract docstring using Tree-sitter (use cached content)
                 docstring = None
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        # Parse using Tree-sitter to extract module docstring
-                        from code_explorer.analyzer.parser import parse_python_file
-                        tree = parse_python_file(content, filename=str(file_path))
-                        # Check for module-level string literal (docstring)
-                        for child in tree.children:
-                            if hasattr(child, "type") and child.type == "expression_statement":
-                                # Check if the expression is a string
-                                expr = child.child_by_field_name("expression") if hasattr(child, "child_by_field_name") else None
-                                if expr and hasattr(expr, "type") and expr.type == "string":
-                                    docstring = expr.text.decode("utf-8") if isinstance(expr.text, bytes) else expr.text
-                                    # Remove quotes
-                                    docstring = docstring.strip("\"'")
-                                    break
+                    content = result._source_content
+                    if content is None:
+                        # Fallback: read if not cached
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            content = f.read()
+
+                    # Parse using Tree-sitter to extract module docstring
+                    from code_explorer.analyzer.parser import parse_python_file
+                    tree = parse_python_file(content, filename=str(file_path))
+                    # Check for module-level string literal (docstring)
+                    for child in tree.children:
+                        if hasattr(child, "type") and child.type == "expression_statement":
+                            # Check if the expression is a string
+                            expr = child.child_by_field_name("expression") if hasattr(child, "child_by_field_name") else None
+                            if expr and hasattr(expr, "type") and expr.type == "string":
+                                docstring = expr.text.decode("utf-8") if isinstance(expr.text, bytes) else expr.text
+                                # Remove quotes
+                                docstring = docstring.strip("\"'")
+                                break
                 except Exception as e:
                     logger.debug(f"Could not extract docstring from {file_path}: {e}")
 

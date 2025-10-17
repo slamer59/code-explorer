@@ -25,6 +25,14 @@ from rich.progress import (
 )
 from rich.table import Table
 
+from .console_styles import (
+    create_summary_table,
+    create_data_table,
+    format_count,
+    StyleGuide,
+    create_header_panel,
+)
+
 console = Console()
 
 
@@ -263,24 +271,22 @@ def analyze(
         # Print summary
         console.print("\n[bold green]Analysis complete![/bold green]")
 
-        table = Table(show_header=True, header_style="bold cyan")
-        table.add_column("Metric", style="cyan")
-        table.add_column("Count", justify="right", style="green")
+        table = create_summary_table("Analysis Results")
 
-        table.add_row("Total files analyzed", str(len(results)))
-        table.add_row("Files processed", str(files_processed))
+        table.add_row("Total files analyzed", format_count(len(results)))
+        table.add_row("Files processed", format_count(files_processed))
         if files_skipped > 0:
-            table.add_row("Files skipped (unchanged)", str(files_skipped))
+            table.add_row("Files skipped (unchanged)", format_count(files_skipped))
         if error_files > 0:
-            table.add_row("Files with errors", str(error_files))
-        table.add_row("Total classes", str(total_classes))
-        table.add_row("Total functions", str(total_functions))
-        table.add_row("Total variables", str(total_variables))
-        table.add_row("Total imports (detailed)", str(total_imports_detailed))
-        table.add_row("Total decorators", str(total_decorators))
-        table.add_row("Total attributes", str(total_attributes))
-        table.add_row("Total exceptions", str(total_exceptions))
-        table.add_row("Modules detected", str(files_with_modules))
+            table.add_row("Files with errors", format_count(error_files))
+        table.add_row("Total classes", format_count(total_classes))
+        table.add_row("Total functions", format_count(total_functions))
+        table.add_row("Total variables", format_count(total_variables))
+        table.add_row("Total imports (detailed)", format_count(total_imports_detailed))
+        table.add_row("Total decorators", format_count(total_decorators))
+        table.add_row("Total attributes", format_count(total_attributes))
+        table.add_row("Total exceptions", format_count(total_exceptions))
+        table.add_row("Modules detected", format_count(files_with_modules))
 
         console.print(table)
         console.print(f"\n[green]Graph persisted to:[/green] {db_path}")
@@ -409,12 +415,16 @@ def impact(
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
         sys.exit(1)
 
-    # Find function
-    console.print(f"[cyan]Analyzing impact of:[/cyan] {file_name}::{function_name}")
-
+    # Display header
+    console.print()
     direction = "downstream" if downstream else "upstream"
-    console.print(f"[cyan]Direction:[/cyan] {direction.title()}")
-    console.print(f"[cyan]Max depth:[/cyan] {max_depth}")
+    console.print(
+        create_header_panel(
+            "Impact Analysis: Function Dependency",
+            f"Target: {file_name}::{function_name} | Direction: {direction.title()} | Depth: {max_depth}"
+        )
+    )
+    console.print()
 
     try:
         results = analyzer.analyze_function_impact(
@@ -431,7 +441,7 @@ def impact(
         # Display results using the format_as_table method
         table = analyzer.format_as_table(results)
         console.print(table)
-        console.print(f"\n[green]Found {len(results)} impacted functions[/green]")
+        console.print(f"\n{StyleGuide.success_icon} Found [yellow]{format_count(len(results))}[/yellow] impacted functions")
 
     except Exception as e:
         console.print(f"[red]Error during impact analysis:[/red] {e}")
@@ -517,9 +527,15 @@ def trace(
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
         sys.exit(1)
 
+    # Display header
+    console.print()
     console.print(
-        f"[cyan]Tracing variable:[/cyan] {variable} at {file_name}:{line_number}"
+        create_header_panel(
+            "Variable Trace Analysis",
+            f"Tracing: {variable} at {file_name}:{line_number}"
+        )
     )
+    console.print()
 
     try:
         results = analyzer.analyze_variable_impact(file_name, variable, line_number)
@@ -528,21 +544,27 @@ def trace(
             console.print("[yellow]No data flow found.[/yellow]")
             return
 
-        # Display results in table
-        table = Table(show_header=True, header_style="bold cyan")
-        table.add_column("File", style="cyan")
-        table.add_column("Function", style="green")
-        table.add_column("Line", justify="right", style="yellow")
+        # Display results in table with consistent styling
+        table = create_data_table(
+            f"Data Flow for '{variable}'",
+            [
+                ("File", "left", "cyan"),
+                ("Function", "left", "green"),
+                ("Line", "right", "yellow"),
+            ]
+        )
 
         for file, function, line in results:
             table.add_row(
                 file,
                 function,
-                str(line),
+                format_count(line),
             )
 
         console.print(table)
-        console.print(f"\n[green]Found {len(results)} usages[/green]")
+        console.print(
+            f"\n[green]✓[/green] Found [yellow]{format_count(len(results))}[/yellow] usages"
+        )
 
     except Exception as e:
         console.print(f"[red]Error during trace:[/red] {e}")
@@ -604,62 +626,63 @@ def stats(db_path: Optional[str], top: int) -> None:
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
         sys.exit(1)
 
-    console.print("[bold cyan]Codebase Statistics[/bold cyan]\n")
+    # Display header
+    console.print()
+    console.print(create_header_panel("Codebase Statistics", "Analysis Summary"))
+    console.print()
 
     try:
         stats_data = graph.get_statistics()
 
         # Overall statistics
-        table = Table(show_header=True, header_style="bold cyan", title="Overview")
-        table.add_column("Metric", style="cyan")
-        table.add_column("Count", justify="right", style="green")
+        overview_table = create_summary_table("Overview")
 
-        table.add_row("Total files", str(stats_data.get("total_files", 0)))
-        table.add_row("Total classes", str(stats_data.get("total_classes", 0)))
-        table.add_row("Total functions", str(stats_data.get("total_functions", 0)))
-        table.add_row("Total variables", str(stats_data.get("total_variables", 0)))
-        table.add_row("Total edges", str(stats_data.get("total_edges", 0)))
-        table.add_row("Function calls", str(stats_data.get("function_calls", 0)))
+        overview_table.add_row("Total files", format_count(stats_data.get("total_files", 0)))
+        overview_table.add_row("Total classes", format_count(stats_data.get("total_classes", 0)))
+        overview_table.add_row("Total functions", format_count(stats_data.get("total_functions", 0)))
+        overview_table.add_row("Total variables", format_count(stats_data.get("total_variables", 0)))
+        overview_table.add_row("Total edges", format_count(stats_data.get("total_edges", 0)))
+        overview_table.add_row("Function calls", format_count(stats_data.get("function_calls", 0)))
 
         # Show new node types if schema v2
         if stats_data.get("schema_version") == "v2":
-            table.add_row(
-                "Total imports (detailed)", str(stats_data.get("total_imports", 0))
+            overview_table.add_row(
+                "Total imports (detailed)", format_count(stats_data.get("total_imports", 0))
             )
-            table.add_row(
-                "Total decorators", str(stats_data.get("total_decorators", 0))
+            overview_table.add_row(
+                "Total decorators", format_count(stats_data.get("total_decorators", 0))
             )
-            table.add_row(
-                "Total attributes", str(stats_data.get("total_attributes", 0))
+            overview_table.add_row(
+                "Total attributes", format_count(stats_data.get("total_attributes", 0))
             )
-            table.add_row(
-                "Total exceptions", str(stats_data.get("total_exceptions", 0))
+            overview_table.add_row(
+                "Total exceptions", format_count(stats_data.get("total_exceptions", 0))
             )
-            table.add_row("Total modules", str(stats_data.get("total_modules", 0)))
+            overview_table.add_row("Total modules", format_count(stats_data.get("total_modules", 0)))
 
-        console.print(table)
+        console.print(overview_table)
         console.print()
 
         # Most-called functions
         most_called = stats_data.get("most_called_functions", [])
 
         if most_called:
-            call_table = Table(
-                show_header=True,
-                header_style="bold cyan",
-                title=f"Top {min(top, len(most_called))} Most-Called Functions",
+            call_table = create_data_table(
+                f"Top {min(top, len(most_called))} Most-Called Functions",
+                [
+                    ("Rank", "right", "dim"),
+                    ("Function", "left", "green"),
+                    ("File", "left", "cyan"),
+                    ("Calls", "right", "yellow"),
+                ]
             )
-            call_table.add_column("Rank", justify="right", style="dim")
-            call_table.add_column("Function", style="green")
-            call_table.add_column("File", style="cyan")
-            call_table.add_column("Calls", justify="right", style="yellow")
 
             for i, func in enumerate(most_called[:top], 1):
                 call_table.add_row(
-                    str(i),
+                    format_count(i),
                     func.get("name", ""),
                     func.get("file", ""),
-                    str(func.get("call_count", 0)),
+                    format_count(func.get("call_count", 0)),
                 )
 
             console.print(call_table)
@@ -745,17 +768,30 @@ def visualize(
         console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
         sys.exit(1)
 
-    console.print(f"[cyan]Generating diagram for:[/cyan] {target}")
-
-    if function:
-        console.print(f"[cyan]Highlighting function:[/cyan] {function}")
-        console.print(f"[cyan]Max depth:[/cyan] {max_depth}")
-    else:
-        console.print(f"[cyan]Module visualization[/cyan]")
-
-    console.print(f"[cyan]Output file:[/cyan] {output}")
+    # Display header
+    console.print()
+    subtitle = f"Function: {function} | Depth: {max_depth}" if function else f"Module: {target}"
+    console.print(
+        create_header_panel("Dependency Graph Visualization", subtitle)
+    )
+    console.print()
 
     try:
+        # Display configuration
+        config_table = create_data_table(
+            "Visualization Configuration",
+            [
+                ("Parameter", "left", "cyan"),
+                ("Value", "left", "green"),
+            ]
+        )
+        config_table.add_row("Target", target)
+        config_table.add_row("Function", function if function else "Module-level")
+        config_table.add_row("Max Depth", format_count(max_depth))
+        config_table.add_row("Output", output)
+        console.print(config_table)
+        console.print()
+
         if function:
             # Generate function-focused diagram
             diagram = visualizer.generate_function_graph(
@@ -776,7 +812,9 @@ def visualize(
 
         visualizer.save_to_file(diagram, output_path)
 
-        console.print(f"[green]Diagram saved to:[/green] {output_path}")
+        console.print(
+            f"[green]✓[/green] Diagram saved to: [yellow]{output_path}[/yellow]"
+        )
         console.print(
             "[dim]View in GitHub, VS Code, or any Mermaid-compatible viewer[/dim]"
         )

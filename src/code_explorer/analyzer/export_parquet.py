@@ -267,7 +267,7 @@ def _process_batch(
 
             if func.parent_class:
                 batch_data["deferred_method_of"].append(
-                    (file_path, func.name, func.start_line, func.parent_class)
+                    (rel_file_path, func.name, func.start_line, func.parent_class)
                 )
 
         # Class nodes and edges
@@ -332,7 +332,7 @@ def _process_batch(
         # Defer REFERENCES edge creation
         for usage in result.variable_usage:
             batch_data["deferred_references"].append(
-                (file_path, usage.function_name, usage.variable_name, usage.usage_line)
+                (rel_file_path, usage.function_name, usage.variable_name, usage.usage_line)
             )
 
         # Import nodes and edges
@@ -388,7 +388,7 @@ def _process_batch(
 
             if dec.target_type == "function":
                 batch_data["deferred_decorated_by"].append(
-                    (file_path, dec.target_name, dec.name, dec.line_number)
+                    (rel_file_path, dec.target_name, dec.name, dec.line_number)
                 )
 
         # Attribute nodes
@@ -419,7 +419,7 @@ def _process_batch(
             )
 
             batch_data["deferred_has_attribute"].append(
-                (file_path, attr.class_name, attr.name, attr.definition_line)
+                (rel_file_path, attr.class_name, attr.name, attr.definition_line)
             )
 
         # Exception nodes
@@ -456,7 +456,7 @@ def _process_batch(
             if exc.function_name:
                 batch_data["deferred_handles_exception"].append(
                     (
-                        file_path,
+                        rel_file_path,
                         exc.function_name,
                         exc.name,
                         exc.line_number,
@@ -664,8 +664,7 @@ def export_to_parquet(
         # OPTIMIZATION: Create edges using global lookups (O(1) per edge instead of O(n))
 
         # Create METHOD_OF edges
-        for file_path, func_name, func_start_line, parent_class in deferred_method_of:
-            rel_file_path = to_relative_path(file_path, project_root)
+        for rel_file_path, func_name, func_start_line, parent_class in deferred_method_of:
             func_key = (rel_file_path, func_name, func_start_line)
             class_key = (rel_file_path, parent_class)
 
@@ -680,8 +679,7 @@ def export_to_parquet(
                 )
 
         # Create REFERENCES edges
-        for file_path, func_name, var_name, usage_line in deferred_references:
-            rel_file_path = to_relative_path(file_path, project_root)
+        for rel_file_path, func_name, var_name, usage_line in deferred_references:
             func_key = (rel_file_path, func_name)
             var_key = (rel_file_path, var_name)
 
@@ -698,8 +696,7 @@ def export_to_parquet(
                 )
 
         # Create DECORATED_BY edges
-        for file_path, target_name, dec_name, dec_line in deferred_decorated_by:
-            rel_file_path = to_relative_path(file_path, project_root)
+        for rel_file_path, target_name, dec_name, dec_line in deferred_decorated_by:
             func_key = (rel_file_path, target_name)
             dec_key = (rel_file_path, dec_name, dec_line)
 
@@ -715,8 +712,7 @@ def export_to_parquet(
                 )
 
         # Create HAS_ATTRIBUTE edges
-        for file_path, class_name, attr_name, attr_line in deferred_has_attribute:
-            rel_file_path = to_relative_path(file_path, project_root)
+        for rel_file_path, class_name, attr_name, attr_line in deferred_has_attribute:
             class_key = (rel_file_path, class_name)
             attr_key = (rel_file_path, class_name, attr_name, attr_line)
 
@@ -732,13 +728,12 @@ def export_to_parquet(
 
         # Create HANDLES_EXCEPTION edges
         for (
-            file_path,
+            rel_file_path,
             func_name,
             exc_name,
             exc_line,
             exc_context,
         ) in deferred_handles_exception:
-            rel_file_path = to_relative_path(file_path, project_root)
             func_key = (rel_file_path, func_name)
             exc_key = (rel_file_path, exc_name, exc_line)
 

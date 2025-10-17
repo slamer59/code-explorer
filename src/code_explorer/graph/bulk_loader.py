@@ -111,7 +111,7 @@ def preprocess_files_parquet(source: Path, dest: Path) -> None:
 
     # Read and validate columns
     df = pd.read_parquet(source)
-    required_cols = ['path', 'language', 'content_hash']
+    required_cols = ["path", "language", "content_hash"]
 
     missing_cols = set(required_cols) - set(df.columns)
     if missing_cols:
@@ -543,15 +543,17 @@ async def load_from_parquet(
     total_nodes = sum(count for _, count in node_times.values())
     total_edges = sum(count for _, count in edge_times.values())
 
-    logger.info(f"Bulk load complete: {total_nodes} nodes, {total_edges} edges in {total_time:.3f}s")
+    logger.info(
+        f"Bulk load complete: {total_nodes} nodes, {total_edges} edges in {total_time:.3f}s"
+    )
 
     return {
-        'total_nodes': total_nodes,
-        'total_edges': total_edges,
-        'total_time': total_time,
-        'node_times': node_times,
-        'edge_times': edge_times,
-        'errors': errors,
+        "total_nodes": total_nodes,
+        "total_edges": total_edges,
+        "total_time": total_time,
+        "node_times": node_times,
+        "edge_times": edge_times,
+        "errors": errors,
     }
 
 

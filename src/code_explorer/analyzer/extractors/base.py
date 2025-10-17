@@ -10,12 +10,14 @@ from abc import ABC, abstractmethod
 from typing import Any, Union
 
 from code_explorer.analyzer.models import FileAnalysis
-from code_explorer.analyzer.tree_sitter_adapter import (
-    ASTNode, TreeSitterAdapter, TreeSitterNode,
-    NodeWrapper, detect_parser_type, wrap_node,
-    walk_tree, get_node_name,
-    is_function_node, is_call_node
-)
+from code_explorer.analyzer.tree_sitter_adapter import (ASTNode, NodeWrapper,
+                                                        TreeSitterAdapter,
+                                                        TreeSitterNode,
+                                                        detect_parser_type,
+                                                        get_node_name,
+                                                        is_call_node,
+                                                        is_function_node,
+                                                        walk_tree, wrap_node)
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +114,12 @@ class BaseExtractor(ABC):
             node: Node to get range from
 
         Returns:
+            Tuple of (start_line, end_line) using 1-based line numbers
+        """
+        wrapped = self.wrap_node(node)
+        start_line = wrapped.lineno or 0
+        end_line = wrapped.end_lineno or start_line
+        return (start_line, end_line)
             Tuple of (start_line, end_line) using 1-based line numbers
         """
         wrapped = self.wrap_node(node)

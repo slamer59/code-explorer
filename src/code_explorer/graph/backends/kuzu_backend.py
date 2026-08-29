@@ -123,19 +123,23 @@ class KuzuBackend:
             src_type, dst_type = endpoints
             src_pk = NODE_PRIMARY_KEY[src_type]
             dst_pk = NODE_PRIMARY_KEY[dst_type]
-            set_clause = ", ".join(f"r.{k} = ${k}" for k in edge.properties)
             params = {
                 "src": edge.src_id,
                 "dst": edge.dst_id,
                 **edge.properties,
             }
+            # Match on the edge's own properties too, not just (src, dst, type):
+            # some edge types (e.g. CALLS) legitimately have multiple parallel
+            # edges between the same node pair (distinct call sites). Matching
+            # on (src, dst, type) alone would MERGE them into a single edge,
+            # silently discarding all but the last-written one.
+            rel_props = ", ".join(f"{k}: ${k}" for k in edge.properties)
+            rel_pattern = f"r:{edge.type} {{{rel_props}}}" if rel_props else f"r:{edge.type}"
             query = (
                 f"MATCH (a:{src_type} {{{src_pk}: $src}}), "
                 f"(b:{dst_type} {{{dst_pk}: $dst}}) "
-                f"MERGE (a)-[r:{edge.type}]->(b)"
+                f"MERGE (a)-[{rel_pattern}]->(b)"
             )
-            if set_clause:
-                query += f" SET {set_clause}"
             self.conn.execute(query, params)
 
     def delete_file(self, file_key: str) -> None:

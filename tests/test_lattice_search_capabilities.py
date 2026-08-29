@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from code_explorer.graph.backends.lattice_backend import LatticeBackend
-from code_explorer.graph.records import NodeRecord
+from code_explorer.graph.records import EdgeRecord, NodeRecord
 
 
 @pytest.fixture
@@ -112,6 +112,70 @@ def test_fuzzy_search_tolerates_misspelled_symbol_name(lattice_backend):
     with lattice_backend.db.read() as txn:
         top_name = txn.get_property(fuzzy_results[0].node_id, "name")
     assert top_name == "delete_session"
+
+
+def test_indexing_and_search_share_one_database(lattice_backend):
+    """Index a small structural graph (File -CONTAINS_FUNCTION-> Function
+    -CALLS-> Function) through the same NodeRecord/EdgeRecord path
+    KuzuBackend uses, then run both a structural Cypher traversal and a BM25
+    search against that same LatticeBackend instance. This is the actual
+    selling point over Kuzu: one embedded database file backs exact graph
+    queries *and* lexical/fuzzy/vector search -- Kuzu has no search layer at
+    all, so this combination would need a second engine bolted on."""
+    lattice_backend.upsert_nodes(
+        [
+            NodeRecord(
+                id="auth/token.py",
+                type="File",
+                properties={
+                    "path": "auth/token.py",
+                    "language": "python",
+                    "content_hash": "h1",
+                },
+            )
+        ]
+    )
+    _seed_functions(lattice_backend)
+    lattice_backend.upsert_edges(
+        [
+            EdgeRecord(
+                src_id="auth/token.py",
+                dst_id="fn_refresh",
+                type="CONTAINS_FUNCTION",
+                properties={},
+            ),
+            EdgeRecord(
+                src_id="fn_refresh",
+                dst_id="fn_delete",
+                type="CALLS",
+                properties={"call_line": 3},
+            ),
+        ]
+    )
+
+    # Exact structural traversal (what the impact engine relies on).
+    callers = lattice_backend.query(
+        "MATCH (caller:Function)-[:CALLS]->(callee:Function) "
+        "WHERE callee.id = $id RETURN caller.name AS name",
+        {"id": "fn_delete"},
+    )
+    assert callers == [{"name": "refresh_token"}]
+
+    contains = lattice_backend.query(
+        "MATCH (f:File)-[:CONTAINS_FUNCTION]->(fn:Function) "
+        "WHERE f.path = $path RETURN fn.name AS name",
+        {"path": "auth/token.py"},
+    )
+    assert contains == [{"name": "refresh_token"}]
+
+    # BM25 search over the same indexed data, in the same database file.
+    lattice_backend.db.create_node_fts_index("Function", "source_code")
+    hits = lattice_backend.db.fts_search(
+        "Function", "source_code", "user session", limit=5
+    )
+    assert hits, "expected the indexed graph data to also be search-hittable"
+    with lattice_backend.db.read() as txn:
+        assert txn.get_property(hits[0].node_id, "name") == "delete_session"
 
 
 def test_vector_search_ranks_nearest_embedding(temp_dir):

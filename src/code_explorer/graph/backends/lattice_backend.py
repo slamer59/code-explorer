@@ -145,6 +145,10 @@ class LatticeBackend:
                 txn.delete_node(node_id)
             txn.commit()
 
+    def clear_all(self) -> None:
+        for node_type in NODE_PRIMARY_KEY:
+            self.query(f"MATCH (n:{node_type}) DETACH DELETE n")
+
     def query(
         self, statement: str, params: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:

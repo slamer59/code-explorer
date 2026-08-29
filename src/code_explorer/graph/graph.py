@@ -428,48 +428,7 @@ class DependencyGraph:
         """
         self._check_read_only()
         try:
-            # Delete all edges first
-            self.conn.execute("MATCH ()-[r:CALLS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:REFERENCES]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:CONTAINS_FUNCTION]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:CONTAINS_CLASS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:CONTAINS_VARIABLE]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:IMPORTS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:INHERITS]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:DEPENDS_ON]->() DELETE r")
-            self.conn.execute("MATCH ()-[r:METHOD_OF]->() DELETE r")
-
-            # Delete new edges (v2 schema)
-            if self.schema_version == "v2":
-                try:
-                    self.conn.execute("MATCH ()-[r:HAS_IMPORT]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:IMPORTS_FROM]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:DECORATED_BY]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:HAS_ATTRIBUTE]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:ACCESSES]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:HANDLES_EXCEPTION]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:CONTAINS_MODULE]->() DELETE r")
-                    self.conn.execute("MATCH ()-[r:MODULE_OF]->() DELETE r")
-                except Exception:
-                    pass
-
-            # Delete all nodes
-            self.conn.execute("MATCH (f:Function) DELETE f")
-            self.conn.execute("MATCH (c:Class) DELETE c")
-            self.conn.execute("MATCH (v:Variable) DELETE v")
-            self.conn.execute("MATCH (f:File) DELETE f")
-
-            # Delete new nodes (v2 schema)
-            if self.schema_version == "v2":
-                try:
-                    self.conn.execute("MATCH (i:Import) DELETE i")
-                    self.conn.execute("MATCH (d:Decorator) DELETE i")
-                    self.conn.execute("MATCH (a:Attribute) DELETE a")
-                    self.conn.execute("MATCH (e:Exception) DELETE e")
-                    self.conn.execute("MATCH (m:Module) DELETE m")
-                except Exception:
-                    pass
-
+            self.backend.clear_all()
         except Exception as e:
             console.print(f"[red]Error clearing database: {e}[/red]")
 

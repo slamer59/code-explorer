@@ -38,6 +38,10 @@ class CodeGraphBackend(Protocol):
         """Delete all nodes/edges owned by a file, for incremental re-indexing."""
         ...
 
+    def clear_all(self) -> None:
+        """Delete every node and edge, for a full re-index from scratch."""
+        ...
+
     def query(
         self, statement: str, params: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:

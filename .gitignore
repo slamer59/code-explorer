@@ -19,3 +19,5 @@ USAGE_EXAMPLES.md
 # Code Explorer database
 .code-explorer/
 *.parquet
+*.lattice
+*.lattice-wal

@@ -16,6 +16,7 @@ Code Explorer is the best Python code analyzer for understanding large codebases
 - ⚡ **Fast Queries** - Sub-second graph database queries
 - 💾 **Incremental Updates** - Only re-analyze changed files (10-100x faster)
 - 🎯 **AST-Based** - Accurate static code analysis without execution
+- 🔎 **Code Search** *(experimental)* - BM25/fuzzy/semantic search with an LLM-ready context bundle for the top hit (`code-explorer search "..."`)
 
 ---
 
@@ -383,6 +384,34 @@ code-explorer visualize services/auth.py --output auth_graph.md
 
 # Focus on specific function with depth control
 code-explorer visualize utils.py --function calculate --max-depth 2
+```
+
+#### `code-explorer search <query> [path]` *(experimental)*
+
+BM25/fuzzy/semantic code search with an LLM-ready context bundle (top hit +
+its direct callers/callees, source attached). Uses a separate **LatticeDB**
+index, not the KuzuDB database the other commands use — see
+[docs/reference/cli-commands.md](docs/reference/cli-commands.md#search---find-code-by-keyword-or-meaning-experimental)
+for the full reference, including the `--semantic` mode's local-Ollama
+requirement.
+
+**Options:**
+- `--limit N` - Maximum results (default: 5)
+- `--fuzzy` - Typo-tolerant search instead of BM25
+- `--semantic` - Vector search instead of BM25 (needs local Ollama)
+- `--no-context` - Only show the results table
+- `--reindex` - Force a fresh index
+
+**Examples:**
+```bash
+# Keyword search with a ready-to-use context bundle for the top hit
+code-explorer search "resolve call" src
+
+# Typo-tolerant
+code-explorer search "refesh_token" --fuzzy
+
+# Conceptual search (ollama pull nomic-embed-text first)
+code-explorer search "walking a syntax tree recursively" src --semantic
 ```
 
 ### Database Schema

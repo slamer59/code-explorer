@@ -197,6 +197,72 @@ code-explorer trace utils.py:15 --variable result --db-path /tmp/analysis.db
 
 ---
 
+## `search` - Find Code by Keyword or Meaning (Experimental)
+
+Search function/class source code with BM25 lexical search, typo-tolerant fuzzy
+search, or semantic (vector) search, then print an LLM-ready context bundle for
+the top hit (the hit itself plus its direct callers/callees, with source
+attached). See
+[LatticeDB Migration](../explanation/latticedb-migration.md#1a-implementation-status)
+for the design behind this.
+
+> **Different database from every other command.** `analyze`/`impact`/`trace`/
+> `stats`/`visualize` all use the KuzuDB database at `.code-explorer/graph.db`.
+> `search` builds its own **LatticeDB** index instead
+> (`.code-explorer/graph.lattice`, or `graph_vectors.lattice` for
+> `--semantic`, since vector dimensions are fixed when a LatticeDB index is
+> created and can't be added to an existing one) — it does not read or write
+> the Kuzu database `analyze` builds. Running `search` for the first time
+> against a directory re-parses and re-indexes it; there's no incremental
+> update yet, so re-run with `--reindex` after the code changes.
+
+**Synopsis:**
+```bash
+code-explorer search QUERY [PATH] [OPTIONS]
+```
+
+**Common Usage:**
+```bash
+# BM25 keyword search (default)
+code-explorer search "resolve call" src
+
+# Typo-tolerant fuzzy search
+code-explorer search "refesh_token" --fuzzy
+
+# Semantic search -- finds conceptually related code with no keyword overlap
+# Requires a local Ollama server with the nomic-embed-text model:
+#   ollama pull nomic-embed-text
+code-explorer search "walking a syntax tree recursively" src --semantic
+
+# Just the ranked hits, skip the context bundle
+code-explorer search "resolve call" --no-context --limit 10
+
+# Force a fresh index after the code has changed
+code-explorer search "resolve call" --reindex
+```
+
+**Options:**
+- `QUERY` (required): Text to search for
+- `PATH`: Directory to search (default: current directory)
+- `--limit N`: Maximum results (default: 5)
+- `--fuzzy`: Typo-tolerant search instead of BM25
+- `--semantic`: Vector search instead of BM25 (needs local Ollama, see above)
+- `--no-context`: Only show the results table, skip the context bundle
+- `--reindex`: Force a fresh index instead of reusing an existing one
+
+**Notes:**
+- Only `Function` and `Class` nodes are indexed (their source code), and only
+  those two node types are covered by ingestion today (no Variable, Import,
+  Decorator, Attribute, Exception, Module yet) — see the migration doc's
+  Implementation Status section for what's covered.
+- The context bundle is assembled for the top-ranked **Function** hit only
+  (Class hits have no call graph to expand); if every result is a Class,
+  `search` says so instead of erroring.
+- `--fuzzy` and `--semantic` are separate modes, not merged/reranked together
+  (that's a possible future "hybrid retrieval" phase, not implemented).
+
+---
+
 ## `visualize` - Generate Mermaid Diagram
 
 Create visual dependency graph as Mermaid diagram.

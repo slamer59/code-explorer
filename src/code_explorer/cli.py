@@ -509,6 +509,123 @@ def impact(
 
 
 @cli.command()
+@click.argument("query")
+@click.argument("path", type=click.Path(exists=True), default=".")
+@click.option(
+    "--limit",
+    type=int,
+    default=5,
+    help="Maximum number of search results to show (default: 5)",
+)
+@click.option(
+    "--fuzzy",
+    is_flag=True,
+    help="Use typo-tolerant fuzzy search instead of BM25 lexical search",
+)
+@click.option(
+    "--no-context",
+    is_flag=True,
+    help="Only show search hits, skip assembling a context bundle for the top hit",
+)
+@click.option(
+    "--reindex",
+    is_flag=True,
+    help="Force a fresh index instead of reusing an existing one",
+)
+def search(
+    query: str,
+    path: str,
+    limit: int,
+    fuzzy: bool,
+    no_context: bool,
+    reindex: bool,
+) -> None:
+    """Search code by keyword and show a ready-to-use context bundle.
+
+    Searches function/class source code with BM25 (or --fuzzy for
+    typo-tolerant matching), then assembles a bounded, LLM-ready context
+    bundle (the top hit plus its direct callers/callees, with source
+    attached) -- see docs/explanation/latticedb-migration.md, Section 18.
+
+    This is LatticeDB-only for now (Kuzu has no full-text search engine).
+    It builds its own index at PATH/.code-explorer/graph.lattice, separate
+    from `analyze`'s Kuzu index -- there is no incremental update yet
+    (Phase 3), so re-run with --reindex after the code changes.
+
+    QUERY: text to search for, e.g. "refresh token"
+    PATH: directory to search (default: current directory)
+
+    Examples:
+        code-explorer search "parse file"
+        code-explorer search "refesh_token" --fuzzy
+        code-explorer search "resolve call" --no-context --limit 10
+    """
+    from .analyzer.base_analyzer import CodeAnalyzer
+    from .analyzer.call_resolver import CallResolver
+    from .context import ContextAssembler
+    from .graph import DependencyGraph
+    from .graph.backends.lattice_backend import LatticeBackend
+
+    target = Path(path).resolve()
+    db_path = target / ".code-explorer" / "graph.lattice"
+
+    needs_index = reindex or not db_path.exists()
+    if reindex:
+        for stale in db_path.parent.glob(db_path.name + "*"):
+            stale.unlink(missing_ok=True)
+
+    try:
+        graph = DependencyGraph(
+            db_path=db_path, project_root=target, backend=LatticeBackend(db_path)
+        )
+        if needs_index:
+            console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
+            results = CodeAnalyzer().analyze_directory(target)
+            resolved_calls = CallResolver(results).resolve_all_calls()
+            graph.ingest_results(results, resolved_calls=resolved_calls)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] Failed to build search index: {e}")
+        sys.exit(1)
+
+    try:
+        hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
+    except Exception as e:
+        console.print(f"[red]Error during search:[/red] {e}")
+        sys.exit(1)
+
+    if not hits:
+        console.print(f"[yellow]No results for[/yellow] {query!r}")
+        graph.backend.close()
+        return
+
+    console.print()
+    table = Table(title=f"Search results for {query!r}")
+    table.add_column("Type")
+    table.add_column("Name")
+    table.add_column("File")
+    table.add_column("Score", justify="right")
+    for hit in hits:
+        table.add_row(hit.node_type, hit.name, hit.file, f"{hit.score:.3f}")
+    console.print(table)
+
+    if not no_context:
+        top = hits[0]
+        try:
+            ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
+            console.print()
+            console.print(
+                create_header_panel(
+                    "Context", f"Top hit: {top.file}::{top.name}"
+                )
+            )
+            console.print(ctx.to_markdown())
+        except ValueError as e:
+            console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
+
+    graph.backend.close()
+
+
+@cli.command()
 @click.argument("target")
 @click.option(
     "--variable",

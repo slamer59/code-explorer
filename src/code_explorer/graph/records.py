@@ -38,3 +38,23 @@ class EdgeRecord:
     dst_id: str
     type: str
     properties: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class SearchResult:
+    """A single text-search hit, in canonical form.
+
+    node_id: the canonical NodeRecord.id (e.g. 'fn_a1b2c3d4e5f6'), not the
+        backend's internal id -- callers use this with get_function/
+        get_callers/etc, which key off the canonical id.
+    node_type: e.g. 'Function', 'Class'.
+    name / file: for display and for calling get_function(file, name).
+    score: backend-reported relevance score; not comparable across backends
+        or across a mix of exact/fuzzy searches, only within one call's results.
+    """
+
+    node_id: str
+    node_type: str
+    name: str
+    file: str
+    score: float

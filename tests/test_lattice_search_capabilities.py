@@ -80,7 +80,9 @@ def test_bm25_search_finds_relevant_function_by_keyword(lattice_backend):
     exact identifier match -- something Kuzu's Cypher-only queries can't do
     (they require an exact/pattern match on a known property value)."""
     _seed_functions(lattice_backend)
-    lattice_backend.db.create_node_fts_index("Function", "source_code")
+    # The Function.source_code FTS index is now created automatically by
+    # LatticeBackend.initialize_schema() (see graph/backends/lattice_backend.py's
+    # SEARCHABLE_TEXT_FIELDS) -- the fixture above already called it.
 
     results = lattice_backend.db.fts_search(
         "Function", "source_code", "OAuth access token", limit=5
@@ -169,7 +171,7 @@ def test_indexing_and_search_share_one_database(lattice_backend):
     assert contains == [{"name": "refresh_token"}]
 
     # BM25 search over the same indexed data, in the same database file.
-    lattice_backend.db.create_node_fts_index("Function", "source_code")
+    # (Function.source_code FTS index already created by initialize_schema().)
     hits = lattice_backend.db.fts_search(
         "Function", "source_code", "user session", limit=5
     )

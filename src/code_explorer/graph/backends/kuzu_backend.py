@@ -18,7 +18,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import kuzu
 
-from code_explorer.graph.records import EdgeRecord, NodeRecord
+from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 from code_explorer.graph.schema import SchemaManager
 
 # Primary key property per node type, mirroring the CREATE NODE TABLE ...
@@ -166,3 +166,17 @@ class KuzuBackend:
         while result.has_next():
             rows.append(dict(zip(columns, result.get_next())))
         return rows
+
+    def search_text(
+        self,
+        query: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+        fuzzy: bool = False,
+    ) -> List[SearchResult]:
+        raise NotImplementedError(
+            "KuzuBackend does not support text search -- BM25/fuzzy search is "
+            "a LatticeDB-only capability for now (Kuzu has no full-text search "
+            "engine). Use LatticeBackend, or fall back to exact lookups via "
+            "query()/get_function()."
+        )

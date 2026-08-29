@@ -32,7 +32,14 @@ from code_explorer.graph.backends.kuzu_backend import (
     FILE_SCOPED_NODE_TYPES,
     NODE_PRIMARY_KEY,
 )
-from code_explorer.graph.records import EdgeRecord, NodeRecord
+from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
+
+# Node types + text property indexed for BM25/fuzzy search. Only Function and
+# Class carry a source_code property today (graph/ingest.py's current scope).
+SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
+    "Function": "source_code",
+    "Class": "source_code",
+}
 
 
 class LatticeBackend:
@@ -76,6 +83,9 @@ class LatticeBackend:
         # 'file' property, which also needs an index.
         for label in FILE_SCOPED_NODE_TYPES:
             self._ensure_node_property_index(label, "file")
+        for label, prop in SEARCHABLE_TEXT_FIELDS.items():
+            if not self.db.has_node_fts_index(label, prop):
+                self.db.create_node_fts_index(label, prop)
 
     def detect_schema_version(self) -> str:
         """No versioned schema in LatticeDB (schema-less); always current."""
@@ -153,3 +163,44 @@ class LatticeBackend:
         self, statement: str, params: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         return self.db.query(statement, params or {}).fetchall()
+
+    def search_text(
+        self,
+        query: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+        fuzzy: bool = False,
+    ) -> List[SearchResult]:
+        types = node_types if node_types is not None else list(SEARCHABLE_TEXT_FIELDS)
+        raw_hits: List[tuple] = []  # (node_type, node_id, score)
+        for node_type in types:
+            prop = SEARCHABLE_TEXT_FIELDS.get(node_type)
+            if prop is None:
+                continue
+            search_fn = self.db.fts_search_fuzzy if fuzzy else self.db.fts_search
+            kwargs = {"limit": limit, "max_distance": 2} if fuzzy else {"limit": limit}
+            for hit in search_fn(node_type, prop, query, **kwargs):
+                raw_hits.append((node_type, hit.node_id, hit.score))
+
+        # Confirmed empirically: fts_search_fuzzy reports score=0.0 (not a
+        # real relevance score), unlike fts_search's BM25 score. Sorting by
+        # score is a no-op in fuzzy mode (all 0.0, order preserved) and
+        # meaningful in exact mode -- harmless either way, but don't assume
+        # fuzzy results are ranked by relevance.
+        raw_hits.sort(key=lambda h: h[2], reverse=True)
+        raw_hits = raw_hits[:limit]
+
+        results: List[SearchResult] = []
+        with self.db.read() as txn:
+            for node_type, node_id, score in raw_hits:
+                pk = NODE_PRIMARY_KEY[node_type]
+                results.append(
+                    SearchResult(
+                        node_id=txn.get_property(node_id, pk),
+                        node_type=node_type,
+                        name=txn.get_property(node_id, "name") or "",
+                        file=txn.get_property(node_id, "file") or "",
+                        score=score,
+                    )
+                )
+        return results

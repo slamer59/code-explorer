@@ -1,14 +1,19 @@
 """Backend-neutral graph storage interface.
 
 Phase 0 of the LatticeDB migration (see docs/explanation/latticedb-migration.md).
-Scoped to what DependencyGraph needs today; search_text/search_vector are
-deliberately not included yet -- no implementation of either exists in the
-codebase, and the migration spec places search in a later phase (Phase 4+).
+search_text (Phase 4, BM25) is now part of the interface, but it is a
+LatticeDB-only capability for now -- Kuzu has no full-text search engine, so
+KuzuBackend.search_text() raises NotImplementedError rather than silently
+returning nothing. This is a deliberate asymmetry, not an oversight: see
+docs/explanation/latticedb-migration.md's "Implementation Status" section,
+which explicitly deprioritizes Kuzu feature parity in favor of shipping
+LatticeDB's search capabilities first. search_vector is still not part of
+this interface -- no implementation exists yet.
 """
 
 from typing import Any, Dict, Iterable, List, Optional, Protocol
 
-from code_explorer.graph.records import EdgeRecord, NodeRecord
+from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 
 
 class CodeGraphBackend(Protocol):
@@ -46,4 +51,19 @@ class CodeGraphBackend(Protocol):
         self, statement: str, params: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """Escape hatch for existing raw-Cypher call sites during the transition."""
+        ...
+
+    def search_text(
+        self,
+        query: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+        fuzzy: bool = False,
+    ) -> List[SearchResult]:
+        """BM25 (or, with fuzzy=True, typo-tolerant) lexical search over
+        indexed node text (currently Function/Class source_code).
+
+        LatticeDB-only: KuzuBackend has no full-text search engine and raises
+        NotImplementedError rather than silently returning [].
+        """
         ...

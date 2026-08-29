@@ -39,6 +39,83 @@ The goal is **not** to turn Code Explorer into a generic RAG system.
 
 ---
 
+## 1a. Implementation Status
+
+> Living status tracker for this spec — updated as work lands. Last updated after the
+> Phase 0/1 work and the Kuzu-vs-Lattice benchmark (see `perfo/benchmark_backends.py`).
+
+### Phase-by-phase status
+
+| Phase | Status | Evidence |
+|---|---|---|
+| **0 — Canonical model + backend interface** | ✅ Done | `graph/records.py` (`NodeRecord`/`EdgeRecord`), `graph/backend.py` (`CodeGraphBackend` Protocol), `graph/backends/{kuzu,lattice}_backend.py` |
+| **1 — Read-only Lattice prototype** | ✅ Done | `graph/queries.py` routes through `backend.query()`; `get_callers`/`get_callees`/`ImpactAnalyzer` verified identical on both backends |
+| **2 — Initial ingestion** | ⚠️ Partial | `graph/ingest.py`'s `file_analyses_to_records()` covers only File/Function/Class nodes + CONTAINS_FUNCTION/CONTAINS_CLASS/CALLS edges. No Variable/Import/Decorator/Attribute/Exception/Module yet — deliberately deprioritized, see ranking below. |
+| **3 — Incremental updates** | ❌ Not implemented | `CodeGraphBackend.delete_file()`/`clear_all()` exist and work, but nothing in the CLI calls them for a single changed file — `analyze` always does `clear_all()` + full rebuild for both backends. |
+| **4 — BM25** | ❌ Not implemented in the tool | The *engine* capability is proven (`tests/test_lattice_search_capabilities.py`), but nothing in `DependencyGraph`/CLI calls `fts_search`. No FTS index is ever created on ingested data, no `search` command exists. |
+| **5 — Vector search** | ❌ Not implemented in the tool | Same story — `vector_search` proven to work in isolation, nothing wired up. No embedding generation pipeline exists anywhere. |
+| **6 — Hybrid retrieval** | ❌ Not implemented | No query classifier, no exact/BM25/fuzzy/vector merge-and-rerank logic (Section 12). Depends on 4 and 5 existing first. |
+| **7 — Confidence-aware impact** | ❌ Not implemented | No `confidence`/`resolution_method`/`evidence` fields on any edge. `ImpactAnalyzer` treats every edge as certain. |
+
+### Ranking of unimplemented phases, by impact on LLM-search-context quality
+
+Ranked for a specific goal — "search in code for an LLM, to give a real nice context" —
+not for completeness or Kuzu feature parity (full node/edge type coverage is explicitly
+deprioritized for this ranking).
+
+1. **BM25 lexical search (Phase 4) — highest impact, lowest effort.** This is the
+   actual unlock for *search* existing at all. Today code-explorer can only answer
+   "what calls X" if you already know X's exact file+name — there's no way to go from
+   a natural-language-ish query ("token refresh", "plugin loader") to a seed node. BM25
+   is the cheapest way to close that gap: the engine capability is already proven,
+   `Function`/`Class` nodes already carry `source_code`, so this is "create an FTS
+   index on ingest + one method that calls `fts_search`" — no new node types, no
+   embedding model decision, no new dependency.
+
+2. **Minimal LLM context assembly (Section 18) — highest impact, paired with #1.**
+   BM25 alone returns a ranked list of hits, not "a real nice context." Section 18's
+   shape (seed → direct impact → transitive → bounded budget → retrieve source only
+   for selected nodes) is what turns a search hit into something an LLM can actually
+   use well. Doesn't need the full budget/pruning machinery — a minimal version (seed
+   from BM25 → one-hop `get_callers`/`get_callees` → cap at N nodes → attach
+   `source_code`) is already a large jump over raw search hits or raw impact lists.
+   Ranked essentially tied with #1: BM25 without this is half the value, this without
+   BM25 has no way to find a seed from a natural-language query.
+
+3. **Fuzzy search (Phase 4 / Section 11 "Strategy C") — high impact, near-zero
+   marginal effort.** Once the BM25 FTS index exists, `fts_search_fuzzy` is the same
+   index, same API, different call. Useful for slightly-off/misremembered identifiers.
+   Ranked just below BM25 since it's a fallback on top of #1, not a capability on its
+   own.
+
+4. **Vector search (Phase 5) — high potential impact, meaningfully higher effort.**
+   Handles genuinely conceptual queries ("where do we validate access before loading a
+   plugin") with no keyword overlap — what BM25 structurally cannot cover. Real cost
+   though: requires an embedding model decision, a new dependency, an
+   embedding-generation step in ingest, and `vector_dimensions` is fixed at
+   database-creation time, so it's a real design decision, not a small add-on. Ranked
+   below BM25/fuzzy because keyword search alone already covers a large fraction of
+   realistic "where is X" queries, which tend to share vocabulary with the code.
+
+5. **Hybrid retrieval / query classifier (Phase 6, Section 12) — moderate impact,
+   mostly formalization.** Merging exact+BM25+fuzzy+vector with scoring/reranking is
+   real value once *multiple* modes exist, but with only BM25/fuzzy in place, a full
+   classifier is over-engineering — "try exact match, fall back to BM25" is a
+   two-line heuristic. Becomes much higher-value once vector search (rank 4) exists.
+
+6. **Confidence-aware impact (Phase 7) — moderate impact, orthogonal to search.**
+   Improves result *trustworthiness* once a seed is already found and impact already
+   traversed — useful for an LLM to know "high confidence direct caller" vs "possible
+   dynamic reference," but doesn't help *finding* things. No dependency on 1-5, so
+   implementable independently whenever prioritized.
+
+7. **Incremental updates (Phase 3) — lower impact on context quality, real
+   operational cost.** Doesn't change what an LLM sees in a single query — it's about
+   re-index cost over time. Important for adoption on a real, changing codebase, but
+   last for this specific "search context quality" lens.
+
+---
+
 ## 2. Core Design Principles
 
 ### 2.1 The graph remains authoritative

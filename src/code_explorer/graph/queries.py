@@ -57,6 +57,26 @@ class QueryOperations:
         self._to_relative_path = helper_methods["to_relative_path"]
         self._make_variable_id = helper_methods["make_variable_id"]
 
+    def _resolve_function_id(self, rel_file: str, function: str) -> Optional[str]:
+        """Resolve (file, name) to a single Function id.
+
+        Function is only unique by (file, name, start_line), not (file, name)
+        alone -- two distinct functions can share a name in the same file
+        (e.g. same-named methods on different classes). Matching CALLS edges
+        directly against Function {file, name} would silently conflate their
+        callers/callees into one merged (and wrong) result set. Resolving to
+        one specific id first (lowest start_line, deterministic) fixes that;
+        it doesn't fully disambiguate from the CLI's (file, function) input,
+        but it replaces "silently wrong for the ambiguous case" with
+        "well-defined for the ambiguous case."
+        """
+        rows = self.backend.query(
+            "MATCH (f:Function {file: $file, name: $name}) "
+            "RETURN f.id AS id ORDER BY f.start_line ASC LIMIT 1",
+            {"file": rel_file, "name": function},
+        )
+        return rows[0]["id"] if rows else None
+
     def get_callers(self, file: str, function: str) -> List[Tuple[str, str, int]]:
         """Get functions that call the specified function.
 
@@ -70,12 +90,15 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
+            fn_id = self._resolve_function_id(rel_file, function)
+            if fn_id is None:
+                return []
             rows = self.backend.query(
                 """
-                MATCH (caller:Function)-[c:CALLS]->(callee:Function {file: $file, name: $name})
+                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $id})
                 RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line
             """,
-                {"file": rel_file, "name": function},
+                {"id": fn_id},
             )
             return [(row["file"], row["name"], row["call_line"]) for row in rows]
         except Exception as e:
@@ -97,12 +120,15 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
+            fn_id = self._resolve_function_id(rel_file, function)
+            if fn_id is None:
+                return []
             rows = self.backend.query(
                 """
-                MATCH (caller:Function {file: $file, name: $name})-[c:CALLS]->(callee:Function)
+                MATCH (caller:Function {id: $id})-[c:CALLS]->(callee:Function)
                 RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line
             """,
-                {"file": rel_file, "name": function},
+                {"id": fn_id},
             )
             return [(row["file"], row["name"], row["call_line"]) for row in rows]
         except Exception as e:

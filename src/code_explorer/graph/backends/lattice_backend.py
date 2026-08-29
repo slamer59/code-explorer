@@ -27,6 +27,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import latticedb
 
+from code_explorer.embeddings import DEFAULT_DIMENSIONS, DEFAULT_MODEL, embed_text
 from code_explorer.graph.backends.kuzu_backend import (
     EDGE_ENDPOINT_TYPES,
     FILE_SCOPED_NODE_TYPES,
@@ -34,8 +35,10 @@ from code_explorer.graph.backends.kuzu_backend import (
 )
 from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 
-# Node types + text property indexed for BM25/fuzzy search. Only Function and
-# Class carry a source_code property today (graph/ingest.py's current scope).
+# Node types + text property indexed for BM25/fuzzy search, and embedded for
+# vector search (same field, same scope -- one text representation, not two).
+# Only Function and Class carry a source_code property today
+# (graph/ingest.py's current scope).
 SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
     "Function": "source_code",
     "Class": "source_code",
@@ -45,9 +48,28 @@ SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
 class LatticeBackend:
     """CodeGraphBackend implementation backed by LatticeDB."""
 
-    def __init__(self, db_path: Path, read_only: bool = False):
+    def __init__(
+        self,
+        db_path: Path,
+        read_only: bool = False,
+        enable_vectors: bool = False,
+        vector_dimensions: int = DEFAULT_DIMENSIONS,
+    ):
+        """
+        Args:
+            enable_vectors: Opt-in -- vectors have real memory/storage cost
+                (see the migration spec's risk register), so plain
+                structural/BM25 usage doesn't pay for them. Fixed at
+                database-creation time; can't be turned on for an existing
+                database that was created without it.
+            vector_dimensions: Must match the embedding model used with this
+                database (768 for the default nomic-embed-text). Also fixed
+                at database-creation time.
+        """
         self.db_path = db_path
         self.read_only = read_only
+        self.enable_vectors = enable_vectors
+        self.vector_dimensions = vector_dimensions
         self.db: Optional[latticedb.Database] = None
 
     def open(self) -> None:
@@ -57,6 +79,8 @@ class LatticeBackend:
             self.db_path,
             create=not self.read_only,
             read_only=self.read_only,
+            enable_vectors=self.enable_vectors,
+            vector_dimensions=self.vector_dimensions,
         )
         self.db.open()
 
@@ -201,6 +225,83 @@ class LatticeBackend:
                         name=txn.get_property(node_id, "name") or "",
                         file=txn.get_property(node_id, "file") or "",
                         score=score,
+                    )
+                )
+        return results
+
+    def build_vector_index(
+        self,
+        node_types: Optional[List[str]] = None,
+        model: str = DEFAULT_MODEL,
+    ) -> int:
+        """Embed and store a vector for each existing node of the given
+        types, using their SEARCHABLE_TEXT_FIELDS text property.
+
+        A separate step from ingestion on purpose (see the migration spec,
+        Section 10: "Do not generate embeddings during AST parsing" -- select
+        entities from the already-built graph, then embed). One Ollama HTTP
+        call per node -- slow, not batched/parallelized; fine for now.
+
+        Returns:
+            Number of nodes embedded.
+
+        Raises:
+            RuntimeError: This backend wasn't opened with enable_vectors=True.
+        """
+        if not self.enable_vectors:
+            raise RuntimeError(
+                "build_vector_index requires a LatticeBackend opened with "
+                "enable_vectors=True (vector_dimensions is fixed at "
+                "database-creation time and can't be enabled afterward)."
+            )
+        types = node_types if node_types is not None else list(SEARCHABLE_TEXT_FIELDS)
+        count = 0
+        for node_type in types:
+            prop = SEARCHABLE_TEXT_FIELDS.get(node_type)
+            if prop is None:
+                continue
+            node_ids = self.db.get_nodes_by_label(node_type)
+            with self.db.write() as txn:
+                for node_id in node_ids:
+                    text = txn.get_property(node_id, prop)
+                    if not text:
+                        continue
+                    vector = embed_text(text, model=model)
+                    txn.set_vector(node_id, "embedding", vector)
+                    count += 1
+                txn.commit()
+        return count
+
+    def search_vector(
+        self,
+        query_text: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+    ) -> List[SearchResult]:
+        if not self.enable_vectors:
+            raise RuntimeError(
+                "search_vector requires a LatticeBackend opened with "
+                "enable_vectors=True."
+            )
+        query_vector = embed_text(query_text)
+        hits = self.db.vector_search(query_vector, k=limit)
+
+        types = set(node_types) if node_types is not None else None
+        results: List[SearchResult] = []
+        with self.db.read() as txn:
+            for hit in hits:
+                labels = txn.get_node(hit.node_id).labels
+                node_type = next((t for t in labels if t in NODE_PRIMARY_KEY), None)
+                if node_type is None or (types is not None and node_type not in types):
+                    continue
+                pk = NODE_PRIMARY_KEY[node_type]
+                results.append(
+                    SearchResult(
+                        node_id=txn.get_property(hit.node_id, pk),
+                        node_type=node_type,
+                        name=txn.get_property(hit.node_id, "name") or "",
+                        file=txn.get_property(hit.node_id, "file") or "",
+                        score=hit.distance,
                     )
                 )
         return results

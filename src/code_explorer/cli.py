@@ -523,6 +523,15 @@ def impact(
     help="Use typo-tolerant fuzzy search instead of BM25 lexical search",
 )
 @click.option(
+    "--semantic",
+    is_flag=True,
+    help=(
+        "Use vector (semantic) search instead of BM25 -- finds conceptually "
+        "related code even with no shared keywords. Requires a local Ollama "
+        "server running with the nomic-embed-text model pulled."
+    ),
+)
+@click.option(
     "--no-context",
     is_flag=True,
     help="Only show search hits, skip assembling a context bundle for the top hit",
@@ -537,20 +546,25 @@ def search(
     path: str,
     limit: int,
     fuzzy: bool,
+    semantic: bool,
     no_context: bool,
     reindex: bool,
 ) -> None:
     """Search code by keyword and show a ready-to-use context bundle.
 
     Searches function/class source code with BM25 (or --fuzzy for
-    typo-tolerant matching), then assembles a bounded, LLM-ready context
-    bundle (the top hit plus its direct callers/callees, with source
-    attached) -- see docs/explanation/latticedb-migration.md, Section 18.
+    typo-tolerant matching, or --semantic for conceptual vector search),
+    then assembles a bounded, LLM-ready context bundle (the top hit plus
+    its direct callers/callees, with source attached) -- see
+    docs/explanation/latticedb-migration.md, Section 18.
 
-    This is LatticeDB-only for now (Kuzu has no full-text search engine).
-    It builds its own index at PATH/.code-explorer/graph.lattice, separate
-    from `analyze`'s Kuzu index -- there is no incremental update yet
-    (Phase 3), so re-run with --reindex after the code changes.
+    This is LatticeDB-only for now (Kuzu has no full-text/vector search).
+    It builds its own index at PATH/.code-explorer/graph.lattice (or
+    graph_vectors.lattice for --semantic, which needs vectors enabled at
+    index-creation time -- kept as a separate index so plain/fuzzy search
+    doesn't pay for vector storage it doesn't use), separate from
+    `analyze`'s Kuzu index -- there is no incremental update yet (Phase 3),
+    so re-run with --reindex after the code changes.
 
     QUERY: text to search for, e.g. "refresh token"
     PATH: directory to search (default: current directory)
@@ -558,6 +572,7 @@ def search(
     Examples:
         code-explorer search "parse file"
         code-explorer search "refesh_token" --fuzzy
+        code-explorer search "how do we renew an expired credential" --semantic
         code-explorer search "resolve call" --no-context --limit 10
     """
     from .analyzer.base_analyzer import CodeAnalyzer
@@ -567,7 +582,8 @@ def search(
     from .graph.backends.lattice_backend import LatticeBackend
 
     target = Path(path).resolve()
-    db_path = target / ".code-explorer" / "graph.lattice"
+    index_name = "graph_vectors.lattice" if semantic else "graph.lattice"
+    db_path = target / ".code-explorer" / index_name
 
     needs_index = reindex or not db_path.exists()
     if reindex:
@@ -575,20 +591,29 @@ def search(
             stale.unlink(missing_ok=True)
 
     try:
-        graph = DependencyGraph(
-            db_path=db_path, project_root=target, backend=LatticeBackend(db_path)
-        )
+        backend = LatticeBackend(db_path, enable_vectors=semantic)
+        graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
         if needs_index:
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
             results = CodeAnalyzer().analyze_directory(target)
             resolved_calls = CallResolver(results).resolve_all_calls()
             graph.ingest_results(results, resolved_calls=resolved_calls)
+            if semantic:
+                console.print(
+                    "[cyan]Generating embeddings via local Ollama[/cyan] "
+                    "(one call per function/class, this is the slow part) ..."
+                )
+                n = graph.backend.build_vector_index()
+                console.print(f"Embedded {n:,} nodes.")
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to build search index: {e}")
         sys.exit(1)
 
     try:
-        hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
+        if semantic:
+            hits = graph.backend.search_vector(query, limit=limit)
+        else:
+            hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
     except Exception as e:
         console.print(f"[red]Error during search:[/red] {e}")
         sys.exit(1)
@@ -599,11 +624,12 @@ def search(
         return
 
     console.print()
+    score_label = "Distance (lower=closer)" if semantic else "Score"
     table = Table(title=f"Search results for {query!r}")
     table.add_column("Type")
     table.add_column("Name")
     table.add_column("File")
-    table.add_column("Score", justify="right")
+    table.add_column(score_label, justify="right")
     for hit in hits:
         table.add_row(hit.node_type, hit.name, hit.file, f"{hit.score:.3f}")
     console.print(table)

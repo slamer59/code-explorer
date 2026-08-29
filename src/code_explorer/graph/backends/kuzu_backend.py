@@ -180,3 +180,16 @@ class KuzuBackend:
             "engine). Use LatticeBackend, or fall back to exact lookups via "
             "query()/get_function()."
         )
+
+    def search_vector(
+        self,
+        query_text: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+    ) -> List[SearchResult]:
+        raise NotImplementedError(
+            "KuzuBackend does not support vector search -- semantic search is "
+            "a LatticeDB-only capability for now (Kuzu has no vector index). "
+            "Use LatticeBackend, or fall back to exact lookups via "
+            "query()/get_function()."
+        )

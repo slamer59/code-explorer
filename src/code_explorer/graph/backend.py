@@ -7,8 +7,10 @@ KuzuBackend.search_text() raises NotImplementedError rather than silently
 returning nothing. This is a deliberate asymmetry, not an oversight: see
 docs/explanation/latticedb-migration.md's "Implementation Status" section,
 which explicitly deprioritizes Kuzu feature parity in favor of shipping
-LatticeDB's search capabilities first. search_vector is still not part of
-this interface -- no implementation exists yet.
+LatticeDB's search capabilities first. search_vector (Phase 5) is now part
+of the interface too: also LatticeDB-only, backed by local Ollama
+embeddings (see embeddings.py) rather than LatticeDB's own native embedding
+client (found broken -- opaque "Generic error" -- in testing).
 """
 
 from typing import Any, Dict, Iterable, List, Optional, Protocol
@@ -65,5 +67,25 @@ class CodeGraphBackend(Protocol):
 
         LatticeDB-only: KuzuBackend has no full-text search engine and raises
         NotImplementedError rather than silently returning [].
+        """
+        ...
+
+    def search_vector(
+        self,
+        query_text: str,
+        node_types: Optional[List[str]] = None,
+        limit: int = 10,
+    ) -> List[SearchResult]:
+        """Semantic (vector similarity) search: embeds query_text locally
+        (see embeddings.py) and finds the nearest indexed node vectors.
+
+        `score` on the returned SearchResult is a distance (lower = more
+        similar), unlike search_text's BM25 relevance score (higher = more
+        relevant) -- the two are not comparable.
+
+        LatticeDB-only, and only works on a backend opened with
+        enable_vectors=True whose vector index has actually been populated
+        (see LatticeBackend.build_vector_index). KuzuBackend has no vector
+        search and raises NotImplementedError.
         """
         ...

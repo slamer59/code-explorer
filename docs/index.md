@@ -32,6 +32,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Graph Algorithms](explanation/graph-algorithms.md) - Dependency traversal strategies
 - [LatticeDB Migration](explanation/latticedb-migration.md) - Target architecture for a Kùzu → LatticeDB storage migration with hybrid (graph + BM25 + vector + fuzzy) retrieval (not yet implemented)
 - [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
+- [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source shouldn't live in LatticeDB at monorepo scale, and the SourceProvider design that fixes it (not yet implemented)
 
 ## Quick Links
 

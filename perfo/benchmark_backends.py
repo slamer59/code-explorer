@@ -41,9 +41,19 @@ console = Console()
 REPO_ROOT = Path(__file__).parent.parent
 
 
+def clean_db_path(db_path: Path) -> None:
+    """Remove a prior run's DB, whether it's a directory (Kuzu) or a file
+    with sidecar files (LatticeDB's .db + .db-wal)."""
+    if db_path.is_dir():
+        shutil.rmtree(db_path, ignore_errors=True)
+    else:
+        for p in db_path.parent.glob(db_path.name + "*"):
+            p.unlink(missing_ok=True)
+
+
 def build_graph(backend_name: str, backend, target: Path, results, resolved_calls):
     db_path = REPO_ROOT / "perfo" / f"bench_{backend_name}.db"
-    shutil.rmtree(db_path, ignore_errors=True)
+    clean_db_path(db_path)
     graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
     t0 = time.perf_counter()
     stats = graph.ingest_results(results, resolved_calls=resolved_calls)
@@ -104,6 +114,18 @@ def check_accuracy(kuzu_graph, lattice_graph, seed_file: str, seed_name: str) ->
     return callers_match and impact_match
 
 
+def mark(value: float, other_value: float, higher_is_better: bool, fmt: str, unit: str = "") -> str:
+    """Format a metric value, tagging the winner with a trophy and % advantage."""
+    wins = value > other_value if higher_is_better else value < other_value
+    text = format(value, fmt) + unit
+    if not wins:
+        return text
+    if other_value == 0:
+        return f"🏆 {text}"
+    pct = abs(value - other_value) / other_value * 100
+    return f"🏆 {text} (+{pct:,.0f}%)"
+
+
 def main() -> None:
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO_ROOT / "src" / "code_explorer"
 
@@ -129,34 +151,44 @@ def main() -> None:
     kuzu_impact = bench_impact_depths(kuzu_graph, seed_file, seed_name)
     lattice_impact = bench_impact_depths(lattice_graph, seed_file, seed_name)
 
-    table = Table(title="Ingest")
+    kuzu_rate = (kuzu_stats["total_nodes"] + kuzu_stats["total_edges"]) / kuzu_ingest_time if kuzu_ingest_time > 0 else 0
+    lattice_rate = (lattice_stats["total_nodes"] + lattice_stats["total_edges"]) / lattice_ingest_time if lattice_ingest_time > 0 else 0
+
+    table = Table(title="Ingest (🏆 = faster)")
     table.add_column("Backend")
     table.add_column("Nodes", justify="right")
     table.add_column("Edges", justify="right")
     table.add_column("Time", justify="right")
     table.add_column("Rows/sec", justify="right")
-    for name, stats, t in (("Kuzu", kuzu_stats, kuzu_ingest_time), ("Lattice", lattice_stats, lattice_ingest_time)):
-        rate = (stats["total_nodes"] + stats["total_edges"]) / t if t > 0 else 0
-        table.add_row(name, f"{stats['total_nodes']:,}", f"{stats['total_edges']:,}", f"{t:.2f}s", f"{rate:,.0f}")
+    table.add_row("Kuzu", f"{kuzu_stats['total_nodes']:,}", f"{kuzu_stats['total_edges']:,}",
+                  mark(kuzu_ingest_time, lattice_ingest_time, False, ".2f", "s"),
+                  mark(kuzu_rate, lattice_rate, True, ",.0f"))
+    table.add_row("Lattice", f"{lattice_stats['total_nodes']:,}", f"{lattice_stats['total_edges']:,}",
+                  mark(lattice_ingest_time, kuzu_ingest_time, False, ".2f", "s"),
+                  mark(lattice_rate, kuzu_rate, True, ",.0f"))
     console.print()
     console.print(table)
 
-    table2 = Table(title="Single-hop query latency (get_callers, avg of 100 calls)")
+    table2 = Table(title="Single-hop query latency (get_callers, avg of 100 calls; 🏆 = faster)")
     table2.add_column("Backend")
     table2.add_column("ms/query", justify="right")
-    table2.add_row("Kuzu", f"{kuzu_single_hop:.3f}")
-    table2.add_row("Lattice", f"{lattice_single_hop:.3f}")
+    table2.add_row("Kuzu", mark(kuzu_single_hop, lattice_single_hop, False, ".3f"))
+    table2.add_row("Lattice", mark(lattice_single_hop, kuzu_single_hop, False, ".3f"))
     console.print()
     console.print(table2)
 
-    table3 = Table(title=f"Impact traversal latency (seed: {seed_name})")
+    table3 = Table(title=f"Impact traversal latency (seed: {seed_name}; 🏆 = faster)")
     table3.add_column("Depth", justify="right")
     table3.add_column("Kuzu ms", justify="right")
     table3.add_column("Kuzu results", justify="right")
     table3.add_column("Lattice ms", justify="right")
     table3.add_column("Lattice results", justify="right")
     for (d, kt, kn), (_, lt, ln) in zip(kuzu_impact, lattice_impact):
-        table3.add_row(str(d), f"{kt:.1f}", str(kn), f"{lt:.1f}", str(ln))
+        table3.add_row(
+            str(d),
+            mark(kt, lt, False, ".1f"), str(kn),
+            mark(lt, kt, False, ".1f"), str(ln),
+        )
     console.print()
     console.print(table3)
 

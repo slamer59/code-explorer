@@ -13,7 +13,6 @@ get_callers/impact queries against the indexed data to prove it's not just
 inserted, it's actually queryable.
 """
 
-import shutil
 import sys
 import time
 from pathlib import Path
@@ -35,7 +34,11 @@ REPO_ROOT = Path(__file__).parent.parent
 def main() -> None:
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO_ROOT / "src" / "code_explorer"
     db_path = REPO_ROOT / "perfo" / "lattice_index.lattice"
-    shutil.rmtree(db_path, ignore_errors=True)
+    # LatticeDB's db_path is a single file with sidecar files (e.g.
+    # .lattice-wal), not a directory -- shutil.rmtree silently no-ops on a
+    # plain file, leaving stale state that can make the next open() fail.
+    for stale in db_path.parent.glob(db_path.name + "*"):
+        stale.unlink(missing_ok=True)
 
     console.print(f"[cyan]Parsing[/cyan] {target} ...")
     t0 = time.perf_counter()

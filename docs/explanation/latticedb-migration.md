@@ -1,0 +1,1041 @@
+# Code Explorer — LatticeDB Migration & Hybrid Impact Analysis Architecture
+
+> Standalone design spec, preserved for later implementation. Not yet built.
+> First concrete milestone: **Phase 0 — freeze the canonical `NodeRecord`/`EdgeRecord`
+> model and define the backend interface.**
+
+## 1. Purpose
+
+This document defines the target architecture for migrating the `code-explorer`
+storage and query layer from [Kùzu](https://kuzudb.com/) to
+[LatticeDB](https://github.com/jeffhajewski/latticedb) — an embedded single-file
+knowledge graph database with native graph traversal, BM25 full-text search, HNSW
+vector search, fuzzy text search, and durable changefeeds in one engine.
+
+The migration must preserve the existing core value of Code Explorer:
+
+- structural code understanding
+- dependency analysis
+- call resolution
+- incremental indexing
+- impact analysis
+- bounded-memory operation
+
+The migration should additionally enable:
+
+- BM25 lexical search
+- fuzzy code search
+- vector semantic search
+- hybrid retrieval
+- graph-aware semantic retrieval
+- confidence-aware impact propagation
+- optional runtime and configuration dependency integration
+
+The goal is **not** to turn Code Explorer into a generic RAG system.
+
+> Build a code intelligence engine where exact program relationships remain the
+> source of truth, while lexical and semantic search help discover the correct
+> graph entry points.
+
+---
+
+## 2. Core Design Principles
+
+### 2.1 The graph remains authoritative
+
+The database search layer must never replace structural dependency analysis.
+
+```text
+LLM query: "what is responsible for refreshing authentication tokens?"
+                │
+                ▼
+      BM25 / Vector / Fuzzy Search
+                │
+                ▼
+         Candidate Symbols
+                │
+                ▼
+       Exact Graph Resolution
+                │
+                ▼
+          Impact Analysis
+```
+
+Search finds candidates. The graph determines: who calls the code; who depends on it;
+what it imports; what inherits from it; what implements it; which tests exercise it;
+which runtime components load it.
+
+### 2.2 ASTs are temporary
+
+Tree-sitter is an extraction mechanism. The AST is not the database model.
+
+```text
+Source File
+    │
+    ▼
+Tree-sitter AST
+    │
+    ▼
+Semantic Extraction
+    │
+    ├── symbols
+    ├── imports
+    ├── calls
+    ├── inheritance
+    ├── decorators
+    └── runtime hints
+    │
+    ▼
+Normalized Graph Records
+    │
+    ▼
+Persist
+    │
+    ▼
+Discard AST
+```
+
+At no point should an entire repository's ASTs accumulate in memory.
+
+### 2.3 Search is a seed-selection system
+
+There are two different types of queries.
+
+**Structural query** — the seed is already known, no vector search is necessary:
+
+```text
+What is affected if I change:
+src/auth/token.py::refresh_token
+```
+
+**Semantic query** — the seed is unknown, search must discover candidate nodes:
+
+```text
+Where is token refresh implemented?
+
+BM25 + Vector + Fuzzy + Symbol-name lookup
+           │
+           ▼
+     Candidate symbols
+           │
+           ▼
+    Graph verification
+           │
+           ▼
+    Impact / context graph
+```
+
+This distinction is fundamental.
+
+---
+
+## 3. Target Architecture
+
+```text
+                         ┌──────────────────┐
+                         │    MONOREPO       │
+                         └────────┬──────────┘
+                                  │
+                                  ▼
+                         ┌──────────────────┐
+                         │ Change Detector   │
+                         │ Git / FS / Hash   │
+                         └────────┬──────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                            │
+                    ▼                            ▼
+             Initial Index                Incremental Index
+                    │                            │
+                    └─────────────┬─────────────┘
+                                  ▼
+                        ┌──────────────────┐
+                        │ Tree-sitter       │
+                        │ Language Parser   │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Semantic          │
+                        │ Extractors        │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Normalized        │
+                        │ Graph Records     │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Resolution        │
+                        │ Pipeline          │
+                        └────────┬──────────┘
+                                  │
+                   ┌──────────────┼──────────────┐
+                   ▼              ▼              ▼
+                Static         Config          Runtime
+                Graph          Graph           Graph
+                   │              │              │
+                   └──────────────┼──────────────┘
+                                  ▼
+                        ┌──────────────────┐
+                        │   LatticeDB       │
+                        │                   │
+                        │ Graph             │
+                        │ BM25              │
+                        │ Vector            │
+                        │ Fuzzy Search      │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Retrieval Layer   │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Impact Engine     │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                        ┌──────────────────┐
+                        │ Ranked Subgraph   │
+                        └────────┬──────────┘
+                                  │
+                                  ▼
+                             CLI / API / LLM
+```
+
+---
+
+## 4. Backend Abstraction
+
+The analyzer must not depend directly on LatticeDB. Define a stable storage
+abstraction:
+
+```python
+class CodeGraphBackend(Protocol):
+    def open(self) -> None: ...
+    def close(self) -> None: ...
+    def initialize_schema(self) -> None: ...
+
+    def upsert_nodes(self, nodes: Iterable[NodeRecord]) -> None: ...
+    def upsert_edges(self, edges: Iterable[EdgeRecord]) -> None: ...
+    def delete_file(self, file_key: str) -> None: ...
+
+    def resolve_symbol(self, query: SymbolQuery) -> list[SymbolMatch]: ...
+    def search_text(self, query: str, limit: int) -> list[SearchResult]: ...
+    def search_vector(self, vector: list[float], limit: int) -> list[SearchResult]: ...
+
+    def impact(self, seed_ids: list[str], options: ImpactOptions) -> ImpactResult: ...
+```
+
+The important rule:
+
+```text
+Analyzer
+    │
+    ▼
+Normalized Records
+    │
+    ▼
+Backend Interface
+    │
+    ├── KuzuBackend
+    └── LatticeBackend
+```
+
+The first migration should support both backends temporarily.
+
+---
+
+## 5. Canonical Graph Model
+
+The graph schema must remain backend-neutral.
+
+**Primary nodes**
+
+```text
+Repository Workspace Package Directory File Module
+
+Class Interface Trait Struct Enum
+
+Function Method Constructor
+
+Variable Parameter Attribute Constant
+
+Test Configuration Plugin Service Route
+```
+
+Do not require every language to produce every node type. Instead:
+
+```text
+Language
+    │
+    ▼
+Language-specific AST
+    │
+    ▼
+Canonical semantic model
+```
+
+For example:
+
+```text
+Python function
+Java method
+Rust function_item
+Go function_declaration
+TypeScript function_declaration
+               ↓
+         Function / Method
+```
+
+---
+
+## 6. Canonical Edge Model
+
+**Structural**: `CONTAINS`, `DEFINES`, `DECLARES`
+
+**Dependencies**: `IMPORTS`, `IMPORTS_SYMBOL`, `REFERENCES`, `CALLS`, `READS`,
+`WRITES`, `ACCESSES`
+
+**Type relationships**: `INHERITS`, `IMPLEMENTS`, `EXTENDS`, `OVERRIDES`
+
+**Testing**: `TESTS`, `TESTED_BY`, `MOCKS`
+
+**Runtime**: `LOADS`, `RESOLVES_TO`, `REGISTERED_AS`, `PROVIDES`, `CONSUMES`
+
+**Configuration**: `CONFIGURES`, `ENABLED_BY`, `SELECTS`
+
+Every edge should eventually support: `confidence`, `evidence`, `language`,
+`source_file`, `source_line`, `resolution_method`.
+
+Example:
+
+```json
+{
+  "type": "CALLS",
+  "confidence": 1.0,
+  "resolution_method": "static_exact",
+  "source_file": "auth/service.py",
+  "source_line": 124
+}
+```
+
+---
+
+## 7. LatticeDB Storage Strategy
+
+LatticeDB is attractive because graph traversal, BM25, and vector similarity can
+operate over the same local dataset and query layer. However, Code Explorer must
+not automatically index everything into every search structure.
+
+**Graph index** — all structural entities belong in the graph: File, Function,
+Method, Class, Import, Test, Plugin.
+
+**Full-text index** — index text that benefits from lexical search: symbol name,
+qualified name, signature, docstring, comments, compact source summary. Example
+searchable representation:
+
+```text
+refresh_token
+
+auth.token.refresh_token
+
+def refresh_token(
+    refresh_token: str
+) -> AccessToken
+
+Refreshes an OAuth access token.
+```
+
+LatticeDB's BM25 search is appropriate for exact identifiers and textual relevance;
+its fuzzy search can help with misspellings.
+
+**Vector index** — do not embed every AST node, every import, every variable, every
+token. Embed only semantic units such as: Function, Method, Class, Module, File
+summary. Recommended vector representation: qualified name + signature + docstring +
+compact implementation summary.
+
+---
+
+## 8. Injection Architecture
+
+Initial indexing must be separated into explicit phases.
+
+**Phase A — Discover**
+
+```text
+Filesystem
+    │
+    ▼
+Repository Manifest
+    │
+    ├── path
+    ├── hash
+    ├── size
+    ├── language
+    └── modified time
+```
+
+Do not parse yet.
+
+**Phase B — Parse**
+
+```text
+File
+    │
+    ▼
+Language detection
+    │
+    ▼
+Tree-sitter parser
+    │
+    ▼
+AST
+    │
+    ▼
+Extract semantic facts
+    │
+    ▼
+FileRecord
+    │
+    ▼
+Destroy AST
+```
+
+The worker output should contain only normalized data:
+
+```python
+@dataclass(slots=True)
+class FileRecord:
+    file: FileNode
+    symbols: list[SymbolNode]
+    imports: list[ImportFact]
+    calls: list[CallFact]
+    inheritance: list[InheritanceFact]
+    references: list[ReferenceFact]
+```
+
+Do not send parser objects between processes.
+
+---
+
+## 9. Resolution Pipeline
+
+Extraction and resolution must be separate.
+
+**Extraction** — `foo()` becomes:
+
+```json
+{
+  "kind": "call",
+  "raw_name": "foo",
+  "file": "service.py",
+  "line": 42
+}
+```
+
+**Resolution** — later:
+
+```text
+foo()
+    │
+    ▼
+Local scope lookup
+    │
+    ├── found → exact symbol
+    ▼
+Import resolution
+    │
+    ├── found → imported symbol
+    ▼
+Class/type context
+    │
+    ├── found → method
+    ▼
+Dynamic inference
+    │
+    └── unresolved
+```
+
+Result: `CALLS confidence = 1.0 method = exact_static`, or
+`CALLS confidence = 0.65 method = inferred`, or `UNRESOLVED_CALL raw_name = foo`.
+
+This is important for impact accuracy.
+
+---
+
+## 10. Injection into LatticeDB
+
+The initial migration should use bounded transactions:
+
+```text
+Records
+    │
+    ▼
+Node batch
+    │
+    ▼
+Lattice transaction
+    │
+    ▼
+Commit
+    │
+    ▼
+Release batch
+```
+
+LatticeDB supports write transactions and batch-oriented vector insertion; database
+configuration such as vector dimensions is established when the database is created.
+
+Recommended ingestion order:
+
+```text
+1. Repository
+2. Packages
+3. Files
+4. Symbols
+5. Structural edges
+6. Dependency edges
+7. Search indexes
+8. Vectors
+```
+
+Do not generate embeddings during AST parsing. Instead:
+
+```text
+INDEX GRAPH
+     │
+     ▼
+Graph complete
+     │
+     ▼
+Select semantic entities
+     │
+     ▼
+Embedding queue
+     │
+     ▼
+Vector insertion
+```
+
+This allows graph indexing benchmark and vector indexing benchmark to be measured
+independently.
+
+---
+
+## 11. Initial Search Strategy
+
+Code Explorer should implement four retrieval modes.
+
+**Strategy A — Exact.** Use when input looks like `path/to/file.py:function_name` or
+`qualified.symbol.name`. Priority: exact path → exact qualified name → exact symbol
+name. No semantic search required.
+
+**Strategy B — BM25.** Use for `refresh token`, `plugin authentication`, `OAuth`,
+`error handling`. Particularly useful for exact identifiers, error codes, API names,
+class names, configuration keys.
+
+**Strategy C — Fuzzy.** Use for `refesh_token`, `authentcation`, `plguin`, `loader`.
+This should be fallback behavior rather than the default for all queries.
+
+**Strategy D — Vector.** Use for conceptual queries such as
+"Where do we validate access before loading extensions?" Vector search finds
+semantically similar code even when the exact words differ.
+
+---
+
+## 12. Hybrid Seed Retrieval
+
+The recommended search pipeline:
+
+```text
+User Query
+    │
+    ▼
+Query Classifier
+    │
+    ├── exact symbol?
+    ├── file path?
+    ├── identifier?
+    └── natural language?
+    │
+    ▼
+Parallel Retrieval
+    │
+    ├── Exact
+    ├── BM25
+    ├── Fuzzy
+    └── Vector
+    │
+    ▼
+Candidate Merge
+    │
+    ▼
+Score Normalization
+    │
+    ▼
+Graph Validation
+    │
+    ▼
+Seed Nodes
+```
+
+A candidate scoring model:
+
+```text
+seed_score =
+    exact_score
+  + lexical_score
+  + vector_score
+  + graph_context_score
+```
+
+Graph context score can reward: highly referenced symbol, symbol in requested
+package, symbol matching language filter, symbol near known relevant node.
+
+---
+
+## 13. Impact Analysis Pipeline
+
+This is the central pipeline.
+
+```text
+                    CHANGE
+                       │
+                       ▼
+                 Seed Resolver
+                       │
+                       ▼
+                   Seed Set
+                       │
+                       ▼
+             Direct Dependency Scan
+                       │
+         ┌─────────────┼─────────────┐
+         ▼             ▼             ▼
+       CALLERS       IMPORTERS      TYPES
+         │             │             │
+         └─────────────┼─────────────┘
+                       ▼
+             Transitive Expansion
+                       │
+                       ▼
+              Dynamic Expansion
+                       │
+            ┌──────────┼──────────┐
+            ▼          ▼          ▼
+         Runtime     Config      Plugin
+                       │
+                       ▼
+                Impact Scoring
+                       │
+                       ▼
+                 Rank + Prune
+                       │
+                       ▼
+               Impact Subgraph
+                       │
+                       ▼
+                 Tests / LLM
+```
+
+---
+
+## 14. Impact Propagation
+
+Not every edge has equal meaning. Initial policy:
+
+```python
+EDGE_WEIGHTS = {
+    "CALLS": 1.00,
+    "REFERENCES": 0.95,
+    "IMPORTS_SYMBOL": 0.90,
+    "IMPORTS": 0.75,
+    "OVERRIDES": 0.90,
+    "IMPLEMENTS": 0.85,
+    "INHERITS": 0.75,
+    "TESTS": 0.85,
+    "LOADS": 0.90,
+    "CONFIGURES": 0.70,
+}
+```
+
+Propagation:
+
+```text
+impact_score =
+    source_score
+    × edge_weight
+    × resolution_confidence
+    × depth_decay
+```
+
+Example:
+
+```text
+Changed Symbol
+     │
+     │ CALLS confidence 1.0
+     ▼
+Direct Caller score 1.0
+     │
+     │ CALLS confidence 1.0
+     ▼
+Second-level Caller score 0.8
+     │
+     │ IMPORTS confidence 0.8
+     ▼
+Third-level Candidate score 0.48
+```
+
+This prevents every reachable node from being treated as equally impacted.
+
+---
+
+## 15. Impact Categories
+
+Impact should not be returned as a single flat list. Use categories:
+
+```text
+DIRECT_BEHAVIORAL
+TRANSITIVE_BEHAVIORAL
+TYPE_IMPACT
+API_IMPACT
+IMPORT_IMPACT
+TEST_IMPACT
+CONFIG_IMPACT
+RUNTIME_IMPACT
+POSSIBLE_DYNAMIC_IMPACT
+```
+
+Example:
+
+```json
+{
+  "direct_behavioral": [],
+  "transitive_behavioral": [],
+  "tests": [],
+  "runtime": [],
+  "possible": []
+}
+```
+
+This is substantially more useful to humans and LLMs.
+
+---
+
+## 16. Dynamic and Runtime Dependencies
+
+Static AST analysis cannot reliably detect: importlib, reflection, dependency
+injection, plugin discovery, string-based loading, configuration-driven selection.
+
+Therefore Code Explorer should support evidence sources: `STATIC`, `CONFIG`,
+`RUNTIME`, `USER_DECLARED`.
+
+Example:
+
+```text
+PluginLoader
+    │
+    │ STATIC confidence 0.65
+    ▼
+Unknown Plugin
+
+PluginLoader
+    │
+    │ RUNTIME confidence 1.0
+    ▼
+StripePlugin
+```
+
+The impact engine must preserve both evidence and confidence.
+
+---
+
+## 17. Query Strategies
+
+**Query: Exact impact** — `impact src/auth/token.py:refresh_token`
+
+```text
+Exact node lookup
+    ↓
+Seed
+    ↓
+Reverse dependency traversal
+    ↓
+Rank
+    ↓
+Return impact
+```
+
+No embeddings.
+
+**Query: Natural-language impact** — "What breaks if token persistence changes?"
+
+```text
+BM25 + Vector + Fuzzy
+    ↓
+Candidate seeds
+    ↓
+Graph validation
+    ↓
+Impact traversal
+    ↓
+Ranked impact graph
+```
+
+**Query: Context retrieval** — "Explain how plugins are authenticated."
+
+```text
+Hybrid search
+    ↓
+Top semantic nodes
+    ↓
+Neighborhood expansion
+    ↓
+Context budget
+    ↓
+Relevant source retrieval
+```
+
+---
+
+## 18. LLM Context Strategy
+
+Never send the full graph. The LLM should receive a bounded representation:
+
+```text
+Seed:
+    auth.token.refresh_token
+
+Direct impact:
+    AuthService.refresh
+    TokenStore.save
+
+Transitive:
+    LoginController.refresh
+
+Tests:
+    tests/auth/test_refresh.py
+
+Runtime:
+    OAuthPlugin
+
+Confidence:
+    high / medium / possible
+```
+
+Then retrieve source only for selected nodes. Example budget:
+
+```text
+max seeds:        10
+max impact nodes: 200
+max graph depth:  4
+max source bytes: configurable
+```
+
+The graph must be pruned before source retrieval.
+
+---
+
+## 19. Recommended LatticeDB Backend Layout
+
+```text
+src/code_explorer/
+    graph/
+        backend.py
+        models.py
+        kuzu_backend.py
+        lattice_backend.py
+        search.py
+        impact.py
+        schema.py
+        migration.py
+
+    indexing/
+        discover.py
+        parse.py
+        extract.py
+        resolve.py
+        ingest.py
+        embeddings.py
+```
+
+Important separation: `parse.py` → `extract.py` → `resolve.py` → `backend.py`.
+No backend-specific code in parsers or extractors.
+
+---
+
+## 20. Migration Phases
+
+**Phase 0 — Freeze the Canonical Model.** Before touching the backend: define
+`NodeRecord`; define `EdgeRecord`; define stable IDs; define canonical edge names.
+Success criteria: Kuzu and LatticeDB can consume identical records.
+
+**Phase 1 — Read-only Lattice Prototype.** Implement open, query, exact lookup,
+graph traversal. Use an exported subset of the existing Code Explorer graph.
+Validate: same seed, same traversal, same impact result.
+
+**Phase 2 — Initial Ingestion.** Implement nodes, edges, bounded transactions.
+Benchmark: peak RSS, index time, disk size, nodes/sec, edges/sec.
+
+**Phase 3 — Incremental Updates.** Implement: modified file → delete old file
+subgraph → re-extract → insert new nodes → insert new edges. Validate graph
+consistency.
+
+**Phase 4 — BM25.** Index symbol names, qualified names, signatures, docstrings,
+compact semantic descriptions. Do not index every raw source file by default.
+
+**Phase 5 — Vector Search.** Add vectors only to Function, Method, Class, Module,
+File summary. Start with one embedding field. Do not create multiple embedding
+models initially. LatticeDB's vector dimension is configured when the database is
+created, so embedding model selection should be decided explicitly before creating
+a production database.
+
+**Phase 6 — Hybrid Retrieval.** Implement Exact, BM25, Fuzzy, Vector → Merge →
+Normalize → Graph-aware reranking.
+
+**Phase 7 — Confidence-aware Impact.** Add edge confidence, resolution evidence,
+depth decay, impact categories. This is likely more important to final result
+quality than vector search.
+
+---
+
+## 21. Benchmark Plan
+
+Every backend comparison must use the same repository, same extracted graph, same
+machine, same data, same queries. Do not compare Kuzu on one graph vs LatticeDB on
+another graph.
+
+**Injection**: peak RSS, average RSS, wall-clock time, CPU, disk size, nodes/sec,
+edges/sec.
+
+**Incremental update**: 1 file, 10 files, 100 files, 1 package.
+
+**Exact query**: symbol lookup, direct callers, transitive callers, imports, tests.
+
+**Search**: exact identifiers, natural language, misspellings, mixed queries.
+
+**Impact**: depth 1, depth 2, depth 4, depth 8.
+
+---
+
+## 22. Risk Register
+
+**Risk: LatticeDB maturity.** LatticeDB is a newer engine than Kùzu, so migration
+should remain reversible during the experimental phase. Its own comparison
+documentation explicitly distinguishes its local relationship/search strengths from
+workloads better suited to analytical graph engines or multi-client systems.
+Mitigation: backend abstraction + canonical graph records + temporary dual-backend
+support.
+
+**Risk: Single-writer ingestion.** LatticeDB uses an embedded single-writer model.
+Therefore: many parser workers → one ingestion coordinator → LatticeDB. Do not allow
+parser workers to write directly to the database.
+
+**Risk: Vector memory.** Vectors and HNSW indexing have memory and storage costs.
+Mitigation: embed fewer entities, separate vector phase, benchmark dimensions,
+measure peak RSS.
+
+**Risk: Search degrades structural accuracy.** Mitigation: search discovers
+candidates, graph validates dependencies, impact scoring exposes uncertainty.
+
+---
+
+## 23. Final Target Architecture
+
+```text
+                         USER QUERY
+                             │
+                ┌────────────┴────────────┐
+                │                          │
+                ▼                          ▼
+          EXACT CHANGE              NATURAL LANGUAGE
+                │                          │
+                ▼                          ▼
+            Graph Seed        Exact + BM25 + Vector
+                │                          │
+                └────────────┬────────────┘
+                             ▼
+                         Seed Set
+                             │
+                             ▼
+                     Graph Validation
+                             │
+                             ▼
+                     Impact Traversal
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+            Static         Config         Runtime
+              │              │              │
+              └──────────────┼──────────────┘
+                             ▼
+                      Score / Confidence
+                             │
+                             ▼
+                       Rank / Prune
+                             │
+                             ▼
+                      Impact Subgraph
+                             │
+                             ▼
+                     Retrieve Source
+                             │
+                             ▼
+                            LLM
+```
+
+---
+
+## 24. Final Recommendation
+
+The migration should not be treated as a straight replacement (Kuzu → LatticeDB).
+The architecture should become:
+
+```text
+                    CODE EXPLORER
+                          │
+                    Canonical Graph
+                          │
+                    Backend Interface
+                          │
+              ┌───────────┴───────────┐
+              ▼                       ▼
+        Kuzu/LadybugDB            LatticeDB
+              │                       │
+              │              ┌────────┼────────┐
+              │              │        │         │
+              │            Graph     BM25    Vector
+              │              │        │         │
+              └──────────────┴────────┴─────────┘
+                          │
+                    Impact Engine
+                          │
+                  CLI / API / LLM
+```
+
+The migration should succeed only when the following statement is true:
+
+> Given the same repository, the same extracted dependency graph, and the same
+> change, both backends produce equivalent structural impact results.
+
+Only after that should LatticeDB-specific search capabilities be used to improve:
+seed discovery, semantic queries, typo tolerance, hybrid retrieval, LLM context
+selection.
+
+The structural graph remains the foundation. Search makes the graph easier to
+enter. Impact analysis makes the graph useful.
+
+## Reference links
+
+- [LatticeDB official documentation](https://docs.latticedb.org/)
+- [LatticeDB Python quick start](https://docs.latticedb.org/getting-started/quickstart)
+- [LatticeDB database configuration and vector dimensions](https://docs.latticedb.org/configuration/opening)
+- [LatticeDB full-text search guide](https://docs.latticedb.org/guides/full-text-search)
+- [LatticeDB GitHub repository](https://github.com/jeffhajewski/latticedb)
+- [Embedded graph database comparison guide](https://docs.latticedb.org/comparisons/overview)

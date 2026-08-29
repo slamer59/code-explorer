@@ -16,10 +16,6 @@ IMPLEMENTATION_SUMMARY.md
 QUICK_REFERENCE.md
 USAGE_EXAMPLES.md
 
-# Test files
-test_*.py
-demo_*.py
-
 # Code Explorer database
 .code-explorer/
 *.parquet

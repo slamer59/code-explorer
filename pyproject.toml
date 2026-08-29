@@ -12,6 +12,7 @@ dependencies = [
     "rich>=13.0",
     "astroid>=3.0",
     "kuzu==0.11.2",
+    "latticedb>=0.15.0",
     "pandas>=2.0",
     "memray>=1.19.1",
     "codetiming>=1.4.0",

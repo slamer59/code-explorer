@@ -30,6 +30,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Design Decisions](explanation/design-decisions.md) - Why we chose AST + Astroid + KuzuDB
 - [Incremental Updates](explanation/incremental-updates.md) - Content hash-based change detection
 - [Graph Algorithms](explanation/graph-algorithms.md) - Dependency traversal strategies
+- [LatticeDB Migration](explanation/latticedb-migration.md) - Target architecture for a Kùzu → LatticeDB storage migration with hybrid (graph + BM25 + vector + fuzzy) retrieval (not yet implemented)
 
 ## Quick Links
 

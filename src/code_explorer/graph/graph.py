@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-import kuzu
 from rich.console import Console
 
 from code_explorer.graph.models import (
@@ -22,7 +21,8 @@ from code_explorer.graph.models import (
     ModuleNode,
     VariableNode,
 )
-from code_explorer.graph.schema import SchemaManager
+from code_explorer.graph.backend import CodeGraphBackend
+from code_explorer.graph.backends.kuzu_backend import KuzuBackend
 from code_explorer.graph.node_operations import NodeOperations
 from code_explorer.graph.edge_operations import EdgeOperations
 from code_explorer.graph.queries import QueryOperations
@@ -48,40 +48,48 @@ class DependencyGraph:
         db_path: Optional[Path] = None,
         read_only: bool = False,
         project_root: Optional[Path] = None,
+        backend: Optional[CodeGraphBackend] = None,
     ):
-        """Initialize KuzuDB connection and create schema if needed.
+        """Initialize the graph backend and create schema if needed.
 
         Args:
-            db_path: Path to KuzuDB database directory.
+            db_path: Path to the database directory.
                     Defaults to .code-explorer/graph.db
             read_only: If True, opens database in read-only mode for safe parallel
                       reads without risk of accidental writes. Default is False.
                       In read-only mode, schema creation is skipped and all write
                       methods will raise exceptions if called.
             project_root: Root directory for relative paths. Defaults to current working directory.
+            backend: CodeGraphBackend instance to use. Defaults to a KuzuBackend
+                    opened at db_path. Pass an already-open backend to reuse a
+                    connection or to use a different backend implementation.
         """
         if db_path is None:
             db_path = Path.cwd() / ".code-explorer" / "graph.db"
 
-        # Ensure parent directory exists (only in read-write mode)
-        if not read_only:
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-
         self.db_path = db_path
         self.read_only = read_only
         self.project_root = project_root if project_root else Path.cwd()
-        self.db = kuzu.Database(str(db_path), read_only=read_only)
-        self.conn = kuzu.Connection(self.db)
 
-        # Create schema manager and initialize schema
-        self.schema_manager = SchemaManager(self.conn)
+        self.backend = backend if backend is not None else KuzuBackend(
+            db_path, read_only=read_only
+        )
+        self.backend.open()
+
+        # Backward-compat attributes: NodeOperations/EdgeOperations/QueryOperations
+        # and a handful of raw Cypher calls in this facade still take a
+        # kuzu.Connection directly (Phase 0 of the LatticeDB migration keeps this
+        # unchanged; see docs/explanation/latticedb-migration.md).
+        self.db = self.backend.db
+        self.conn = self.backend.conn
+        self.schema_manager = self.backend.schema_manager
 
         # Create schema if tables don't exist (only in read-write mode)
         if not self.read_only:
-            self.schema_manager.create_schema()
+            self.backend.initialize_schema()
 
         # Detect schema version (after schema creation)
-        self.schema_version = self.schema_manager.detect_schema_version()
+        self.schema_version = self.backend.detect_schema_version()
 
         # Build helper methods dictionary for operation classes
         helper_methods = {

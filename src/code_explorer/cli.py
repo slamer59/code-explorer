@@ -609,18 +609,29 @@ def search(
     console.print(table)
 
     if not no_context:
-        top = hits[0]
-        try:
-            ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
-            console.print()
+        # ContextAssembler only knows how to look up Function seeds today
+        # (its call-graph traversal is Function-to-Function only) -- Class
+        # hits from search_text() have no callers/callees to assemble, so
+        # pick the top-ranked *Function* hit rather than assuming hits[0].
+        top = next((h for h in hits if h.node_type == "Function"), None)
+        if top is None:
             console.print(
-                create_header_panel(
-                    "Context", f"Top hit: {top.file}::{top.name}"
-                )
+                "\n[yellow]No Function among the top results to build a "
+                "context for (only Class hits) -- context assembly is "
+                "Function-only for now.[/yellow]"
             )
-            console.print(ctx.to_markdown())
-        except ValueError as e:
-            console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
+        else:
+            try:
+                ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
+                console.print()
+                console.print(
+                    create_header_panel(
+                        "Context", f"Top hit: {top.file}::{top.name}"
+                    )
+                )
+                console.print(ctx.to_markdown())
+            except ValueError as e:
+                console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 
     graph.backend.close()
 

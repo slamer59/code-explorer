@@ -21,6 +21,6 @@ USAGE_EXAMPLES.md
 *.parquet
 *.lattice
 *.lattice-wal
-perfo/bench_kuzu.db/
+perfo/bench_kuzu.db*
 perfo/bench_lattice.*
-perfo/bench_context.db/
+perfo/bench_context.db*

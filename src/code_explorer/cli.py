@@ -222,36 +222,57 @@ def analyze(
                 f"in {resolve_time:.2f}s"
             )
 
-            # Export everything including CALLS
-            console.print("[cyan]Exporting to Parquet...[/cyan]")
-            step_start = time.time()
-            graph._export_results_to_parquet(
-                results, parquet_dir, resolved_calls=all_matched_calls
-            )
-            export_time = time.time() - step_start
-            console.print(f"[dim]⏱  Parquet export: {export_time:.2f}s[/dim]")
+            from code_explorer.graph.backends.kuzu_backend import KuzuBackend
 
-            # Load everything ONCE (including CALLS and INHERITS via COPY FROM)
-            console.print("[cyan]Loading graph data using COPY FROM...[/cyan]")
-            step_start = time.time()
-            stats = graph.load_from_parquet(parquet_dir)
-            load_time = time.time() - step_start
+            if isinstance(graph.backend, KuzuBackend):
+                # Export everything including CALLS
+                console.print("[cyan]Exporting to Parquet...[/cyan]")
+                step_start = time.time()
+                graph._export_results_to_parquet(
+                    results, parquet_dir, resolved_calls=all_matched_calls
+                )
+                export_time = time.time() - step_start
+                console.print(f"[dim]⏱  Parquet export: {export_time:.2f}s[/dim]")
 
-            # Extract node and edge times for backward compatibility
-            nodes_time = sum(time for time, _ in stats.get("node_times", {}).values())
-            edges_time = sum(time for time, _ in stats.get("edge_times", {}).values())
+                # Load everything ONCE (including CALLS and INHERITS via COPY FROM)
+                console.print("[cyan]Loading graph data using COPY FROM...[/cyan]")
+                step_start = time.time()
+                stats = graph.load_from_parquet(parquet_dir)
+                load_time = time.time() - step_start
 
-            console.print(
-                f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
-                f"{stats['total_edges']:,} edges in {stats['total_time']:.2f}s "
-                f"({(stats['total_nodes'] + stats['total_edges']) / stats['total_time']:.0f} rows/sec)"
-            )
+                # Extract node and edge times for backward compatibility
+                nodes_time = sum(time for time, _ in stats.get("node_times", {}).values())
+                edges_time = sum(time for time, _ in stats.get("edge_times", {}).values())
 
-            # Clean up temporary Parquet files
-            # shutil.rmtree(parquet_dir)
+                console.print(
+                    f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
+                    f"{stats['total_edges']:,} edges in {stats['total_time']:.2f}s "
+                    f"({(stats['total_nodes'] + stats['total_edges']) / stats['total_time']:.0f} rows/sec)"
+                )
 
-            # CALLS are now loaded via COPY FROM, no separate insert needed
-            calls_insert_time = 0  # Included in load_time
+                # Clean up temporary Parquet files
+                # shutil.rmtree(parquet_dir)
+
+                # CALLS are now loaded via COPY FROM, no separate insert needed
+                calls_insert_time = 0  # Included in load_time
+            else:
+                # No Parquet/COPY-FROM bulk loader for this backend (e.g.
+                # LatticeDB) -- ingest via the generic NodeRecord/EdgeRecord path.
+                console.print(
+                    f"[cyan]Ingesting via generic backend interface "
+                    f"({type(graph.backend).__name__})...[/cyan]"
+                )
+                step_start = time.time()
+                stats = graph.ingest_results(results, resolved_calls=all_matched_calls)
+                load_time = time.time() - step_start
+                nodes_time = 0
+                edges_time = 0
+                calls_insert_time = 0
+
+                console.print(
+                    f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
+                    f"{stats['total_edges']:,} edges in {load_time:.2f}s"
+                )
 
         except Exception as e:
             console.print(f"[red]Error during graph loading: {e}[/red]")

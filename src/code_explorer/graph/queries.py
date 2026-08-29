@@ -2,15 +2,25 @@
 Query operations for the dependency graph.
 
 Extracted from original graph.py lines 1531-2173.
+
+Backend-agnostic (Phase 1 of the LatticeDB migration, see
+docs/explanation/latticedb-migration.md): every method here goes through
+CodeGraphBackend.query(cypher, params), which returns List[Dict[str, Any]]
+(rows keyed by column name/expression) for both KuzuBackend and
+LatticeBackend. LatticeDB's Cypher dialect was confirmed compatible with the
+existing hand-written queries, with one exception: LatticeDB rejects
+unaliased `COUNT(*)` ("Expected expression"), so every aggregate here is
+written as `COUNT(<var>) AS <alias>` (works identically on both backends)
+instead of Kuzu's `COUNT(*)` / `COUNT_STAR()` convention.
 """
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-import kuzu
 from rich.console import Console
 
+from code_explorer.graph.backend import CodeGraphBackend
 from code_explorer.graph.models import (
     AttributeNode,
     ClassNode,
@@ -28,7 +38,7 @@ class QueryOperations:
 
     def __init__(
         self,
-        conn: kuzu.Connection,
+        backend: CodeGraphBackend,
         project_root: Path,
         helper_methods: dict,
         schema_version: str,
@@ -36,12 +46,12 @@ class QueryOperations:
         """Initialize query operations.
 
         Args:
-            conn: KuzuDB connection to use for operations
+            backend: CodeGraphBackend to run Cypher queries against
             project_root: Root directory for relative path calculations
             helper_methods: Dictionary containing helper methods from facade
             schema_version: Schema version ("v1" or "v2")
         """
-        self.conn = conn
+        self.backend = backend
         self.project_root = project_root
         self.schema_version = schema_version
         self._to_relative_path = helper_methods["to_relative_path"]
@@ -60,20 +70,14 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (caller:Function)-[c:CALLS]->(callee:Function {file: $file, name: $name})
-                RETURN caller.file, caller.name, c.call_line
+                RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line
             """,
                 {"file": rel_file, "name": function},
             )
-
-            callers = []
-            while result.has_next():
-                row = result.get_next()
-                callers.append((row[0], row[1], row[2]))
-
-            return callers
+            return [(row["file"], row["name"], row["call_line"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error getting callers for {function} in {file}: {e}[/red]"
@@ -93,20 +97,14 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (caller:Function {file: $file, name: $name})-[c:CALLS]->(callee:Function)
-                RETURN callee.file, callee.name, c.call_line
+                RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line
             """,
                 {"file": rel_file, "name": function},
             )
-
-            callees = []
-            while result.has_next():
-                row = result.get_next()
-                callees.append((row[0], row[1], row[2]))
-
-            return callees
+            return [(row["file"], row["name"], row["call_line"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error getting callees for {function} in {file}: {e}[/red]"
@@ -129,21 +127,15 @@ class QueryOperations:
         var_id = self._make_variable_id(file, var_name, definition_line)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (func:Function)-[r:REFERENCES]->(var:Variable {id: $var_id})
                 WHERE r.context = 'use'
-                RETURN func.file, func.name, r.line_number
+                RETURN func.file AS file, func.name AS name, r.line_number AS line_number
             """,
                 {"var_id": var_id},
             )
-
-            usages = []
-            while result.has_next():
-                row = result.get_next()
-                usages.append((row[0], row[1], row[2]))
-
-            return usages
+            return [(row["file"], row["name"], row["line_number"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error getting variable usage for {var_name} in {file}: {e}[/red]"
@@ -163,22 +155,22 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:Function {file: $file, name: $name})
-                RETURN f.name, f.file, f.start_line, f.end_line, f.is_public
+                RETURN f.name AS name, f.file AS file, f.start_line AS start_line,
+                       f.end_line AS end_line, f.is_public AS is_public
             """,
                 {"file": rel_file, "name": name},
             )
-
-            if result.has_next():
-                row = result.get_next()
+            if rows:
+                row = rows[0]
                 return FunctionNode(
-                    name=row[0],
-                    file=row[1],
-                    start_line=row[2],
-                    end_line=row[3],
-                    is_public=row[4],
+                    name=row["name"],
+                    file=row["file"],
+                    start_line=row["start_line"],
+                    end_line=row["end_line"],
+                    is_public=row["is_public"],
                 )
             return None
         except Exception as e:
@@ -195,28 +187,24 @@ class QueryOperations:
             List of FunctionNode objects
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:Function {file: $file})
-                RETURN f.name, f.file, f.start_line, f.end_line, f.is_public
+                RETURN f.name AS name, f.file AS file, f.start_line AS start_line,
+                       f.end_line AS end_line, f.is_public AS is_public
             """,
                 {"file": file},
             )
-
-            functions = []
-            while result.has_next():
-                row = result.get_next()
-                functions.append(
-                    FunctionNode(
-                        name=row[0],
-                        file=row[1],
-                        start_line=row[2],
-                        end_line=row[3],
-                        is_public=row[4],
-                    )
+            return [
+                FunctionNode(
+                    name=row["name"],
+                    file=row["file"],
+                    start_line=row["start_line"],
+                    end_line=row["end_line"],
+                    is_public=row["is_public"],
                 )
-
-            return functions
+                for row in rows
+            ]
         except Exception as e:
             console.print(f"[red]Error getting functions in file {file}: {e}[/red]")
             return []
@@ -234,24 +222,24 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (c:Class {file: $file, name: $name})
-                RETURN c.name, c.file, c.start_line, c.end_line, c.bases, c.is_public
+                RETURN c.name AS name, c.file AS file, c.start_line AS start_line,
+                       c.end_line AS end_line, c.bases AS bases, c.is_public AS is_public
             """,
                 {"file": rel_file, "name": name},
             )
-
-            if result.has_next():
-                row = result.get_next()
-                bases = json.loads(row[4]) if row[4] else []
+            if rows:
+                row = rows[0]
+                bases = json.loads(row["bases"]) if row["bases"] else []
                 return ClassNode(
-                    name=row[0],
-                    file=row[1],
-                    start_line=row[2],
-                    end_line=row[3],
+                    name=row["name"],
+                    file=row["file"],
+                    start_line=row["start_line"],
+                    end_line=row["end_line"],
                     bases=bases,
-                    is_public=row[5],
+                    is_public=row["is_public"],
                 )
             return None
         except Exception as e:
@@ -268,29 +256,27 @@ class QueryOperations:
             List of ClassNode objects
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (c:Class {file: $file})
-                RETURN c.name, c.file, c.start_line, c.end_line, c.bases, c.is_public
+                RETURN c.name AS name, c.file AS file, c.start_line AS start_line,
+                       c.end_line AS end_line, c.bases AS bases, c.is_public AS is_public
             """,
                 {"file": file},
             )
-
             classes = []
-            while result.has_next():
-                row = result.get_next()
-                bases = json.loads(row[4]) if row[4] else []
+            for row in rows:
+                bases = json.loads(row["bases"]) if row["bases"] else []
                 classes.append(
                     ClassNode(
-                        name=row[0],
-                        file=row[1],
-                        start_line=row[2],
-                        end_line=row[3],
+                        name=row["name"],
+                        file=row["file"],
+                        start_line=row["start_line"],
+                        end_line=row["end_line"],
                         bases=bases,
-                        is_public=row[5],
+                        is_public=row["is_public"],
                     )
                 )
-
             return classes
         except Exception as e:
             console.print(f"[red]Error getting classes in file {file}: {e}[/red]")
@@ -303,9 +289,10 @@ class QueryOperations:
             List of dicts with: name, file, decorator_count, decorators (list of decorator names)
         """
         try:
-            result = self.conn.execute("""
+            rows = self.backend.query(
+                """
                 MATCH (func:Function)-[:DECORATED_BY]->(dec:Decorator)
-                WITH func, COUNT(*) as decorator_count, COLLECT(dec.name) as decorators
+                WITH func, COUNT(dec) as decorator_count, COLLECT(dec.name) as decorators
                 WHERE decorator_count > 1
                 RETURN
                     func.name as function_name,
@@ -313,52 +300,44 @@ class QueryOperations:
                     decorator_count,
                     decorators
                 ORDER BY decorator_count DESC
-            """)
-
-            functions = []
-            while result.has_next():
-                row = result.get_next()
-                functions.append({
-                    "name": row[0],
-                    "file": row[1],
-                    "decorator_count": row[2],
-                    "decorators": row[3],
-                })
-
-            return functions
+            """
+            )
+            return [
+                {
+                    "name": row["function_name"],
+                    "file": row["file_path"],
+                    "decorator_count": row["decorator_count"],
+                    "decorators": row["decorators"],
+                }
+                for row in rows
+            ]
         except Exception as e:
             console.print(f"[red]Error getting functions with multiple decorators: {e}[/red]")
             return []
 
-    def get_statistics(self) -> Dict[str, any]:
+    def _count(self, label: str, var: str = "n") -> int:
+        """Count nodes of a label. COUNT(*) is unaliasable and unsupported by
+        LatticeDB, so this always counts a bound variable with an alias."""
+        rows = self.backend.query(f"MATCH ({var}:{label}) RETURN COUNT({var}) AS count")
+        return rows[0]["count"] if rows else 0
+
+    def get_statistics(self) -> Dict[str, Any]:
         """Get statistics about the graph.
 
         Returns:
             Dictionary with graph statistics
         """
         try:
-            # Count files
-            result = self.conn.execute("MATCH (f:File) RETURN COUNT(*)")
-            total_files = result.get_next()[0] if result.has_next() else 0
-
-            # Count functions
-            result = self.conn.execute("MATCH (f:Function) RETURN COUNT(*)")
-            total_functions = result.get_next()[0] if result.has_next() else 0
-
-            # Count classes
-            result = self.conn.execute("MATCH (c:Class) RETURN COUNT(*)")
-            total_classes = result.get_next()[0] if result.has_next() else 0
-
-            # Count variables
-            result = self.conn.execute("MATCH (v:Variable) RETURN COUNT(*)")
-            total_variables = result.get_next()[0] if result.has_next() else 0
+            total_files = self._count("File", "f")
+            total_functions = self._count("Function", "f")
+            total_classes = self._count("Class", "c")
+            total_variables = self._count("Variable", "v")
 
             # Count imports (only if v2 schema)
             total_imports = 0
             if self.schema_version == "v2":
                 try:
-                    result = self.conn.execute("MATCH (i:Import) RETURN COUNT(*)")
-                    total_imports = result.get_next()[0] if result.has_next() else 0
+                    total_imports = self._count("Import", "i")
                 except Exception:
                     pass
 
@@ -366,8 +345,7 @@ class QueryOperations:
             total_decorators = 0
             if self.schema_version == "v2":
                 try:
-                    result = self.conn.execute("MATCH (d:Decorator) RETURN COUNT(*)")
-                    total_decorators = result.get_next()[0] if result.has_next() else 0
+                    total_decorators = self._count("Decorator", "d")
                 except Exception:
                     pass
 
@@ -375,8 +353,7 @@ class QueryOperations:
             total_attributes = 0
             if self.schema_version == "v2":
                 try:
-                    result = self.conn.execute("MATCH (a:Attribute) RETURN COUNT(*)")
-                    total_attributes = result.get_next()[0] if result.has_next() else 0
+                    total_attributes = self._count("Attribute", "a")
                 except Exception:
                     pass
 
@@ -384,8 +361,7 @@ class QueryOperations:
             total_exceptions = 0
             if self.schema_version == "v2":
                 try:
-                    result = self.conn.execute("MATCH (e:Exception) RETURN COUNT(*)")
-                    total_exceptions = result.get_next()[0] if result.has_next() else 0
+                    total_exceptions = self._count("Exception", "e")
                 except Exception:
                     pass
 
@@ -393,8 +369,7 @@ class QueryOperations:
             total_modules = 0
             if self.schema_version == "v2":
                 try:
-                    result = self.conn.execute("MATCH (m:Module) RETURN COUNT(*)")
-                    total_modules = result.get_next()[0] if result.has_next() else 0
+                    total_modules = self._count("Module", "m")
                 except Exception:
                     pass
 
@@ -418,27 +393,28 @@ class QueryOperations:
             total_edges = 0
             for edge_type in edge_types:
                 try:
-                    result = self.conn.execute(f"MATCH ()-[r:{edge_type}]->() RETURN COUNT(*)")
-                    count = result.get_next()[0] if result.has_next() else 0
+                    rows = self.backend.query(
+                        f"MATCH ()-[r:{edge_type}]->() RETURN COUNT(r) AS count"
+                    )
+                    count = rows[0]["count"] if rows else 0
                     edge_stats[edge_type] = count
                     total_edges += count
                 except Exception:
                     edge_stats[edge_type] = 0
 
             # Get most-called functions
-            result = self.conn.execute("""
+            rows = self.backend.query(
+                """
                 MATCH (caller:Function)-[:CALLS]->(callee:Function)
-                RETURN callee.name, callee.file, COUNT(*) as call_count
+                RETURN callee.name as name, callee.file as file, COUNT(caller) as call_count
                 ORDER BY call_count DESC
                 LIMIT 20
-            """)
-
-            most_called = []
-            while result.has_next():
-                row = result.get_next()
-                most_called.append(
-                    {"name": row[0], "file": row[1], "call_count": row[2]}
-                )
+            """
+            )
+            most_called = [
+                {"name": row["name"], "file": row["file"], "call_count": row["call_count"]}
+                for row in rows
+            ]
 
             return {
                 "total_files": total_files,
@@ -500,29 +476,26 @@ class QueryOperations:
         rel_file = self._to_relative_path(file_path)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:File {path: $file})-[:HAS_IMPORT]->(i:Import)
-                RETURN i.imported_name, i.import_type, i.alias, i.line_number, i.is_relative, i.file
+                RETURN i.imported_name AS imported_name, i.import_type AS import_type,
+                       i.alias AS alias, i.line_number AS line_number,
+                       i.is_relative AS is_relative, i.file AS file
             """,
                 {"file": rel_file},
             )
-
-            imports = []
-            while result.has_next():
-                row = result.get_next()
-                imports.append(
-                    ImportNode(
-                        imported_name=row[0],
-                        import_type=row[1],
-                        alias=row[2] if row[2] else None,
-                        line_number=row[3],
-                        is_relative=row[4],
-                        file=row[5],
-                    )
+            return [
+                ImportNode(
+                    imported_name=row["imported_name"],
+                    import_type=row["import_type"],
+                    alias=row["alias"] if row["alias"] else None,
+                    line_number=row["line_number"],
+                    is_relative=row["is_relative"],
+                    file=row["file"],
                 )
-
-            return imports
+                for row in rows
+            ]
         except Exception as e:
             console.print(f"[red]Error getting imports for file {file_path}: {e}[/red]")
             return []
@@ -542,24 +515,23 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:Function {file: $file, name: $name})-[:DECORATED_BY]->(d:Decorator)
-                RETURN d.name, d.file, d.line_number, d.arguments
+                RETURN d.name AS name, d.file AS file, d.line_number AS line_number,
+                       d.arguments AS arguments
             """,
                 {"file": rel_file, "name": function_name},
             )
-
-            decorators = []
-            while result.has_next():
-                row = result.get_next()
-                decorators.append(
-                    DecoratorNode(
-                        name=row[0], file=row[1], line_number=row[2], arguments=row[3]
-                    )
+            return [
+                DecoratorNode(
+                    name=row["name"],
+                    file=row["file"],
+                    line_number=row["line_number"],
+                    arguments=row["arguments"],
                 )
-
-            return decorators
+                for row in rows
+            ]
         except Exception as e:
             console.print(
                 f"[red]Error getting decorators for function {function_name} in {file}: {e}[/red]"
@@ -581,29 +553,26 @@ class QueryOperations:
         rel_file = self._to_relative_path(file)
 
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (c:Class {file: $file, name: $name})-[:HAS_ATTRIBUTE]->(a:Attribute)
-                RETURN a.name, a.class_name, a.file, a.definition_line, a.type_hint, a.is_class_attribute
+                RETURN a.name AS name, a.class_name AS class_name, a.file AS file,
+                       a.definition_line AS definition_line, a.type_hint AS type_hint,
+                       a.is_class_attribute AS is_class_attribute
             """,
                 {"file": rel_file, "name": class_name},
             )
-
-            attributes = []
-            while result.has_next():
-                row = result.get_next()
-                attributes.append(
-                    AttributeNode(
-                        name=row[0],
-                        class_name=row[1],
-                        file=row[2],
-                        definition_line=row[3],
-                        type_hint=row[4] if row[4] else None,
-                        is_class_attribute=row[5],
-                    )
+            return [
+                AttributeNode(
+                    name=row["name"],
+                    class_name=row["class_name"],
+                    file=row["file"],
+                    definition_line=row["definition_line"],
+                    type_hint=row["type_hint"] if row["type_hint"] else None,
+                    is_class_attribute=row["is_class_attribute"],
                 )
-
-            return attributes
+                for row in rows
+            ]
         except Exception as e:
             console.print(
                 f"[red]Error getting attributes for class {class_name} in {file}: {e}[/red]"
@@ -622,21 +591,15 @@ class QueryOperations:
             List of (file, function_name) tuples
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:Function)-[h:HANDLES_EXCEPTION]->(e:Exception {name: $exc_name})
                 WHERE h.context = 'raise'
-                RETURN DISTINCT f.file, f.name
+                RETURN DISTINCT f.file AS file, f.name AS name
             """,
                 {"exc_name": exception_name},
             )
-
-            functions = []
-            while result.has_next():
-                row = result.get_next()
-                functions.append((row[0], row[1]))
-
-            return functions
+            return [(row["file"], row["name"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error getting functions raising {exception_name}: {e}[/red]"
@@ -650,24 +613,22 @@ class QueryOperations:
             List of ModuleNode objects
         """
         try:
-            result = self.conn.execute("""
+            rows = self.backend.query(
+                """
                 MATCH (m:Module)
-                RETURN m.name, m.path, m.is_package, m.docstring
-            """)
-
-            modules = []
-            while result.has_next():
-                row = result.get_next()
-                modules.append(
-                    ModuleNode(
-                        name=row[0],
-                        path=row[1],
-                        is_package=row[2],
-                        docstring=row[3] if row[3] else None,
-                    )
+                RETURN m.name AS name, m.path AS path, m.is_package AS is_package,
+                       m.docstring AS docstring
+            """
+            )
+            return [
+                ModuleNode(
+                    name=row["name"],
+                    path=row["path"],
+                    is_package=row["is_package"],
+                    docstring=row["docstring"] if row["docstring"] else None,
                 )
-
-            return modules
+                for row in rows
+            ]
         except Exception as e:
             console.print(f"[red]Error getting module hierarchy: {e}[/red]")
             return []
@@ -682,20 +643,14 @@ class QueryOperations:
             List of (file, line_number) tuples
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (i:Import {imported_name: $name})
-                RETURN i.file, i.line_number
+                RETURN i.file AS file, i.line_number AS line_number
             """,
                 {"name": function_or_class_name},
             )
-
-            usages = []
-            while result.has_next():
-                row = result.get_next()
-                usages.append((row[0], row[1]))
-
-            return usages
+            return [(row["file"], row["line_number"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error finding import usages for {function_or_class_name}: {e}[/red]"
@@ -715,21 +670,15 @@ class QueryOperations:
             List of (file, function_name, line_number) tuples
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:Function)-[a:ACCESSES]->(attr:Attribute {class_name: $class_name, name: $attr_name})
                 WHERE a.access_type IN ['write', 'read_write']
-                RETURN f.file, f.name, a.line_number
+                RETURN f.file AS file, f.name AS name, a.line_number AS line_number
             """,
                 {"class_name": class_name, "attr_name": attribute_name},
             )
-
-            modifiers = []
-            while result.has_next():
-                row = result.get_next()
-                modifiers.append((row[0], row[1], row[2]))
-
-            return modifiers
+            return [(row["file"], row["name"], row["line_number"]) for row in rows]
         except Exception as e:
             console.print(
                 f"[red]Error finding modifiers for {class_name}.{attribute_name}: {e}[/red]"
@@ -747,17 +696,15 @@ class QueryOperations:
             True if file exists with same hash, False otherwise
         """
         try:
-            result = self.conn.execute(
+            rows = self.backend.query(
                 """
                 MATCH (f:File {path: $path})
-                RETURN f.content_hash
+                RETURN f.content_hash AS content_hash
             """,
                 {"path": file_path},
             )
-
-            if result.has_next():
-                row = result.get_next()
-                return row[0] == content_hash
+            if rows:
+                return rows[0]["content_hash"] == content_hash
             return False
         except Exception as e:
             console.print(f"[red]Error checking file existence: {e}[/red]")

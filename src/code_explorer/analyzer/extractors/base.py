@@ -120,9 +120,3 @@ class BaseExtractor(ABC):
         start_line = wrapped.lineno or 0
         end_line = wrapped.end_lineno or start_line
         return (start_line, end_line)
-            Tuple of (start_line, end_line) using 1-based line numbers
-        """
-        wrapped = self.wrap_node(node)
-        start_line = wrapped.lineno or 0
-        end_line = wrapped.end_lineno or start_line
-        return (start_line, end_line)

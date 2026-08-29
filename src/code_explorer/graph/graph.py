@@ -76,13 +76,18 @@ class DependencyGraph:
         )
         self.backend.open()
 
-        # Backward-compat attributes: NodeOperations/EdgeOperations/QueryOperations
-        # and a handful of raw Cypher calls in this facade still take a
-        # kuzu.Connection directly (Phase 0 of the LatticeDB migration keeps this
-        # unchanged; see docs/explanation/latticedb-migration.md).
-        self.db = self.backend.db
-        self.conn = self.backend.conn
-        self.schema_manager = self.backend.schema_manager
+        # Backward-compat attributes: NodeOperations/EdgeOperations (and a
+        # handful of raw Cypher calls in this facade) still take a
+        # kuzu.Connection directly and only work with KuzuBackend (Phase 0 of
+        # the LatticeDB migration keeps this unchanged; see
+        # docs/explanation/latticedb-migration.md). Non-Kuzu backends (e.g.
+        # LatticeBackend) don't have these attributes -- construction must
+        # still succeed for such backends, since ingest_results/backend.query
+        # work without them; add_function/add_class/etc. simply aren't usable
+        # until NodeOperations/EdgeOperations are made backend-agnostic too.
+        self.db = getattr(self.backend, "db", None)
+        self.conn = getattr(self.backend, "conn", None)
+        self.schema_manager = getattr(self.backend, "schema_manager", None)
 
         # Create schema if tables don't exist (only in read-write mode)
         if not self.read_only:
@@ -112,7 +117,7 @@ class DependencyGraph:
             self.conn, self.read_only, self.project_root, helper_methods
         )
         self.queries = QueryOperations(
-            self.conn, self.project_root, helper_methods, self.schema_version
+            self.backend, self.project_root, helper_methods, self.schema_version
         )
 
     def _check_read_only(self) -> None:
@@ -516,6 +521,41 @@ class DependencyGraph:
         from code_explorer.analyzer.export_parquet import export_to_parquet
 
         export_to_parquet(results, output_dir, self.project_root, resolved_calls)
+
+    def ingest_results(
+        self,
+        results: List,
+        resolved_calls: Optional[List[dict]] = None,
+    ) -> dict:
+        """Ingest FileAnalysis results via the generic NodeRecord/EdgeRecord
+        backend interface (backend.upsert_nodes/upsert_edges).
+
+        Works with any CodeGraphBackend, including KuzuBackend, but is
+        intended for backends without a bulk-loader equivalent to Kuzu's
+        Parquet/COPY-FROM path (see load_from_parquet) -- e.g. LatticeBackend.
+        Only covers File, Function, Class nodes and their containment/CALLS
+        edges; see graph/ingest.py for the exact scope.
+
+        Args:
+            results: List of FileAnalysis objects
+            resolved_calls: Optional resolved CALLS edges from CallResolver
+
+        Returns:
+            Statistics dict: {'total_nodes': int, 'total_edges': int}
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+
+        from code_explorer.graph.ingest import file_analyses_to_records
+
+        nodes, edges = file_analyses_to_records(
+            results, self.project_root, resolved_calls
+        )
+        self.backend.upsert_nodes(nodes)
+        self.backend.upsert_edges(edges)
+        return {"total_nodes": len(nodes), "total_edges": len(edges)}
 
     def compute_file_hash(self, file_path: Path) -> str:
         """Compute SHA256 hash of file contents.

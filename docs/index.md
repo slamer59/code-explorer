@@ -31,6 +31,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Incremental Updates](explanation/incremental-updates.md) - Content hash-based change detection
 - [Graph Algorithms](explanation/graph-algorithms.md) - Dependency traversal strategies
 - [LatticeDB Migration](explanation/latticedb-migration.md) - Target architecture for a Kùzu → LatticeDB storage migration with hybrid (graph + BM25 + vector + fuzzy) retrieval (not yet implemented)
+- [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
 
 ## Quick Links
 

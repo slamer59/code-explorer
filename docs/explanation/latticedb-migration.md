@@ -182,6 +182,38 @@ collapsing N round-trips into 1 — this would help *both* backends, LatticeDB's
 higher per-query cost most of all. Not built yet; noted here as the real next lever
 if impact-analysis latency on LatticeDB becomes a blocker.
 
+### Search query latency: what BM25 is actually buying us
+
+A single `search_text()` (BM25) call measures ~2ms on this repo's index. That number
+only means something next to the right comparison, so here it is:
+
+- **Not comparable to a live `grep`/`ripgrep` scan** — those re-scan raw files on
+  every call; ours is a lookup against an index *already built* at indexing time
+  (the cost of building it is separate, see Ingestion above). 2ms for an indexed
+  lookup is genuinely fast, in the same range as Elasticsearch/Lucene-style BM25
+  query latency — not a coincidence, LatticeDB's FTS is the same family of
+  technique.
+- **Not comparable to tree-sitter parse time either** — parsing is a one-time,
+  amortized-over-every-future-query cost (~1ms/file during indexing); comparing it
+  against a single query's 2ms is comparing the wrong two numbers.
+- **The actual point, and it's the whole reason this feature exists**: BM25 ranks
+  by relevance to the query's *meaning* (tokenized, scored), not just "does this
+  substring appear." `grep "resolve call"` finds only literal occurrences of that
+  exact phrase; BM25 over `search_text` finds and ranks `CallResolver`,
+  `resolve_all_calls`, etc. — related vocabulary, not string matches. That's the
+  actual value being built here, not "grep but slightly different."
+
+**But this good number doesn't automatically extend past the search step itself.**
+Measured directly (not estimated): `ContextAssembler.assemble_context()` for a
+function with 10 callers + 8 callees issues **23 separate Cypher queries** and takes
+38.7ms on this same small repo — ~20x slower than the search query it follows, purely
+from doing 23 sequential round-trips (one per caller/callee resolved, plus the seed)
+instead of one batched query. This is the *same* N+1-query pattern already named
+above for `ImpactAnalyzer`, just at one-hop scale instead of depth-8 — and it would
+compound the same way at gemseo's real fan-out. Not fixed yet; the fix is the same
+kind (fewer, batched queries instead of one per node) as the `ImpactAnalyzer` lever
+described above.
+
 ### A marketing-vs-measured discrepancy, noted for the record
 
 LatticeDB's own documentation claims sub-microsecond node lookups and describes

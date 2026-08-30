@@ -121,6 +121,96 @@ def test_get_call_edges_with_lines_matches_across_backends(backend):
     assert callees2 == [("foo.py", "callee", 3, 10, 15)]
 
 
+def test_get_most_called_functions_matches_across_backends(backend):
+    """Global aggregation across all CALLS edges -- a different query shape
+    from get_call_edges_with_lines (which is scoped to one seed node), so it
+    needed its own backend-specific fix. Confirmed via direct measurement on
+    gemseo's real 338K-edge graph (see docs/explanation/latticedb-migration.md):
+    the old Cypher aggregation (MATCH (caller)-[:CALLS]->(callee) ... ORDER BY
+    COUNT(caller) DESC LIMIT 20) measured 23.9s; iterating Function nodes via
+    the imperative get_nodes_by_label/get_incoming_edges API measured 1.25s --
+    about 19x faster, same category of fix as get_call_edges_with_lines but a
+    different implementation since there's no single seed node to start from."""
+    backend.upsert_nodes(
+        [
+            NodeRecord(
+                id="fn_caller2",
+                type="Function",
+                properties={
+                    "id": "fn_caller2",
+                    "name": "caller2",
+                    "file": "foo.py",
+                    "start_line": 20,
+                    "end_line": 25,
+                    "is_public": True,
+                    "source_code": "",
+                },
+            ),
+        ]
+    )
+    backend.upsert_edges(
+        [
+            EdgeRecord(
+                src_id="fn_caller2",
+                dst_id="fn_callee",
+                type="CALLS",
+                properties={"call_line": 21},
+            )
+        ]
+    )
+    # Now: fn_callee has 2 callers (fn_caller, fn_caller2); fn_callee itself
+    # calls nothing. fn_caller/fn_caller2 have 0 incoming calls.
+
+    result = backend.get_most_called_functions(limit=20)
+
+    assert result[0] == ("callee", "foo.py", 2)
+    names = [r[0] for r in result]
+    assert names.count("callee") == 1  # no duplicates
+
+
+def test_get_most_called_functions_sums_across_ambiguous_same_named_nodes(backend):
+    """Regression test: a first version of the LatticeDB implementation
+    counted per internal node id instead of grouping by (name, file), which
+    silently dropped a function from the top-N when two distinct Function
+    nodes shared a name+file (found via a real mismatch on this repo's own
+    tree_sitter_adapter.py::walk). Two distinct 'dup' functions in the same
+    file, each with their own callers, must be combined into one entry with
+    the summed count -- matching Cypher's GROUP BY-on-returned-columns
+    semantics, not per-node identity."""
+    backend.upsert_nodes(
+        [
+            NodeRecord(
+                id="fn_dup1", type="Function",
+                properties={"id": "fn_dup1", "name": "dup", "file": "bar.py",
+                            "start_line": 1, "end_line": 2, "is_public": True, "source_code": ""},
+            ),
+            NodeRecord(
+                id="fn_dup2", type="Function",
+                properties={"id": "fn_dup2", "name": "dup", "file": "bar.py",
+                            "start_line": 50, "end_line": 51, "is_public": True, "source_code": ""},
+            ),
+            NodeRecord(
+                id="fn_dup_caller", type="Function",
+                properties={"id": "fn_dup_caller", "name": "dup_caller", "file": "bar.py",
+                            "start_line": 100, "end_line": 105, "is_public": True, "source_code": ""},
+            ),
+        ]
+    )
+    backend.upsert_edges(
+        [
+            EdgeRecord(src_id="fn_dup_caller", dst_id="fn_dup1", type="CALLS", properties={"call_line": 101}),
+            EdgeRecord(src_id="fn_dup_caller", dst_id="fn_dup2", type="CALLS", properties={"call_line": 102}),
+        ]
+    )
+    # fn_dup1 has 1 caller, fn_dup2 has 1 caller -- same (name, file), must
+    # combine to count=2, not appear as two separate count=1 entries (or
+    # worse, be individually outranked and dropped from a small top-N).
+
+    result = backend.get_most_called_functions(limit=1)
+
+    assert result == [("dup", "bar.py", 2)]
+
+
 def test_get_statistics_counts_match_across_backends(backend):
     queries = QueryOperations(backend, Path("."), HELPER_METHODS, schema_version="v2")
 

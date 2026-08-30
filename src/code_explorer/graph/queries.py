@@ -453,18 +453,13 @@ class QueryOperations:
                 except Exception:
                     edge_stats[edge_type] = 0
 
-            # Get most-called functions
-            rows = self.backend.query(
-                """
-                MATCH (caller:Function)-[:CALLS]->(callee:Function)
-                RETURN callee.name as name, callee.file as file, COUNT(caller) as call_count
-                ORDER BY call_count DESC
-                LIMIT 20
-            """
-            )
+            # Get most-called functions -- backend.get_most_called_functions()
+            # instead of raw Cypher: on LatticeDB, this global aggregation
+            # measured 23.9s via Cypher vs 1.25s via the imperative API on a
+            # real 338K-edge graph (see CodeGraphBackend's docstring).
             most_called = [
-                {"name": row["name"], "file": row["file"], "call_count": row["call_count"]}
-                for row in rows
+                {"name": name, "file": file, "call_count": call_count}
+                for name, file, call_count in self.backend.get_most_called_functions(limit=20)
             ]
 
             return {

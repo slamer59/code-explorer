@@ -122,6 +122,30 @@ class CodeGraphBackend(Protocol):
         """
         ...
 
+    def get_most_called_functions(
+        self, limit: int = 20
+    ) -> List[Tuple[str, str, int]]:
+        """Return the `limit` most-called Functions as (name, file,
+        call_count) tuples, sorted by call_count descending.
+
+        A different query shape from get_call_edges_with_lines: this is a
+        GLOBAL aggregation across every CALLS edge, not scoped to one seed
+        node, so it needed its own fix rather than reusing that method.
+        Confirmed via direct measurement on gemseo's real 338K-edge graph
+        (see docs/explanation/latticedb-migration.md's Performance
+        Findings): the equivalent Cypher aggregation (MATCH
+        (caller:Function)-[:CALLS]->(callee:Function) ... ORDER BY
+        COUNT(caller) DESC LIMIT N) measured 23.9s -- still an Expand-based
+        plan, same root cause as get_call_edges_with_lines' problem, just
+        summed across the whole graph instead of one node. LatticeBackend
+        instead iterates Function nodes via the imperative
+        get_nodes_by_label/get_incoming_edges API and counts CALLS edges
+        per node in Python: measured 1.25s for the same data (~19x faster).
+        Kuzu's Cypher has no equivalent slowdown, so KuzuBackend just uses
+        Cypher (unoptimized -- not a priority for this project).
+        """
+        ...
+
     def search_text(
         self,
         query: str,

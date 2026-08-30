@@ -227,6 +227,22 @@ class KuzuBackend:
 
         return _to_tuples(caller_rows), _to_tuples(callee_rows)
 
+    def get_most_called_functions(
+        self, limit: int = 20
+    ) -> List[Tuple[str, str, int]]:
+        # Kuzu has no equivalent slowdown for this shape of query -- just
+        # use Cypher, no optimization effort needed here.
+        rows = self.query(
+            """
+            MATCH (caller:Function)-[:CALLS]->(callee:Function)
+            RETURN callee.name AS name, callee.file AS file, COUNT(caller) AS call_count
+            ORDER BY call_count DESC
+            LIMIT $limit
+            """,
+            {"limit": limit},
+        )
+        return [(r["name"], r["file"], r["call_count"]) for r in rows]
+
     def search_text(
         self,
         query: str,

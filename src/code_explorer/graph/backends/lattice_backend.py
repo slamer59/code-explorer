@@ -22,6 +22,7 @@ Key differences from KuzuBackend that shape this implementation:
   the node itself -- there is no DETACH DELETE equivalent.
 """
 
+import heapq
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -297,6 +298,43 @@ class LatticeBackend:
             callers = _resolve(txn.get_incoming_edges(internal_id), "source_id")
             callees = _resolve(txn.get_outgoing_edges(internal_id), "target_id")
             return callers, callees
+
+    def get_most_called_functions(
+        self, limit: int = 20
+    ) -> List[Tuple[str, str, int]]:
+        """Imperative-API implementation -- see CodeGraphBackend's docstring
+        for why (measured ~19x faster than the equivalent Cypher aggregation
+        on gemseo's real 338K-edge graph: 1.25s vs 23.9s). Iterates every
+        Function node (get_nodes_by_label, imperative) and counts its
+        incoming CALLS edges (get_incoming_edges, also imperative) --
+        neither goes through the Cypher planner.
+
+        Aggregates by (name, file), summing counts across nodes that share
+        that key -- matching the old Cypher query's GROUP BY semantics
+        exactly (Cypher groups by the *returned* callee.name/callee.file
+        columns, not node identity). Two distinct Function nodes can share
+        (name, file) -- e.g. same-named methods on different classes in one
+        file, the same ambiguity class handled elsewhere this session (see
+        QueryOperations._resolve_function_id) -- and a first version of this
+        method that kept per-node counts instead of grouping silently
+        dropped such a function from the top-N entirely (found via a
+        mismatch against the old query's output on this repo's own
+        tree_sitter_adapter.py::walk, which has exactly two such nodes).
+        """
+        with self.db.read() as txn:
+            function_ids = txn.get_nodes_by_label("Function")
+            counts: Dict[Tuple[str, str], int] = {}
+            for fid in function_ids:
+                count = sum(
+                    1 for e in txn.get_incoming_edges(fid) if e.edge_type == "CALLS"
+                )
+                if count == 0:
+                    continue
+                key = (txn.get_property(fid, "name"), txn.get_property(fid, "file"))
+                counts[key] = counts.get(key, 0) + count
+
+            top = heapq.nlargest(limit, counts.items(), key=lambda kv: kv[1])
+        return [(name, file, count) for (name, file), count in top]
 
     def search_text(
         self,

@@ -584,17 +584,9 @@ class DependencyGraph:
         from code_explorer.analyzer.base_analyzer import CodeAnalyzer
         from code_explorer.analyzer.export_parquet import to_relative_path
         from code_explorer.graph.ingest import file_analyses_to_records
+        from code_explorer.settings import settings
 
-        default_exclude_patterns = [
-            "__pycache__",
-            ".pytest_cache",
-            "htmlcov",
-            "dist",
-            "build",
-            ".git",
-            ".venv",
-            "venv",
-        ]
+        default_exclude_patterns = settings.default_exclude_patterns
         current_files = {
             to_relative_path(str(py_file), target): py_file
             for py_file in target.rglob("*.py")

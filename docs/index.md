@@ -35,6 +35,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
 - [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source doesn't live in LatticeDB at monorepo scale, and the SourceProvider design that implements it (implemented)
 - [Indexing Docs for Search Context](explanation/indexing-docs-for-search-context.md) - Idea to index Markdown headings/sections (README, docs/) alongside code for BM25/vector search, using tree-sitter-markdown (not yet implemented)
+- [Configuration](explanation/configuration.md) - Centralized pydantic-settings config for Ollama endpoint/model, embedding/upsert batch sizes, and incremental-reindex exclude patterns, overridable via CODE_EXPLORER_ env vars or a .env file (implemented)
 
 ## Quick Links
 

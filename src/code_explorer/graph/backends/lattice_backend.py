@@ -40,6 +40,7 @@ from code_explorer.graph.backends.kuzu_backend import (
     NODE_PRIMARY_KEY,
 )
 from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
+from code_explorer.settings import settings
 
 # Node types + text property indexed for BM25/fuzzy search, and embedded for
 # vector search (same field, same scope -- one text representation, not two).
@@ -57,7 +58,9 @@ SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
 # performance-tuning guide explicitly calls out "one giant transaction for
 # millions of items" as the pattern to avoid, recommending ~1000-item
 # chunks) -- confirmed via context7 before picking this number, not guessed.
-_UPSERT_BATCH_SIZE = 1000
+# Sourced from Settings (see settings.py) -- module-level for tests that
+# monkeypatch it directly (see tests/test_lattice_batching.py).
+_UPSERT_BATCH_SIZE = settings.upsert_batch_size
 
 # One Ollama /api/embed HTTP call per this many texts, not one call per node.
 # Measured (perfo/benchmark_embed_batching.py, local nomic-embed-text): cost
@@ -65,8 +68,9 @@ _UPSERT_BATCH_SIZE = 1000
 # the fixed per-request overhead (not the embedding work itself) dominates
 # at small batch sizes, and going bigger than 50 buys almost nothing more.
 # Kept well under _UPSERT_BATCH_SIZE so on_progress/write-transaction
-# chunking stays granular.
-_EMBED_BATCH_SIZE = 50
+# chunking stays granular. Sourced from Settings, module-level for the same
+# monkeypatch-friendliness as _UPSERT_BATCH_SIZE above.
+_EMBED_BATCH_SIZE = settings.embed_batch_size
 
 
 def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:

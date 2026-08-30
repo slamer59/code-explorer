@@ -17,9 +17,13 @@ from typing import List
 
 import numpy as np
 
-DEFAULT_MODEL = "nomic-embed-text"
-DEFAULT_DIMENSIONS = 768
-DEFAULT_ENDPOINT = "http://localhost:11434"
+from code_explorer.settings import settings
+
+# Kept as module-level names (not just settings.X) since other modules
+# import these directly -- see graph/backends/lattice_backend.py.
+DEFAULT_MODEL = settings.embedding_model
+DEFAULT_DIMENSIONS = settings.embedding_dimensions
+DEFAULT_ENDPOINT = settings.ollama_endpoint
 
 
 def _call_embed_api(
@@ -57,7 +61,7 @@ def embed_text(
     text: str,
     model: str = DEFAULT_MODEL,
     endpoint: str = DEFAULT_ENDPOINT,
-    timeout: float = 30.0,
+    timeout: float = settings.embedding_timeout,
 ) -> np.ndarray:
     """Generate a semantic embedding for `text` via a local Ollama server.
 

@@ -8,6 +8,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 **Learning-oriented**: Step-by-step lessons to get you started.
 - [Getting Started](tutorials/getting-started.md) - Your first dependency analysis
 - [Understanding Impact Analysis](tutorials/impact-analysis.md) - Track how changes propagate
+- [Searching Code and Getting an LLM-Ready Context Bundle](tutorials/search-and-context.md) - BM25/fuzzy/semantic search + context assembly (experimental)
 
 ## 🎯 [How-To Guides](how-to/index.md)
 **Problem-oriented**: Practical guides for specific tasks.
@@ -30,9 +31,9 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Design Decisions](explanation/design-decisions.md) - Why we chose AST + Astroid + KuzuDB
 - [Incremental Updates](explanation/incremental-updates.md) - Content hash-based change detection
 - [Graph Algorithms](explanation/graph-algorithms.md) - Dependency traversal strategies
-- [LatticeDB Migration](explanation/latticedb-migration.md) - Target architecture for a Kùzu → LatticeDB storage migration with hybrid (graph + BM25 + vector + fuzzy) retrieval (not yet implemented)
+- [LatticeDB Migration](explanation/latticedb-migration.md) - Kùzu → LatticeDB storage migration: implementation status, real Kuzu-vs-LatticeDB performance measurements, and remaining design (hybrid retrieval, confidence-aware impact)
 - [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
-- [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source shouldn't live in LatticeDB at monorepo scale, and the SourceProvider design that fixes it (not yet implemented)
+- [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source doesn't live in LatticeDB at monorepo scale, and the SourceProvider design that implements it (implemented)
 
 ## Quick Links
 

@@ -41,8 +41,9 @@ The goal is **not** to turn Code Explorer into a generic RAG system.
 
 ## 1a. Implementation Status
 
-> Living status tracker for this spec — updated as work lands. Last updated after the
-> Phase 0/1 work and the Kuzu-vs-Lattice benchmark (see `perfo/benchmark_backends.py`).
+> Living status tracker for this spec — updated as work lands. Last updated after
+> search/context assembly/vector search shipped, the search_text redesign, and the
+> ingest-performance work (node_id_map) — see Section 1b below for performance data.
 
 ### Phase-by-phase status
 
@@ -51,13 +52,18 @@ The goal is **not** to turn Code Explorer into a generic RAG system.
 | **0 — Canonical model + backend interface** | ✅ Done | `graph/records.py` (`NodeRecord`/`EdgeRecord`), `graph/backend.py` (`CodeGraphBackend` Protocol), `graph/backends/{kuzu,lattice}_backend.py` |
 | **1 — Read-only Lattice prototype** | ✅ Done | `graph/queries.py` routes through `backend.query()`; `get_callers`/`get_callees`/`ImpactAnalyzer` verified identical on both backends |
 | **2 — Initial ingestion** | ⚠️ Partial | `graph/ingest.py`'s `file_analyses_to_records()` covers only File/Function/Class nodes + CONTAINS_FUNCTION/CONTAINS_CLASS/CALLS edges. No Variable/Import/Decorator/Attribute/Exception/Module yet — deliberately deprioritized, see ranking below. |
-| **3 — Incremental updates** | ❌ Not implemented | `CodeGraphBackend.delete_file()`/`clear_all()` exist and work, but nothing in the CLI calls them for a single changed file — `analyze` always does `clear_all()` + full rebuild for both backends. |
-| **4 — BM25** | ❌ Not implemented in the tool | The *engine* capability is proven (`tests/test_lattice_search_capabilities.py`), but nothing in `DependencyGraph`/CLI calls `fts_search`. No FTS index is ever created on ingested data, no `search` command exists. |
-| **5 — Vector search** | ❌ Not implemented in the tool | Same story — `vector_search` proven to work in isolation, nothing wired up. No embedding generation pipeline exists anywhere. |
-| **6 — Hybrid retrieval** | ❌ Not implemented | No query classifier, no exact/BM25/fuzzy/vector merge-and-rerank logic (Section 12). Depends on 4 and 5 existing first. |
+| **3 — Incremental updates** | ❌ Not implemented | `CodeGraphBackend.delete_file()`/`clear_all()` exist and work, but nothing in the CLI calls them for a single changed file — `search`/`analyze` always rebuild fully. |
+| **4 — BM25** | ✅ Done | `code-explorer search "query" PATH` — BM25 (default) + `--fuzzy`, over a compact derived `search_text` (see `source-of-truth-and-search-representations.md`), plus an exact-match shortcut for `file.py:function` queries. Tutorial: `docs/tutorials/search-and-context.md`. |
+| **Minimal LLM context assembly** | ✅ Done | `src/code_explorer/context.py`'s `ContextAssembler` — seed + one-hop callers/callees with source (read live from disk via `SourceProvider`, not stored), wired into `search`'s default output. |
+| **5 — Vector search** | ✅ Done | `code-explorer search "query" PATH --semantic`, backed by local Ollama (`nomic-embed-text`) — see `src/code_explorer/embeddings.py`. Verified genuine semantic ranking (zero keyword overlap) on real code, not just synthetic vectors. |
+| **6 — Hybrid retrieval** | ⚠️ Partial | Only the minimal "try exact match, fall back to BM25" heuristic from the ranking below — no merge/rerank across BM25+fuzzy+vector, no query classifier. |
 | **7 — Confidence-aware impact** | ❌ Not implemented | No `confidence`/`resolution_method`/`evidence` fields on any edge. `ImpactAnalyzer` treats every edge as certain. |
 
 ### Ranking of unimplemented phases, by impact on LLM-search-context quality
+
+> Historical record of the prioritization decision, kept for the reasoning trail.
+> Ranks 1-4 (BM25, context assembly, fuzzy, vector search) are now ✅ Done per the
+> table above; only 5-7 remain open.
 
 Ranked for a specific goal — "search in code for an LLM, to give a real nice context" —
 not for completeness or Kuzu feature parity (full node/edge type coverage is explicitly
@@ -113,6 +119,79 @@ deprioritized for this ranking).
    operational cost.** Doesn't change what an LLM sees in a single query — it's about
    re-index cost over time. Important for adoption on a real, changing codebase, but
    last for this specific "search context quality" lens.
+
+## 1b. Performance Findings: Kuzu vs LatticeDB
+
+> Real measurements, not vendor benchmarks. Every number below was produced on this
+> machine, on either this repo's own `src/code_explorer` (small: ~450-480 nodes) or
+> [gemseo](https://gitlab.com/gemseo/dev/gemseo) (large, real, external:
+> 2,107 files, 15,421 nodes, 338,128 resolved calls) — see `perfo/benchmark_backends.py`
+> and `perfo/benchmark_ingest_speed.py` to reproduce. Where a claim from LatticeDB's own
+> docs/marketing contradicted what we measured, we kept our own number and said so —
+> see the note at the end of this section.
+
+**The strategy in one sentence**: LatticeDB is the right choice for storage +
+search (it's the only one of the two that has BM25/vector search at all), but its
+Cypher query engine is meaningfully slower than Kuzu's per-query — so anything that
+does many small queries in a loop (like `ImpactAnalyzer`'s BFS) pays for that
+repeatedly, while anything that's naturally one bulk operation doesn't.
+
+### Ingestion (writing data in)
+
+| Workload | Kuzu | LatticeDB (before this session's fixes) | LatticeDB (after) |
+|---|---|---|---|
+| This repo (small) | fast (Parquet/COPY-FROM path, not measured head-to-head here) | 0.44s (generic path) | 0.32s |
+| gemseo (338K edges) | not measured at this scale | 62.78s | **34.77s (1.81x)** |
+
+LatticeDB's generic node/edge write path (the only one available — there is no
+bulk-insert-with-properties primitive, confirmed from the library's own README,
+only a vector-only `batch_insert_vectors(label, vectors)` that can't hold arbitrary
+properties) starts out slow because every edge resolves its endpoints via a DB
+lookup. The fix that actually mattered: build a `{canonical_id: internal_id}` map
+once while writing nodes, and have edge creation use that map from memory instead
+of a lookup per endpoint (`graph/backends/lattice_backend.py`'s `upsert_nodes`
+return value / `upsert_edges`' `node_id_map` parameter). A separate optimization
+(`assume_new`, skipping the *node* existence-check) gave only ~1.01x at this same
+scale — it targeted the wrong side of the problem: edges outnumber nodes ~22:1 on
+a real codebase, so node-side savings barely register against edge-side cost.
+
+### Query latency (reading data back)
+
+From `perfo/benchmark_backends.py`, on this repo's own small dataset:
+
+| Metric | Kuzu | LatticeDB |
+|---|---|---|
+| Single-hop query (`get_callers`) | 0.52ms | 74ms (**~140x slower**) |
+| Impact traversal, depth 8 | 17ms | 2,287ms (**~130x slower**) |
+| Accuracy (same seed, same traversal) | — | matches Kuzu exactly |
+
+This gap is *not* explained by a missing index — confirmed empirically that adding
+a LatticeDB property index has zero effect on Cypher `MATCH` query latency (25.36ms
+vs 25.42ms with/without); the index only helps the separate
+`find_nodes_by_label_property` API, not Cypher `MATCH`. This looks like a genuine
+characteristic of LatticeDB 0.15.0's Cypher engine for this query shape (many small
+property-filtered `MATCH` queries), not something fixable from our side.
+
+**Why this matters for architecture, not just numbers**: `ImpactAnalyzer` does one
+Cypher query per graph node visited during its BFS (Section 13's traversal). On
+Kuzu that's cheap enough not to notice; on LatticeDB, at real fan-out, it compounds
+into seconds. If LatticeDB is to be the default (per prior direction in this
+project), the eventual fix is architectural, not tuning: replace the per-hop BFS
+with a single variable-length-path Cypher query (`MATCH (a)-[:CALLS*1..5]->(b)`),
+collapsing N round-trips into 1 — this would help *both* backends, LatticeDB's
+higher per-query cost most of all. Not built yet; noted here as the real next lever
+if impact-analysis latency on LatticeDB becomes a blocker.
+
+### A marketing-vs-measured discrepancy, noted for the record
+
+LatticeDB's own documentation claims sub-microsecond node lookups and describes
+itself as dramatically faster than Neo4j for graph operations. We didn't dispute
+this outright, but we also didn't take it at face value: it's very likely comparing
+against a much heavier baseline (a JVM server database with network-protocol
+overhead) on operations chosen to showcase LatticeDB's strengths (bulk/vector
+operations), not the small-sequential-query pattern our own `ImpactAnalyzer`
+actually does. Our own measurement (same machine, same repo, both backends, same
+queries) is the one that governs decisions in this project — not the vendor's.
 
 ---
 

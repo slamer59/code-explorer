@@ -567,8 +567,14 @@ class DependencyGraph:
                 originally indexed via ingest_results/analyze_directory).
 
         Returns:
-            {'unchanged': int, 'reprocessed': int, 'deleted': int} -- file
-            counts, for the caller to report to the user.
+            {'unchanged': int, 'reprocessed': int, 'deleted': int,
+            'changed_node_ids': List[int]} -- file counts for the caller to
+            report to the user, plus the internal ids of Function/Class
+            nodes that were created/updated (for a LatticeBackend caller
+            that also maintains a vector index -- e.g. `code-explorer
+            search --semantic` -- to re-embed just those nodes via
+            backend.build_vector_index(node_ids=...) instead of a full
+            rebuild; always [] for KuzuBackend).
 
         Raises:
             RuntimeError: If database is in read-only mode
@@ -618,11 +624,22 @@ class DependencyGraph:
                 self.backend.delete_file(rel_path)
             changed_results.append(CodeAnalyzer().analyze_file(abs_path))
 
+        changed_node_ids: List[int] = []
         if changed_results:
             nodes, edges = file_analyses_to_records(changed_results, target)
             node_id_map = self.backend.upsert_nodes(nodes, assume_new=True)
             if edges:
                 self.backend.upsert_edges(edges, node_id_map=node_id_map)
+            # Function/Class ids only -- these are what search_vector actually
+            # indexes (see LatticeBackend.SEARCHABLE_TEXT_FIELDS); File ids
+            # have no search_text/embedding and would just be wasted Ollama
+            # calls if included. Empty for KuzuBackend (upsert_nodes returns
+            # {} there -- fine, semantic search is LatticeDB-only anyway).
+            changed_node_ids = [
+                internal_id
+                for (node_type, _canonical_id), internal_id in node_id_map.items()
+                if node_type in ("Function", "Class")
+            ]
 
             # Re-resolve CALLS for the changed files' own outgoing calls
             # against the full current function set (now includes the
@@ -671,6 +688,7 @@ class DependencyGraph:
             "unchanged": unchanged,
             "reprocessed": len(changed_results),
             "deleted": deleted,
+            "changed_node_ids": changed_node_ids,
         }
 
     def compute_file_hash(self, file_path: Path) -> str:

@@ -805,20 +805,20 @@ def search(
                     f"removed {stats['deleted']} deleted file(s), "
                     f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
                 )
-                if semantic and stats["reprocessed"]:
+                if semantic and stats["changed_node_ids"]:
                     # ingest_incremental only touches nodes/edges/BM25 text --
-                    # it does not call build_vector_index, so changed/new
-                    # functions and classes have no vector yet (deleted/old
-                    # ones are cleanly gone via delete_file, not stale --
-                    # just the new ones are invisible to --semantic until
-                    # re-embedded). Rather than silently miss them, or pay
-                    # for a full re-embed of the whole repo on every
-                    # incremental update, tell the user plainly.
+                    # it doesn't call build_vector_index. Deleted/old vectors
+                    # are already gone (delete_file removes the node itself),
+                    # so the only gap is new/changed nodes having no vector
+                    # yet -- re-embed just those (node_ids scoping, see
+                    # LatticeBackend.build_vector_index), not the whole repo.
+                    t1 = time.time()
+                    n = graph.backend.build_vector_index(
+                        node_ids=stats["changed_node_ids"]
+                    )
                     console.print(
-                        "[yellow]Note:[/yellow] semantic search does not "
-                        "incrementally re-embed changed code -- results for "
-                        "changed/new functions may be missing until you "
-                        "re-run with --reindex."
+                        f"[cyan]Re-embedded[/cyan] {n} changed node(s) "
+                        f"({time.time() - t1:.1f}s)."
                     )
     except Exception as e:
         if needs_index:

@@ -382,14 +382,25 @@ class LatticeBackend:
         node_types: Optional[List[str]] = None,
         model: str = DEFAULT_MODEL,
         on_progress: Optional[Callable[[], None]] = None,
+        node_ids: Optional[Iterable[int]] = None,
     ) -> int:
-        """Embed and store a vector for each existing node of the given
-        types, using their SEARCHABLE_TEXT_FIELDS text property.
+        """Embed and store a vector for existing nodes, using their
+        SEARCHABLE_TEXT_FIELDS text property.
 
         A separate step from ingestion on purpose (see the migration spec,
         Section 10: "Do not generate embeddings during AST parsing" -- select
         entities from the already-built graph, then embed). One Ollama HTTP
         call per node -- slow, not batched/parallelized; fine for now.
+
+        node_ids: embed only these specific internal node ids (any mix of
+        Function/Class ids), skipping the get_nodes_by_label(node_type) scan
+        over the whole graph -- used for incremental re-indexing, where only
+        a handful of nodes actually changed. All searchable node types share
+        the same "search_text" property name (see SEARCHABLE_TEXT_FIELDS),
+        so no per-type lookup is needed here; node_types is ignored when
+        node_ids is given. Passing an id that has no search_text property
+        (e.g. a File node) is harmless -- get_property returns falsy and
+        it's silently skipped, same as the full-scan path.
 
         Returns:
             Number of nodes embedded.
@@ -403,18 +414,32 @@ class LatticeBackend:
                 "enable_vectors=True (vector_dimensions is fixed at "
                 "database-creation time and can't be enabled afterward)."
             )
-        types = node_types if node_types is not None else list(SEARCHABLE_TEXT_FIELDS)
         count = 0
+        if node_ids is not None:
+            # Chunked rather than one transaction for everything: each
+            # iteration makes a slow external Ollama HTTP call (embed_text)
+            # while holding the transaction open -- chunking bounds how long
+            # a single write transaction sits open waiting on the network.
+            for batch in _chunked(list(node_ids), _UPSERT_BATCH_SIZE):
+                with self.db.write() as txn:
+                    for node_id in batch:
+                        text = txn.get_property(node_id, "search_text")
+                        if text:
+                            vector = embed_text(text, model=model)
+                            txn.set_vector(node_id, "embedding", vector)
+                            count += 1
+                        if on_progress is not None:
+                            on_progress()
+                    txn.commit()
+            return count
+
+        types = node_types if node_types is not None else list(SEARCHABLE_TEXT_FIELDS)
         for node_type in types:
             prop = SEARCHABLE_TEXT_FIELDS.get(node_type)
             if prop is None:
                 continue
-            node_ids = self.db.get_nodes_by_label(node_type)
-            # Chunked rather than one transaction for the whole type: each
-            # iteration makes a slow external Ollama HTTP call (embed_text)
-            # while holding the transaction open -- chunking bounds how long
-            # a single write transaction sits open waiting on the network.
-            for batch in _chunked(node_ids, _UPSERT_BATCH_SIZE):
+            type_node_ids = self.db.get_nodes_by_label(node_type)
+            for batch in _chunked(type_node_ids, _UPSERT_BATCH_SIZE):
                 with self.db.write() as txn:
                     for node_id in batch:
                         text = txn.get_property(node_id, prop)

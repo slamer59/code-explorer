@@ -51,6 +51,45 @@ def test_search_vector_ranks_semantically_related_function_first(temp_dir):
     assert results[0].score < results[1].score  # lower distance = closer
 
 
+def test_build_vector_index_node_ids_embeds_only_those_nodes(temp_dir):
+    """node_ids scoping (used for incremental re-indexing) must embed only
+    the given nodes, not silently fall back to the full graph scan."""
+    from code_explorer.graph.records import NodeRecord
+
+    backend = LatticeBackend(
+        temp_dir / "graph.lattice", enable_vectors=True, vector_dimensions=768
+    )
+    backend.open()
+    backend.initialize_schema()
+
+    alpha = NodeRecord(
+        id="fn_alpha", type="Function",
+        properties={
+            "id": "fn_alpha", "name": "alpha", "file": "a.py",
+            "start_line": 1, "end_line": 2,
+            "search_text": "alpha refreshes an oauth access token",
+        },
+    )
+    beta = NodeRecord(
+        id="fn_beta", type="Function",
+        properties={
+            "id": "fn_beta", "name": "beta", "file": "a.py",
+            "start_line": 3, "end_line": 4,
+            "search_text": "beta adds two numbers together",
+        },
+    )
+    id_map = backend.upsert_nodes([alpha, beta], assume_new=True)
+    alpha_id = id_map[("Function", "fn_alpha")]
+
+    n = backend.build_vector_index(node_ids=[alpha_id])
+    assert n == 1
+
+    results = backend.search_vector("token refresh", node_types=["Function"], limit=10)
+    names = {r.name for r in results}
+    assert "alpha" in names
+    assert "beta" not in names, "beta was not in node_ids and must not have been embedded"
+
+
 def test_kuzu_backend_search_vector_raises_not_implemented(temp_dir):
     backend = KuzuBackend(temp_dir / "graph.db")
     backend.open()

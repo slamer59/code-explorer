@@ -757,15 +757,35 @@ def search(
                     include_source=include_source,
                     on_node_progress=lambda: progress.advance(node_task),
                     on_edge_progress=lambda: progress.advance(edge_task),
+                    # Safe here specifically: this branch only runs right
+                    # after either a brand-new db_path or one we just deleted
+                    # (see needs_index/--reindex above) -- never against a
+                    # backend that might already hold some of these nodes.
+                    assume_new=True,
                 )
             console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "
-                    "(one call per function/class, this is the slow part) ..."
+                    "(one HTTP call per function/class, this is the slow "
+                    "part) ..."
                 )
-                n = graph.backend.build_vector_index()
-                console.print(f"Embedded {n:,} nodes.")
+                t1 = time.time()
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    BarColumn(),
+                    MofNCompleteColumn(),
+                    TimeElapsedColumn(),
+                    console=console,
+                ) as progress:
+                    embed_task = progress.add_task(
+                        "Embedding", total=n_functions + n_classes
+                    )
+                    n = graph.backend.build_vector_index(
+                        on_progress=lambda: progress.advance(embed_task)
+                    )
+                console.print(f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s.")
         return graph
 
     try:
@@ -802,10 +822,15 @@ def search(
         exact = _looks_like_exact_target(query)
         if exact is not None:
             exact_file, exact_name = exact
+            console.print(
+                f"[dim]{query!r} looks like an exact target -- checking "
+                f"{exact_file}::{exact_name} before BM25...[/dim]"
+            )
             fn = graph.get_function(exact_file, exact_name)
             if fn is not None:
-                console.print(f"\n[green]Exact match:[/green] {exact_file}::{exact_name}")
+                console.print(f"[green]Exact match:[/green] {exact_file}::{exact_name}")
                 if not no_context:
+                    console.print("[dim]Assembling context...[/dim]")
                     try:
                         ctx = ContextAssembler(graph).assemble_context(exact_file, exact_name)
                         console.print()
@@ -823,6 +848,9 @@ def search(
             # to BM25 below rather than erroring; it might just be a phrase
             # that happens to contain a single colon.
 
+    mode = "semantic (vector)" if semantic else ("fuzzy BM25" if fuzzy else "BM25")
+    console.print(f"[dim]Running {mode} search for {query!r}...[/dim]")
+    t2 = time.time()
     try:
         if semantic:
             hits = graph.backend.search_vector(query, limit=limit)
@@ -831,6 +859,7 @@ def search(
     except Exception as e:
         console.print(f"[red]Error during search:[/red] {e}")
         sys.exit(1)
+    console.print(f"[dim]Search took {(time.time() - t2) * 1000:.0f}ms.[/dim]")
 
     if not hits:
         console.print(f"[yellow]No results for[/yellow] {query!r}")
@@ -866,6 +895,7 @@ def search(
                 "Function-only for now.[/yellow]"
             )
         else:
+            console.print(f"[dim]Assembling context for {top.file}::{top.name}...[/dim]")
             try:
                 ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
                 console.print()

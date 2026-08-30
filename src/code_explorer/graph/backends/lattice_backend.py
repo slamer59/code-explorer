@@ -23,7 +23,7 @@ Key differences from KuzuBackend that shape this implementation:
 """
 
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import latticedb
 
@@ -45,6 +45,18 @@ SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
     "Function": "search_text",
     "Class": "search_text",
 }
+
+# One db.write() transaction per this many items, not one giant transaction
+# for the whole batch. Matches LatticeDB's own documented guidance (its
+# performance-tuning guide explicitly calls out "one giant transaction for
+# millions of items" as the pattern to avoid, recommending ~1000-item
+# chunks) -- confirmed via context7 before picking this number, not guessed.
+_UPSERT_BATCH_SIZE = 1000
+
+
+def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:
+    for i in range(0, len(items), size):
+        yield items[i : i + size]
 
 
 class LatticeBackend:
@@ -128,48 +140,94 @@ class LatticeBackend:
         self,
         nodes: Iterable[NodeRecord],
         on_progress: Optional[Callable[[], None]] = None,
-    ) -> None:
-        with self.db.write() as txn:
-            for node in nodes:
-                pk = NODE_PRIMARY_KEY.get(node.type)
-                if pk is None:
-                    raise ValueError(f"Unknown node type for upsert: {node.type}")
-                pk_value = node.properties.get(pk, node.id)
-                existing_id = self._find_node_id(txn, node.type, pk_value)
-                if existing_id is not None:
-                    for key, value in node.properties.items():
-                        txn.set_property(existing_id, key, value)
-                else:
-                    txn.create_node(labels=[node.type], properties=dict(node.properties))
-                if on_progress is not None:
-                    on_progress()
-            txn.commit()
+        assume_new: bool = False,
+    ) -> Dict[Tuple[str, str], int]:
+        """
+        assume_new: skip the existing-node lookup and always create --
+        correct (only a modest win in practice -- see
+        perfo/benchmark_ingest_speed.py -- but never wrong) only when the
+        caller knows this backend has no pre-existing data for these nodes,
+        e.g. a fresh index build. Wrong data results if this is set True
+        against a backend that already has some of these nodes: they'd be
+        duplicated instead of updated.
+
+        Returns a {(node_type, canonical_id): internal_id} map for every
+        node processed in this call -- pass it to upsert_edges as
+        node_id_map to resolve edge endpoints from memory instead of a DB
+        lookup per endpoint. This is the real win: on a large codebase,
+        edges typically outnumber nodes by an order of magnitude (e.g.
+        gemseo: 15K nodes, 338K resolved calls), so avoiding a lookup per
+        edge endpoint matters far more than avoiding one per node.
+        """
+        node_list = list(nodes)
+        id_map: Dict[Tuple[str, str], int] = {}
+        for batch in _chunked(node_list, _UPSERT_BATCH_SIZE):
+            with self.db.write() as txn:
+                for node in batch:
+                    pk = NODE_PRIMARY_KEY.get(node.type)
+                    if pk is None:
+                        raise ValueError(f"Unknown node type for upsert: {node.type}")
+                    pk_value = node.properties.get(pk, node.id)
+                    if assume_new:
+                        created = txn.create_node(
+                            labels=[node.type], properties=dict(node.properties)
+                        )
+                        internal_id = created.id
+                    else:
+                        existing_id = self._find_node_id(txn, node.type, pk_value)
+                        if existing_id is not None:
+                            for key, value in node.properties.items():
+                                txn.set_property(existing_id, key, value)
+                            internal_id = existing_id
+                        else:
+                            created = txn.create_node(
+                                labels=[node.type], properties=dict(node.properties)
+                            )
+                            internal_id = created.id
+                    id_map[(node.type, pk_value)] = internal_id
+                    if on_progress is not None:
+                        on_progress()
+                txn.commit()
+        return id_map
 
     def upsert_edges(
         self,
         edges: Iterable[EdgeRecord],
         on_progress: Optional[Callable[[], None]] = None,
+        node_id_map: Optional[Dict[Tuple[str, str], int]] = None,
     ) -> None:
-        with self.db.write() as txn:
-            for edge in edges:
-                endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
-                if endpoints is None:
-                    raise ValueError(f"Unknown edge type for upsert: {edge.type}")
-                src_type, dst_type = endpoints
-                src_id = self._find_node_id(txn, src_type, edge.src_id)
-                dst_id = self._find_node_id(txn, dst_type, edge.dst_id)
-                if src_id is None or dst_id is None:
-                    raise ValueError(
-                        f"Cannot create {edge.type} edge: endpoint node not found "
-                        f"(src={edge.src_id!r} found={src_id is not None}, "
-                        f"dst={edge.dst_id!r} found={dst_id is not None})"
+        # No assume_new fast path here: an edge's endpoints must always be
+        # resolved from canonical id -> internal id. node_id_map (from a
+        # prior upsert_nodes call) resolves that from memory when it covers
+        # the edge; falls back to a DB lookup only for endpoints outside the
+        # current batch (e.g. incremental ingestion referencing older data).
+        edge_list = list(edges)
+        node_id_map = node_id_map or {}
+        for batch in _chunked(edge_list, _UPSERT_BATCH_SIZE):
+            with self.db.write() as txn:
+                for edge in batch:
+                    endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
+                    if endpoints is None:
+                        raise ValueError(f"Unknown edge type for upsert: {edge.type}")
+                    src_type, dst_type = endpoints
+                    src_id = node_id_map.get((src_type, edge.src_id))
+                    if src_id is None:
+                        src_id = self._find_node_id(txn, src_type, edge.src_id)
+                    dst_id = node_id_map.get((dst_type, edge.dst_id))
+                    if dst_id is None:
+                        dst_id = self._find_node_id(txn, dst_type, edge.dst_id)
+                    if src_id is None or dst_id is None:
+                        raise ValueError(
+                            f"Cannot create {edge.type} edge: endpoint node not found "
+                            f"(src={edge.src_id!r} found={src_id is not None}, "
+                            f"dst={edge.dst_id!r} found={dst_id is not None})"
+                        )
+                    txn.create_edge(
+                        src_id, dst_id, edge.type, properties=dict(edge.properties)
                     )
-                txn.create_edge(
-                    src_id, dst_id, edge.type, properties=dict(edge.properties)
-                )
-                if on_progress is not None:
-                    on_progress()
-            txn.commit()
+                    if on_progress is not None:
+                        on_progress()
+                txn.commit()
 
     def delete_file(self, file_key: str) -> None:
         with self.db.write() as txn:
@@ -247,6 +305,7 @@ class LatticeBackend:
         self,
         node_types: Optional[List[str]] = None,
         model: str = DEFAULT_MODEL,
+        on_progress: Optional[Callable[[], None]] = None,
     ) -> int:
         """Embed and store a vector for each existing node of the given
         types, using their SEARCHABLE_TEXT_FIELDS text property.
@@ -275,15 +334,21 @@ class LatticeBackend:
             if prop is None:
                 continue
             node_ids = self.db.get_nodes_by_label(node_type)
-            with self.db.write() as txn:
-                for node_id in node_ids:
-                    text = txn.get_property(node_id, prop)
-                    if not text:
-                        continue
-                    vector = embed_text(text, model=model)
-                    txn.set_vector(node_id, "embedding", vector)
-                    count += 1
-                txn.commit()
+            # Chunked rather than one transaction for the whole type: each
+            # iteration makes a slow external Ollama HTTP call (embed_text)
+            # while holding the transaction open -- chunking bounds how long
+            # a single write transaction sits open waiting on the network.
+            for batch in _chunked(node_ids, _UPSERT_BATCH_SIZE):
+                with self.db.write() as txn:
+                    for node_id in batch:
+                        text = txn.get_property(node_id, prop)
+                        if text:
+                            vector = embed_text(text, model=model)
+                            txn.set_vector(node_id, "embedding", vector)
+                            count += 1
+                        if on_progress is not None:
+                            on_progress()
+                    txn.commit()
         return count
 
     def search_vector(

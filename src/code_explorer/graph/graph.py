@@ -488,6 +488,7 @@ class DependencyGraph:
         include_source: bool = False,
         on_node_progress: Optional[Callable[[], None]] = None,
         on_edge_progress: Optional[Callable[[], None]] = None,
+        assume_new: bool = False,
     ) -> dict:
         """Ingest FileAnalysis results via the generic NodeRecord/EdgeRecord
         backend interface (backend.upsert_nodes/upsert_edges).
@@ -504,6 +505,10 @@ class DependencyGraph:
             include_source: If True, also store each function/class's full
                 source_code as a graph property (opt-in, default off -- see
                 graph/ingest.py's file_analyses_to_records for why).
+            assume_new: Skip the existing-node lookup during upsert (see
+                CodeGraphBackend.upsert_nodes) -- only correct when the
+                backend has no pre-existing data for these nodes yet, e.g.
+                indexing into a just-created, empty database.
 
         Returns:
             Statistics dict: {'total_nodes': int, 'total_edges': int}
@@ -518,8 +523,12 @@ class DependencyGraph:
         nodes, edges = file_analyses_to_records(
             results, self.project_root, resolved_calls, include_source=include_source
         )
-        self.backend.upsert_nodes(nodes, on_progress=on_node_progress)
-        self.backend.upsert_edges(edges, on_progress=on_edge_progress)
+        node_id_map = self.backend.upsert_nodes(
+            nodes, on_progress=on_node_progress, assume_new=assume_new
+        )
+        self.backend.upsert_edges(
+            edges, on_progress=on_edge_progress, node_id_map=node_id_map
+        )
         return {"total_nodes": len(nodes), "total_edges": len(edges)}
 
     def compute_file_hash(self, file_path: Path) -> str:

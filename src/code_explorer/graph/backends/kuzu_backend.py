@@ -105,7 +105,17 @@ class KuzuBackend:
         self,
         nodes: Iterable[NodeRecord],
         on_progress: Optional[Callable[[], None]] = None,
-    ) -> None:
+        assume_new: bool = False,
+    ) -> Dict[Tuple[str, str], int]:
+        # assume_new is a LatticeBackend-only optimization (skips a separate
+        # existence-lookup Lattice needs but Kuzu's MERGE doesn't) -- accepted
+        # here for interface compatibility, has no effect: MERGE already does
+        # a single create-or-update in one query regardless. Kuzu has no
+        # internal-id concept to hand back either (Cypher addresses nodes by
+        # their own properties, not a separate id), so this always returns
+        # {} -- upsert_edges falls back to its own MATCH-by-property lookup
+        # unconditionally, which is already a single query, not a separate
+        # existence check + create like Lattice's.
         for node in nodes:
             pk = NODE_PRIMARY_KEY.get(node.type)
             if pk is None:
@@ -120,12 +130,16 @@ class KuzuBackend:
             self.conn.execute(query, params)
             if on_progress is not None:
                 on_progress()
+        return {}
 
     def upsert_edges(
         self,
         edges: Iterable[EdgeRecord],
         on_progress: Optional[Callable[[], None]] = None,
+        node_id_map: Optional[Dict[Tuple[str, str], int]] = None,
     ) -> None:
+        # node_id_map is a LatticeBackend-only optimization -- ignored here,
+        # see upsert_nodes.
         for edge in edges:
             endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
             if endpoints is None:

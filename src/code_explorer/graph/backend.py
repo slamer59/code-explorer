@@ -13,7 +13,7 @@ embeddings (see embeddings.py) rather than LatticeDB's own native embedding
 client (found broken -- opaque "Generic error" -- in testing).
 """
 
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol
+from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tuple
 
 from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 
@@ -37,14 +37,31 @@ class CodeGraphBackend(Protocol):
         self,
         nodes: Iterable[NodeRecord],
         on_progress: Optional[Callable[[], None]] = None,
-    ) -> None:
+        assume_new: bool = False,
+    ) -> Dict[Tuple[str, str], int]:
         """Insert or update nodes, matched by their canonical primary key.
 
         on_progress, if given, is called once per node processed -- there's
-        no batching (one write per node), so on a large codebase this is the
-        only way to know it's still making progress rather than hung. See
-        cli.py's `search` command for the intended caller pattern
-        (rich.progress.Progress.advance).
+        no batching within a single write (writes are chunked into ~1000-item
+        transactions, but there's no cross-node bulk-insert primitive), so on
+        a large codebase this is the only way to know it's still making
+        progress rather than hung. See cli.py's `search` command for the
+        intended caller pattern (rich.progress.Progress.advance).
+
+        assume_new: skip the existing-node lookup and always create, when the
+        caller knows this backend has no pre-existing data for these nodes
+        (e.g. a fresh index build). A modest win in practice for the node
+        phase alone (see perfo/benchmark_ingest_speed.py) -- never wrong when
+        the assumption holds, but don't expect a dramatic speedup from this
+        alone; the bigger lever is upsert_edges' node_id_map. Passing True
+        against a backend that already has some of these nodes produces
+        duplicates, not updates; only set it when you're sure.
+
+        Returns a {(node_type, canonical_id): internal_id} map for every
+        node processed -- pass it to upsert_edges as node_id_map to resolve
+        edge endpoints from memory instead of a per-endpoint DB lookup.
+        KuzuBackend returns {} (its MERGE-based upsert has no equivalent
+        internal-id concept to expose, and doesn't need this optimization).
         """
         ...
 
@@ -52,9 +69,19 @@ class CodeGraphBackend(Protocol):
         self,
         edges: Iterable[EdgeRecord],
         on_progress: Optional[Callable[[], None]] = None,
+        node_id_map: Optional[Dict[Tuple[str, str], int]] = None,
     ) -> None:
         """Insert or update edges between existing nodes. on_progress: see
-        upsert_nodes."""
+        upsert_nodes.
+
+        node_id_map: from a prior upsert_nodes() call in the same ingest,
+        used to resolve (node_type, canonical_id) -> internal_id from memory
+        instead of a DB lookup per endpoint -- the real win on a large
+        codebase, where edges typically outnumber nodes by an order of
+        magnitude. Falls back to a DB lookup for any endpoint not covered by
+        the map (e.g. an edge referencing a node from an earlier ingest, not
+        this one). Ignored by KuzuBackend (no internal-id concept there).
+        """
         ...
 
     def delete_file(self, file_key: str) -> None:

@@ -10,6 +10,7 @@ import logging
 from typing import Any, List, Optional, Tuple, Union
 
 from code_explorer.analyzer.extractors.base import BaseExtractor
+from code_explorer.analyzer.docstrings import extract_docstring
 from code_explorer.analyzer.models import ClassInfo, FileAnalysis
 from code_explorer.analyzer.tree_sitter_adapter import detect_parser_type, walk_tree
 
@@ -132,6 +133,8 @@ class ClassExtractor(BaseExtractor):
             except Exception as e:
                 logger.warning(f"Could not extract source for class {class_name}: {e}")
 
+        body_node = node.child_by_field_name("body") if hasattr(node, "child_by_field_name") else None
+
         class_info = ClassInfo(
             name=class_name,
             file=result.file_path,
@@ -141,6 +144,7 @@ class ClassExtractor(BaseExtractor):
             methods=methods,
             is_public=not class_name.startswith("_"),
             source_code=source_code,
+            docstring=extract_docstring(body_node),
         )
 
         result.classes.append(class_info)
@@ -179,6 +183,9 @@ class ClassExtractor(BaseExtractor):
             except Exception as e:
                 logger.warning(f"Could not extract source for class {node.name}: {e}")
 
+        raw_docstring = ast.get_docstring(node)
+        docstring = raw_docstring.strip().splitlines()[0].strip() if raw_docstring else None
+
         class_info = ClassInfo(
             name=node.name,
             file=result.file_path,
@@ -188,6 +195,7 @@ class ClassExtractor(BaseExtractor):
             methods=methods,
             is_public=not node.name.startswith("_"),
             source_code=source_code,
+            docstring=docstring or None,
         )
         result.classes.append(class_info)
 

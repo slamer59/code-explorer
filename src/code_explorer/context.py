@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from .graph import DependencyGraph
+from .source_provider import FilesystemSourceProvider, SourceProvider
 
 
 @dataclass
@@ -95,23 +96,31 @@ class CodeContext:
 class ContextAssembler:
     """Assembles a bounded CodeContext bundle around a seed function."""
 
-    def __init__(self, graph: DependencyGraph):
+    def __init__(self, graph: DependencyGraph, source_provider: Optional[SourceProvider] = None):
         self.graph = graph
+        self.source_provider = source_provider or FilesystemSourceProvider(graph.project_root)
 
     def _get_source(self, file: str, name: str) -> Optional[dict]:
-        """Fetch a function's source_code + start_line directly.
+        """Fetch a function's start_line/end_line, then read its source from
+        disk via SourceProvider.
 
-        DependencyGraph.get_function()/FunctionNode don't carry source_code
+        DependencyGraph.get_function()/FunctionNode don't carry line ranges
         today, so this queries the backend directly rather than widening
-        that shared API as a side effect of this feature.
+        that shared API as a side effect of this feature. Source is no
+        longer read from a stored graph property -- see
+        docs/explanation/source-of-truth-and-search-representations.md.
         """
         rel_file = self.graph._to_relative_path(file)
         rows = self.graph.backend.query(
             "MATCH (f:Function {file: $file, name: $name}) "
-            "RETURN f.start_line AS start_line, f.source_code AS source_code",
+            "RETURN f.start_line AS start_line, f.end_line AS end_line",
             {"file": rel_file, "name": name},
         )
-        return rows[0] if rows else None
+        if not rows:
+            return None
+        row = rows[0]
+        source_code = self.source_provider.get_range(rel_file, row["start_line"], row["end_line"])
+        return {"start_line": row["start_line"], "source_code": source_code}
 
     def assemble_context(
         self, file: str, function: str, max_nodes: int = 20
@@ -128,7 +137,10 @@ class ContextAssembler:
             attached), and truncation counts if the budget was exceeded.
 
         Raises:
-            ValueError: If the seed function isn't found in the graph.
+            ValueError: If the seed function isn't found in the graph, or a
+                resolved line range is out of bounds for the current file.
+            FileNotFoundError: If the seed's source file can't be read from
+                disk (moved/deleted since indexing).
         """
         seed_row = self._get_source(file, function)
         if seed_row is None:
@@ -161,15 +173,26 @@ class ContextAssembler:
         )
 
     def _resolve_nodes(self, rows) -> List[ContextNode]:
+        """Resolve caller/callee rows to ContextNodes, best-effort.
+
+        Unlike the seed (assemble_context raises if that fails -- it's the
+        thing being asked about), one caller/callee whose source can't be
+        read (stale line range, moved file) shouldn't abort the whole
+        bundle -- note it inline instead and keep the rest.
+        """
         nodes: List[ContextNode] = []
         for row_file, row_name, line in rows:
-            src = self._get_source(row_file, row_name)
+            try:
+                src = self._get_source(row_file, row_name)
+                source_code = (src["source_code"] if src else "") or "(source not found in graph)"
+            except (ValueError, FileNotFoundError) as e:
+                source_code = f"(could not read source: {e})"
             nodes.append(
                 ContextNode(
                     name=row_name,
                     file=row_file,
                     line_number=line,
-                    source_code=(src["source_code"] if src else "") or "",
+                    source_code=source_code,
                 )
             )
         return nodes

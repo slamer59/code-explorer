@@ -52,6 +52,10 @@ def test_assemble_context_returns_seed_with_callees_and_source(
 
 
 def test_assemble_context_truncates_to_node_budget(temp_dir):
+    # Source is now read from disk (see source_provider.py), not a stored
+    # NodeRecord property -- write a real backing file covering every
+    # start_line/end_line used below (target: 1-2, callers: 10-16).
+    (temp_dir / "a.py").write_text("\n" * 20)
     graph = _graph(temp_dir)
 
     target = NodeRecord(

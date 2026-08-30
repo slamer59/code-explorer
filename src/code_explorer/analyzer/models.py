@@ -19,6 +19,8 @@ class FunctionInfo:
     is_public: bool
     source_code: Optional[str] = None
     parent_class: Optional[str] = None
+    docstring: Optional[str] = None
+    called_names: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -33,6 +35,7 @@ class ClassInfo:
     methods: List[str]  # Method names
     is_public: bool
     source_code: Optional[str] = None
+    docstring: Optional[str] = None
 
 
 @dataclass

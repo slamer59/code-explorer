@@ -9,7 +9,7 @@ import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import click
 from rich.console import Console
@@ -35,9 +35,76 @@ from .console_styles import (
 
 console = Console()
 
+# Plain text (no Rich markup) -- printed via click.echo, not console.print,
+# so square brackets in example commands/flags render literally instead of
+# being parsed as Rich style tags (see cli.py's search command output bug:
+# real source code containing "[...]" gets silently mangled by
+# console.print's markup=True default).
+SKILLS_GUIDE = """\
+code-explorer -- usage guide for AI agents
+
+Use this instead of ad-hoc grep + manual file reads when you need to
+understand a Python codebase's structure, dependencies, or call graph.
+
+Quick reference:
+  code-explorer search "query" PATH             BM25 keyword search + an
+                                                 LLM-ready context bundle
+                                                 (top hit's source, plus its
+                                                 direct callers/callees)
+  code-explorer search "query" PATH --fuzzy     same, typo-tolerant
+  code-explorer search "query" PATH --semantic  same, conceptual search
+                                                 (needs local Ollama +
+                                                 nomic-embed-text)
+  code-explorer analyze PATH                    Build the dependency graph
+                                                 used by impact/trace/stats/
+                                                 visualize
+  code-explorer impact file.py:function_name    What breaks if this changes
+                                                 (needs analyze first)
+  code-explorer trace file.py:LINE --variable NAME
+                                                 Trace where a variable's
+                                                 value comes from/goes
+  code-explorer stats                           Repo-wide statistics
+  code-explorer visualize file.py               Mermaid dependency diagram
+
+search vs. impact:
+  - Only have a description of behavior, not the exact function -> search
+  - Already know the exact function, want its dependents -> impact (after
+    running analyze)
+
+Gotchas:
+  - search builds its own index at PATH/.code-explorer/graph.lattice on
+    first run (separate from analyze's graph). There is no incremental
+    update yet -- pass --reindex after the code under PATH changes.
+  - --semantic requires a local Ollama server with the nomic-embed-text
+    model pulled (ollama pull nomic-embed-text). Without it, use plain
+    search or --fuzzy instead.
+  - impact/trace/stats/visualize need analyze to have been run first;
+    re-run analyze --refresh after code changes.
+  - From a source checkout, run via:
+      uv run --python 3.12 --extra dev code-explorer ...
+    (the default Python on some systems has no tree-sitter-languages wheel)
+
+Run `code-explorer <command> --help` for full per-command flags.
+"""
+
+
+def _print_skills_guide(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo(SKILLS_GUIDE)
+    ctx.exit()
+
 
 @click.group()
 @click.version_option(version="0.1.0")
+@click.option(
+    "--skills",
+    is_flag=True,
+    is_eager=True,
+    expose_value=False,
+    callback=_print_skills_guide,
+    help="Print a usage guide for AI agents (which command to use when, gotchas), then exit.",
+)
 def cli() -> None:
     """Code Explorer - Python dependency analysis tool.
 
@@ -47,14 +114,27 @@ def cli() -> None:
     The tool now tracks granular imports, decorators, class attributes, exceptions,
     and module hierarchy for comprehensive code analysis.
 
+    LLM/agent usage: `search` is the entry point built for this -- give it a
+    natural-language or keyword query and it returns a ranked hit list plus a
+    ready-to-use context bundle (the top hit's source, plus its direct
+    callers/callees) in one call, so an agent doesn't need to grep and then
+    separately read files. `impact` answers "what breaks if I change this"
+    once you already know the exact function. Run `code-explorer <command>
+    --help` for full per-command options -- each command's help text is kept
+    in sync with its actual flags, unlike a separate doc would be.
+
     Examples:
         code-explorer analyze /path/to/code
+        code-explorer search "how do we refresh an auth token" /path/to/code
+        code-explorer search "resolve_call" /path/to/code --fuzzy
         code-explorer impact module.py:function_name
         code-explorer trace module.py:42 --variable user_input
         code-explorer stats
         code-explorer visualize module.py --output graph.md
 
     New capabilities:
+        - Code search: BM25/fuzzy/semantic search with an LLM-ready context
+          bundle for the top hit (see `code-explorer search --help`)
         - Import tracking: See what imports a function/class
         - Decorator analysis: Track decorator usage and dependencies
         - Attribute tracking: Find what modifies class attributes
@@ -94,6 +174,17 @@ def cli() -> None:
     is_flag=True,
     help="Force full re-analysis (clears existing database)",
 )
+@click.option(
+    "--include-source",
+    is_flag=True,
+    help=(
+        "Store each function/class's full source_code as a graph property "
+        "(opt-in, off by default -- see "
+        "docs/explanation/source-of-truth-and-search-representations.md). "
+        "Only affects the generic ingestion path (non-Kuzu backends); the "
+        "default Kuzu bulk-loader path always stores source_code."
+    ),
+)
 def analyze(
     path: str,
     exclude: tuple[str, ...],
@@ -101,6 +192,7 @@ def analyze(
     workers: int,
     db_path: Optional[str],
     refresh: bool,
+    include_source: bool,
 ) -> None:
     """Analyze Python codebase and build dependency graph.
 
@@ -263,7 +355,9 @@ def analyze(
                     f"({type(graph.backend).__name__})...[/cyan]"
                 )
                 step_start = time.time()
-                stats = graph.ingest_results(results, resolved_calls=all_matched_calls)
+                stats = graph.ingest_results(
+                    results, resolved_calls=all_matched_calls, include_source=include_source
+                )
                 load_time = time.time() - step_start
                 nodes_time = 0
                 edges_time = 0
@@ -508,6 +602,35 @@ def impact(
         sys.exit(1)
 
 
+def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
+    """Detect a 'file:function_name' exact-target reference in a search
+    query, matching the same shape `impact`/`trace` already accept.
+
+    A minimal "try exact match, fall back to BM25" heuristic (see
+    docs/explanation/latticedb-migration.md, Implementation Status ranking
+    item #5) -- not a query classifier, just a cheap shape check so
+    `code-explorer search file.py:func_name` can skip straight to the exact
+    hit instead of running it through BM25 as a phrase.
+
+    Returns (file, function_name) if `query` looks like an exact target
+    reference, or None if it looks like an ordinary search phrase.
+    """
+    if query.count(":") != 1:
+        return None
+    file_part, func_part = query.split(":", 1)
+    if not file_part or not func_part:
+        return None
+    if file_part != file_part.strip() or func_part != func_part.strip():
+        # A space touching the colon (e.g. "a: b" or "topic : detail") reads
+        # as a search phrase that happens to contain a colon, not a target.
+        return None
+    if " " in file_part or " " in func_part:
+        return None
+    if not func_part.isidentifier():
+        return None
+    return (file_part, func_part)
+
+
 @cli.command()
 @click.argument("query")
 @click.argument("path", type=click.Path(exists=True), default=".")
@@ -541,6 +664,16 @@ def impact(
     is_flag=True,
     help="Force a fresh index instead of reusing an existing one",
 )
+@click.option(
+    "--include-source",
+    is_flag=True,
+    help=(
+        "Store each function/class's full source_code as a graph property "
+        "alongside the compact search_text used for BM25/vector/context "
+        "(opt-in, off by default -- see "
+        "docs/explanation/source-of-truth-and-search-representations.md)."
+    ),
+)
 def search(
     query: str,
     path: str,
@@ -549,6 +682,7 @@ def search(
     semantic: bool,
     no_context: bool,
     reindex: bool,
+    include_source: bool,
 ) -> None:
     """Search code by keyword and show a ready-to-use context bundle.
 
@@ -597,7 +731,9 @@ def search(
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
             results = CodeAnalyzer().analyze_directory(target)
             resolved_calls = CallResolver(results).resolve_all_calls()
-            graph.ingest_results(results, resolved_calls=resolved_calls)
+            graph.ingest_results(
+                results, resolved_calls=resolved_calls, include_source=include_source
+            )
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "
@@ -608,6 +744,35 @@ def search(
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to build search index: {e}")
         sys.exit(1)
+
+    # Minimal "try exact match, fall back to BM25" heuristic (see
+    # docs/explanation/latticedb-migration.md's Implementation Status
+    # ranking, item #5) -- only for plain `search` (no explicit --fuzzy/
+    # --semantic override, which mean the user wants that specific mode).
+    if not fuzzy and not semantic:
+        exact = _looks_like_exact_target(query)
+        if exact is not None:
+            exact_file, exact_name = exact
+            fn = graph.get_function(exact_file, exact_name)
+            if fn is not None:
+                console.print(f"\n[green]Exact match:[/green] {exact_file}::{exact_name}")
+                if not no_context:
+                    try:
+                        ctx = ContextAssembler(graph).assemble_context(exact_file, exact_name)
+                        console.print()
+                        console.print(
+                            create_header_panel(
+                                "Context", f"Exact match: {exact_file}::{exact_name}"
+                            )
+                        )
+                        console.print(ctx.to_markdown())
+                    except (ValueError, FileNotFoundError) as e:
+                        console.print(f"[yellow]Could not assemble context:[/yellow] {e}")
+                graph.backend.close()
+                return
+            # QUERY looked target-shaped but didn't resolve -- fall through
+            # to BM25 below rather than erroring; it might just be a phrase
+            # that happens to contain a single colon.
 
     try:
         if semantic:
@@ -620,6 +785,11 @@ def search(
 
     if not hits:
         console.print(f"[yellow]No results for[/yellow] {query!r}")
+        if not fuzzy and not semantic:
+            console.print(
+                "[dim]Try --fuzzy for typo tolerance, or --semantic for "
+                "conceptual search (needs local Ollama).[/dim]"
+            )
         graph.backend.close()
         return
 
@@ -656,7 +826,7 @@ def search(
                     )
                 )
                 console.print(ctx.to_markdown())
-            except ValueError as e:
+            except (ValueError, FileNotFoundError) as e:
                 console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 
     graph.backend.close()

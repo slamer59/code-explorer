@@ -57,6 +57,7 @@ class SchemaManager:
                     end_line INT64,
                     is_public BOOLEAN,
                     source_code STRING,
+                    search_text STRING,
                     PRIMARY KEY(id)
                 )
             """)
@@ -84,6 +85,7 @@ class SchemaManager:
                     bases STRING,
                     is_public BOOLEAN,
                     source_code STRING,
+                    search_text STRING,
                     PRIMARY KEY(id)
                 )
             """)

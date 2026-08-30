@@ -35,10 +35,10 @@ def _seed_functions(backend: LatticeBackend) -> None:
                     "id": "fn_refresh",
                     "name": "refresh_token",
                     "file": "auth/token.py",
-                    "source_code": (
+                    "search_text": (
+                        "auth/token.py::refresh_token\n"
                         "def refresh_token(token):\n"
-                        "    \"\"\"Refreshes an OAuth access token.\"\"\"\n"
-                        "    return issue_new_token(token)"
+                        "Refreshes an OAuth access token."
                     ),
                 },
             ),
@@ -49,10 +49,10 @@ def _seed_functions(backend: LatticeBackend) -> None:
                     "id": "fn_render",
                     "name": "render_template",
                     "file": "views/render.py",
-                    "source_code": (
+                    "search_text": (
+                        "views/render.py::render_template\n"
                         "def render_template(name, context):\n"
-                        "    \"\"\"Renders an HTML template with context.\"\"\"\n"
-                        "    return TEMPLATE_ENGINE.render(name, context)"
+                        "Renders an HTML template with context."
                     ),
                 },
             ),
@@ -63,10 +63,10 @@ def _seed_functions(backend: LatticeBackend) -> None:
                     "id": "fn_delete",
                     "name": "delete_session",
                     "file": "auth/session.py",
-                    "source_code": (
+                    "search_text": (
+                        "auth/session.py::delete_session\n"
                         "def delete_session(session_id):\n"
-                        "    \"\"\"Deletes a stored user session.\"\"\"\n"
-                        "    return SESSION_STORE.remove(session_id)"
+                        "Deletes a stored user session."
                     ),
                 },
             ),
@@ -80,12 +80,12 @@ def test_bm25_search_finds_relevant_function_by_keyword(lattice_backend):
     exact identifier match -- something Kuzu's Cypher-only queries can't do
     (they require an exact/pattern match on a known property value)."""
     _seed_functions(lattice_backend)
-    # The Function.source_code FTS index is now created automatically by
+    # The Function.search_text FTS index is now created automatically by
     # LatticeBackend.initialize_schema() (see graph/backends/lattice_backend.py's
     # SEARCHABLE_TEXT_FIELDS) -- the fixture above already called it.
 
     results = lattice_backend.db.fts_search(
-        "Function", "source_code", "OAuth access token", limit=5
+        "Function", "search_text", "OAuth access token", limit=5
     )
 
     assert results, "expected at least one BM25 match"
@@ -171,9 +171,9 @@ def test_indexing_and_search_share_one_database(lattice_backend):
     assert contains == [{"name": "refresh_token"}]
 
     # BM25 search over the same indexed data, in the same database file.
-    # (Function.source_code FTS index already created by initialize_schema().)
+    # (Function.search_text FTS index already created by initialize_schema().)
     hits = lattice_backend.db.fts_search(
-        "Function", "source_code", "user session", limit=5
+        "Function", "search_text", "user session", limit=5
     )
     assert hits, "expected the indexed graph data to also be search-hittable"
     with lattice_backend.db.read() as txn:

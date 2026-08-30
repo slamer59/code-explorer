@@ -63,7 +63,7 @@ class CodeGraphBackend(Protocol):
         fuzzy: bool = False,
     ) -> List[SearchResult]:
         """BM25 (or, with fuzzy=True, typo-tolerant) lexical search over
-        indexed node text (currently Function/Class source_code).
+        indexed node text (currently Function/Class search_text).
 
         LatticeDB-only: KuzuBackend has no full-text search engine and raises
         NotImplementedError rather than silently returning [].

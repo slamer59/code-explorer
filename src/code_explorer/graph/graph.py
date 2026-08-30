@@ -485,6 +485,7 @@ class DependencyGraph:
         self,
         results: List,
         resolved_calls: Optional[List[dict]] = None,
+        include_source: bool = False,
     ) -> dict:
         """Ingest FileAnalysis results via the generic NodeRecord/EdgeRecord
         backend interface (backend.upsert_nodes/upsert_edges).
@@ -498,6 +499,9 @@ class DependencyGraph:
         Args:
             results: List of FileAnalysis objects
             resolved_calls: Optional resolved CALLS edges from CallResolver
+            include_source: If True, also store each function/class's full
+                source_code as a graph property (opt-in, default off -- see
+                graph/ingest.py's file_analyses_to_records for why).
 
         Returns:
             Statistics dict: {'total_nodes': int, 'total_edges': int}
@@ -510,7 +514,7 @@ class DependencyGraph:
         from code_explorer.graph.ingest import file_analyses_to_records
 
         nodes, edges = file_analyses_to_records(
-            results, self.project_root, resolved_calls
+            results, self.project_root, resolved_calls, include_source=include_source
         )
         self.backend.upsert_nodes(nodes)
         self.backend.upsert_edges(edges)

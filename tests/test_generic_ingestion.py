@@ -52,3 +52,53 @@ def test_ingest_results_populates_lattice_backend_and_is_queryable(
         {"name": "public_function"},
     )
     assert rows == [{"name": "public_function"}]
+
+
+def test_multiline_signature_parameters_are_searchable(temp_dir):
+    """search_text must capture the whole signature, not just the first
+    physical line -- a wrapped (one-parameter-per-line) def is the norm in
+    ruff/black-formatted code, and a parameter name that only appears past
+    line 1 (e.g. `reindex`) needs to stay findable by BM25."""
+    source_file = temp_dir / "wrapped.py"
+    source_file.write_text(
+        "def rebuild_index(\n"
+        "    path: str,\n"
+        "    reindex: bool,\n"
+        ") -> None:\n"
+        "    pass\n"
+    )
+    result = CodeAnalyzer().analyze_file(source_file)
+
+    backend = LatticeBackend(temp_dir / "graph.lattice")
+    graph = DependencyGraph(
+        db_path=temp_dir / "graph.lattice", project_root=temp_dir, backend=backend
+    )
+    graph.ingest_results([result])
+
+    hits = graph.backend.search_text("reindex", limit=5)
+
+    assert any(h.name == "rebuild_index" for h in hits)
+
+
+def test_body_only_helper_name_is_searchable_via_called_names(temp_dir):
+    """A helper referenced only in a function's body (not in its own
+    signature or docstring) should still make the caller findable by that
+    helper's name -- search_text widens via called-name identifiers
+    (analyzer/extractors/functions.py's _extract_called_names), not by
+    storing the body text itself."""
+    source_file = temp_dir / "caller.py"
+    source_file.write_text(
+        "def do_work():\n"
+        "    return rebuild_search_index()\n"
+    )
+    result = CodeAnalyzer().analyze_file(source_file)
+
+    backend = LatticeBackend(temp_dir / "graph.lattice")
+    graph = DependencyGraph(
+        db_path=temp_dir / "graph.lattice", project_root=temp_dir, backend=backend
+    )
+    graph.ingest_results([result])
+
+    hits = graph.backend.search_text("rebuild_search_index", limit=5)
+
+    assert any(h.name == "do_work" for h in hits)

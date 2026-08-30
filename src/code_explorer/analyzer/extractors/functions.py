@@ -8,6 +8,7 @@ import logging
 from typing import Any, List, Optional, Tuple
 
 from code_explorer.analyzer.extractors.base import BaseExtractor
+from code_explorer.analyzer.docstrings import extract_docstring
 from code_explorer.analyzer.models import FileAnalysis, FunctionCall, FunctionInfo
 from code_explorer.analyzer.tree_sitter_adapter import walk_tree
 
@@ -92,6 +93,8 @@ class FunctionExtractor(BaseExtractor):
             except Exception as e:
                 logger.warning(f"Could not extract source for {func_name}: {e}")
 
+        body_node = node.child_by_field_name("body") if hasattr(node, "child_by_field_name") else None
+
         func_info = FunctionInfo(
             name=func_name,
             file=result.file_path,
@@ -100,8 +103,34 @@ class FunctionExtractor(BaseExtractor):
             is_public=not func_name.startswith("_"),
             source_code=source_code,
             parent_class=None,  # Will be updated by ClassExtractor
+            docstring=extract_docstring(body_node),
+            called_names=self._extract_called_names(body_node),
         )
         result.functions.append(func_info)
+
+    def _extract_called_names(self, body_node: Any) -> List[str]:
+        """Collect distinct called-function/method names within a body.
+
+        Widens search_text (see graph/ingest.py's _derive_search_text)
+        beyond signature+docstring: a helper only ever referenced by name in
+        a function's body (e.g. `rebuild_index()`) should still make that
+        function findable by BM25 for "rebuild index" even though neither
+        the signature nor the docstring mentions it. Reuses the same
+        tree-sitter walk / _extract_call_name pattern as
+        _extract_function_calls, scoped to just this body node -- no second
+        parse, no full-body text stored.
+        """
+        if body_node is None:
+            return []
+        names: List[str] = []
+        seen = set()
+        for node in walk_tree(body_node):
+            if hasattr(node, "type") and node.type == "call":
+                name = self._extract_call_name(node)
+                if name and name not in seen:
+                    seen.add(name)
+                    names.append(name)
+        return names
 
     def _extract_function_calls(self, tree: Any, result: FileAnalysis) -> None:
         """Extract function calls from Tree-sitter tree.

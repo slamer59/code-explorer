@@ -37,11 +37,13 @@ from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 
 # Node types + text property indexed for BM25/fuzzy search, and embedded for
 # vector search (same field, same scope -- one text representation, not two).
-# Only Function and Class carry a source_code property today
-# (graph/ingest.py's current scope).
+# search_text is a compact, indexing-time derived field (qualified-ish name +
+# signature + docstring first line) -- not full source_code, which is only
+# stored when ingest_results(include_source=True) is used. See
+# docs/explanation/source-of-truth-and-search-representations.md.
 SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
-    "Function": "source_code",
-    "Class": "source_code",
+    "Function": "search_text",
+    "Class": "search_text",
 }
 
 

@@ -28,7 +28,12 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import latticedb
 
-from code_explorer.embeddings import DEFAULT_DIMENSIONS, DEFAULT_MODEL, embed_text
+from code_explorer.embeddings import (
+    DEFAULT_DIMENSIONS,
+    DEFAULT_MODEL,
+    embed_text,
+    embed_texts,
+)
 from code_explorer.graph.backends.kuzu_backend import (
     EDGE_ENDPOINT_TYPES,
     FILE_SCOPED_NODE_TYPES,
@@ -53,6 +58,15 @@ SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
 # millions of items" as the pattern to avoid, recommending ~1000-item
 # chunks) -- confirmed via context7 before picking this number, not guessed.
 _UPSERT_BATCH_SIZE = 1000
+
+# One Ollama /api/embed HTTP call per this many texts, not one call per node.
+# Measured (perfo/benchmark_embed_batching.py, local nomic-embed-text): cost
+# per item drops from ~37ms at batch=1 to ~5.2ms flat from batch=50 onward --
+# the fixed per-request overhead (not the embedding work itself) dominates
+# at small batch sizes, and going bigger than 50 buys almost nothing more.
+# Kept well under _UPSERT_BATCH_SIZE so on_progress/write-transaction
+# chunking stays granular.
+_EMBED_BATCH_SIZE = 50
 
 
 def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:
@@ -389,8 +403,10 @@ class LatticeBackend:
 
         A separate step from ingestion on purpose (see the migration spec,
         Section 10: "Do not generate embeddings during AST parsing" -- select
-        entities from the already-built graph, then embed). One Ollama HTTP
-        call per node -- slow, not batched/parallelized; fine for now.
+        entities from the already-built graph, then embed). Texts are
+        embedded in batches of _EMBED_BATCH_SIZE via one Ollama HTTP call
+        per batch, not one call per node -- see _EMBED_BATCH_SIZE for the
+        measurement behind that number.
 
         node_ids: embed only these specific internal node ids (any mix of
         Function/Class ids), skipping the get_nodes_by_label(node_type) scan
@@ -417,19 +433,12 @@ class LatticeBackend:
         count = 0
         if node_ids is not None:
             # Chunked rather than one transaction for everything: each
-            # iteration makes a slow external Ollama HTTP call (embed_text)
-            # while holding the transaction open -- chunking bounds how long
-            # a single write transaction sits open waiting on the network.
+            # inner batch makes a slow external Ollama HTTP call while
+            # holding the transaction open -- chunking bounds how long a
+            # single write transaction sits open waiting on the network.
             for batch in _chunked(list(node_ids), _UPSERT_BATCH_SIZE):
                 with self.db.write() as txn:
-                    for node_id in batch:
-                        text = txn.get_property(node_id, "search_text")
-                        if text:
-                            vector = embed_text(text, model=model)
-                            txn.set_vector(node_id, "embedding", vector)
-                            count += 1
-                        if on_progress is not None:
-                            on_progress()
+                    count += self._embed_batch(txn, batch, "search_text", model, on_progress)
                     txn.commit()
             return count
 
@@ -441,15 +450,39 @@ class LatticeBackend:
             type_node_ids = self.db.get_nodes_by_label(node_type)
             for batch in _chunked(type_node_ids, _UPSERT_BATCH_SIZE):
                 with self.db.write() as txn:
-                    for node_id in batch:
-                        text = txn.get_property(node_id, prop)
-                        if text:
-                            vector = embed_text(text, model=model)
-                            txn.set_vector(node_id, "embedding", vector)
-                            count += 1
-                        if on_progress is not None:
-                            on_progress()
+                    count += self._embed_batch(txn, batch, prop, model, on_progress)
                     txn.commit()
+        return count
+
+    def _embed_batch(
+        self,
+        txn: Any,
+        node_ids: List[int],
+        prop: str,
+        model: str,
+        on_progress: Optional[Callable[[], None]],
+    ) -> int:
+        """Embed and store vectors for `node_ids` within an open write
+        transaction, batching Ollama calls at _EMBED_BATCH_SIZE. Nodes with
+        no (or empty) `prop` text are skipped, same as before batching.
+        """
+        count = 0
+        for sub_batch in _chunked(node_ids, _EMBED_BATCH_SIZE):
+            texts: List[str] = []
+            ids_with_text: List[int] = []
+            for node_id in sub_batch:
+                text = txn.get_property(node_id, prop)
+                if text:
+                    texts.append(text)
+                    ids_with_text.append(node_id)
+            if texts:
+                vectors = embed_texts(texts, model=model)
+                for node_id, vector in zip(ids_with_text, vectors):
+                    txn.set_vector(node_id, "embedding", vector)
+                    count += 1
+            if on_progress is not None:
+                for _ in sub_batch:
+                    on_progress()
         return count
 
     def search_vector(

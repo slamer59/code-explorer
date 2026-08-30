@@ -768,7 +768,7 @@ def search(
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "
-                    "(one HTTP call per function/class, this is the slow "
+                    "(batched Ollama HTTP calls, this is the slow "
                     "part) ..."
                 )
                 t1 = time.time()

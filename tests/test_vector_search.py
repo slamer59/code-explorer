@@ -90,6 +90,48 @@ def test_build_vector_index_node_ids_embeds_only_those_nodes(temp_dir):
     assert "beta" not in names, "beta was not in node_ids and must not have been embedded"
 
 
+def test_build_vector_index_batches_embed_calls(temp_dir, monkeypatch):
+    """Prove build_vector_index makes one embed_texts call per batch, not
+    one call per node -- not just that the end result is correct either
+    way (see this session's established pattern in test_lattice_batching.py)."""
+    from code_explorer.graph import backends
+    from code_explorer.graph.records import NodeRecord
+
+    backend = LatticeBackend(
+        temp_dir / "graph.lattice", enable_vectors=True, vector_dimensions=768
+    )
+    backend.open()
+    backend.initialize_schema()
+
+    nodes = [
+        NodeRecord(
+            id=f"fn_{i}", type="Function",
+            properties={
+                "id": f"fn_{i}", "name": f"f{i}", "file": "a.py",
+                "start_line": i, "end_line": i + 1,
+                "search_text": f"function f{i} does something",
+            },
+        )
+        for i in range(5)
+    ]
+    backend.upsert_nodes(nodes, assume_new=True)
+
+    calls = []
+    real_embed_texts = backends.lattice_backend.embed_texts
+
+    def _spy(texts, **kwargs):
+        calls.append(list(texts))
+        return real_embed_texts(texts, **kwargs)
+
+    monkeypatch.setattr(backends.lattice_backend, "embed_texts", _spy)
+
+    n = backend.build_vector_index()
+
+    assert n == 5
+    assert len(calls) == 1, "expected a single batched call, not 5 per-node calls"
+    assert len(calls[0]) == 5
+
+
 def test_kuzu_backend_search_vector_raises_not_implemented(temp_dir):
     backend = KuzuBackend(temp_dir / "graph.db")
     backend.open()

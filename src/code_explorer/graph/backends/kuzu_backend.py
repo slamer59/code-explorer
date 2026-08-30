@@ -193,6 +193,40 @@ class KuzuBackend:
             rows.append(dict(zip(columns, result.get_next())))
         return rows
 
+    def get_call_edges_with_lines(
+        self, function_canonical_id: str
+    ) -> Tuple[
+        List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
+    ]:
+        # Kuzu's Cypher has no equivalent to LatticeDB's Expand-plan
+        # slowdown (confirmed: 0.52ms for this shape of query on the small
+        # test repo) -- Cypher is already the fastest option here, no need
+        # for an imperative-API path like LatticeBackend's.
+        caller_rows = self.query(
+            """
+            MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $id})
+            RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line,
+                   caller.start_line AS start_line, caller.end_line AS end_line
+            """,
+            {"id": function_canonical_id},
+        )
+        callee_rows = self.query(
+            """
+            MATCH (caller:Function {id: $id})-[c:CALLS]->(callee:Function)
+            RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line,
+                   callee.start_line AS start_line, callee.end_line AS end_line
+            """,
+            {"id": function_canonical_id},
+        )
+
+        def _to_tuples(rows):
+            return [
+                (r["file"], r["name"], r["call_line"], r["start_line"], r["end_line"])
+                for r in rows
+            ]
+
+        return _to_tuples(caller_rows), _to_tuples(callee_rows)
+
     def search_text(
         self,
         query: str,

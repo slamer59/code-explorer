@@ -260,6 +260,44 @@ class LatticeBackend:
     ) -> List[Dict[str, Any]]:
         return self.db.query(statement, params or {}).fetchall()
 
+    def get_call_edges_with_lines(
+        self, function_canonical_id: str
+    ) -> Tuple[
+        List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
+    ]:
+        """Imperative-API implementation -- see CodeGraphBackend's docstring
+        for why this exists instead of a Cypher MATCH (measured ~7,500x
+        faster on a real 338K-edge graph). get_incoming_edges/
+        get_outgoing_edges use LatticeDB's storage-layer edge-ID index
+        directly; get_property likewise looks up by internal id directly --
+        neither goes through the Cypher query planner.
+        """
+        with self.db.read() as txn:
+            internal_id = self._find_node_id(txn, "Function", function_canonical_id)
+            if internal_id is None:
+                return [], []
+
+            def _resolve(edges, other_id_attr):
+                out = []
+                for edge in edges:
+                    if edge.edge_type != "CALLS":
+                        continue
+                    other_id = getattr(edge, other_id_attr)
+                    file = txn.get_property(other_id, "file")
+                    name = txn.get_property(other_id, "name")
+                    start_line = txn.get_property(other_id, "start_line")
+                    end_line = txn.get_property(other_id, "end_line")
+                    # edge.properties is unreliably empty here (same
+                    # lazy-load quirk already found on Node.properties) --
+                    # get_edge_property looks it up directly and works.
+                    call_line = txn.get_edge_property(edge.id, "call_line")
+                    out.append((file, name, call_line, start_line, end_line))
+                return out
+
+            callers = _resolve(txn.get_incoming_edges(internal_id), "source_id")
+            callees = _resolve(txn.get_outgoing_edges(internal_id), "target_id")
+            return callers, callees
+
     def search_text(
         self,
         query: str,

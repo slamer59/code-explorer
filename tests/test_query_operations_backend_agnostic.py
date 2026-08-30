@@ -102,6 +102,25 @@ def test_get_callers_and_callees_with_lines_matches_separate_calls(backend):
     assert callees2 == [("foo.py", "callee", 3, 10, 15)]
 
 
+def test_get_call_edges_with_lines_matches_across_backends(backend):
+    """The backend-level primitive itself (not QueryOperations) -- each
+    backend implements this via whatever is fastest for it (see
+    docs/explanation/latticedb-migration.md's Performance Findings:
+    LatticeDB's Cypher MATCH on a CALLS-edge traversal measured ~15s on a
+    real 338K-edge graph -- LabelScan-based Expand, confirmed via
+    LatticeDB's own architecture docs -- vs. ~2ms via its imperative
+    get_incoming_edges/get_outgoing_edges + get_property API for the same
+    data). Must produce identical results regardless of which primitive a
+    backend uses internally."""
+    callers, callees = backend.get_call_edges_with_lines("fn_callee")
+    assert callers == [("foo.py", "caller", 3, 1, 5)]
+    assert callees == []
+
+    callers2, callees2 = backend.get_call_edges_with_lines("fn_caller")
+    assert callers2 == []
+    assert callees2 == [("foo.py", "callee", 3, 10, 15)]
+
+
 def test_get_statistics_counts_match_across_backends(backend):
     queries = QueryOperations(backend, Path("."), HELPER_METHODS, schema_version="v2")
 

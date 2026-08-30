@@ -93,14 +93,8 @@ class QueryOperations:
             fn_id = self._resolve_function_id(rel_file, function)
             if fn_id is None:
                 return []
-            rows = self.backend.query(
-                """
-                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $id})
-                RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line
-            """,
-                {"id": fn_id},
-            )
-            return [(row["file"], row["name"], row["call_line"]) for row in rows]
+            callers, _callees = self.backend.get_call_edges_with_lines(fn_id)
+            return [(f, n, call_line) for f, n, call_line, _s, _e in callers]
         except Exception as e:
             console.print(
                 f"[red]Error getting callers for {function} in {file}: {e}[/red]"
@@ -123,14 +117,8 @@ class QueryOperations:
             fn_id = self._resolve_function_id(rel_file, function)
             if fn_id is None:
                 return []
-            rows = self.backend.query(
-                """
-                MATCH (caller:Function {id: $id})-[c:CALLS]->(callee:Function)
-                RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line
-            """,
-                {"id": fn_id},
-            )
-            return [(row["file"], row["name"], row["call_line"]) for row in rows]
+            _callers, callees = self.backend.get_call_edges_with_lines(fn_id)
+            return [(f, n, call_line) for f, n, call_line, _s, _e in callees]
         except Exception as e:
             console.print(
                 f"[red]Error getting callees for {function} in {file}: {e}[/red]"
@@ -166,30 +154,7 @@ class QueryOperations:
             fn_id = self._resolve_function_id(rel_file, function)
             if fn_id is None:
                 return [], []
-            caller_rows = self.backend.query(
-                """
-                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $id})
-                RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line,
-                       caller.start_line AS start_line, caller.end_line AS end_line
-            """,
-                {"id": fn_id},
-            )
-            callee_rows = self.backend.query(
-                """
-                MATCH (caller:Function {id: $id})-[c:CALLS]->(callee:Function)
-                RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line,
-                       callee.start_line AS start_line, callee.end_line AS end_line
-            """,
-                {"id": fn_id},
-            )
-
-            def _to_tuples(rows):
-                return [
-                    (r["file"], r["name"], r["call_line"], r["start_line"], r["end_line"])
-                    for r in rows
-                ]
-
-            return _to_tuples(caller_rows), _to_tuples(callee_rows)
+            return self.backend.get_call_edges_with_lines(fn_id)
         except Exception as e:
             console.print(
                 f"[red]Error getting callers/callees with lines for {function} "

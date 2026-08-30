@@ -98,6 +98,30 @@ class CodeGraphBackend(Protocol):
         """Escape hatch for existing raw-Cypher call sites during the transition."""
         ...
 
+    def get_call_edges_with_lines(
+        self, function_canonical_id: str
+    ) -> Tuple[
+        List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
+    ]:
+        """Return (callers, callees) for the Function with this canonical id,
+        each a list of (file, name, call_line, start_line, end_line) tuples.
+
+        Deliberately NOT implemented as one shared Cypher query for both
+        backends -- each backend uses whatever primitive is fastest for it.
+        Confirmed via direct measurement on a real 338K-edge graph (see
+        docs/explanation/latticedb-migration.md's Performance Findings):
+        LatticeDB's Cypher `MATCH (a)-[:CALLS]->(b)` compiles to a
+        LabelScan-then-Expand plan (confirmed from LatticeDB's own
+        architecture docs) that measured ~15.3s for one node's 27 callers,
+        while its imperative get_incoming_edges/get_outgoing_edges +
+        get_property API (which uses the storage layer's own edge-ID index
+        directly, bypassing the Cypher planner) measured ~2ms for the same
+        data -- roughly 7,500x faster for this exact pattern. Kuzu's Cypher
+        has no equivalent slowdown (confirmed: 0.52ms for the same shape of
+        query on the small test repo), so KuzuBackend just uses Cypher.
+        """
+        ...
+
     def search_text(
         self,
         query: str,

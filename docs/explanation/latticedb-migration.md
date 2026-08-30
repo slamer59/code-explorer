@@ -168,19 +168,59 @@ From `perfo/benchmark_backends.py`, on this repo's own small dataset:
 This gap is *not* explained by a missing index — confirmed empirically that adding
 a LatticeDB property index has zero effect on Cypher `MATCH` query latency (25.36ms
 vs 25.42ms with/without); the index only helps the separate
-`find_nodes_by_label_property` API, not Cypher `MATCH`. This looks like a genuine
-characteristic of LatticeDB 0.15.0's Cypher engine for this query shape (many small
-property-filtered `MATCH` queries), not something fixable from our side.
+`find_nodes_by_label_property` API, not Cypher `MATCH`.
+
+**Update — this turned out to be fixable, and the fix landed**: at gemseo's real
+scale (338,128 edges), a single Cypher `MATCH (caller:Function)-[c:CALLS]->
+(callee:Function {id: $id})` measured **15.3 seconds** to find one node's 27
+callers. Reading LatticeDB's own architecture docs (`book/src/architecture/
+query-execution.md`, fetched via context7) explains why: `MATCH (a)-[:TYPE]->(b)`
+compiles to `Expand ← LabelScan(label)` — the planner scans *every* node with the
+given label before expanding edges, rather than seeking directly to the
+`{id: $id}`-filtered target. Their storage docs separately confirm edges are also
+kept in "a traversal tree and an edge-ID index... for efficient bidirectional
+lookups" — a structure the Cypher planner isn't using for this query shape, but
+that LatticeDB's own **imperative** `Transaction.get_incoming_edges`/
+`get_outgoing_edges` API reads directly, bypassing the planner entirely. Measured
+the same lookup that way: **0.12ms** for the edges, plus **2.02ms** to fetch all 27
+callers' properties via `get_property` (also imperative, also bypasses Cypher) —
+**~2ms total, vs 15.3s** — roughly **7,500x faster** for the identical result.
+
+Run `perfo/benchmark_call_edges.py` yourself to see this directly (compares both
+approaches side by side on real indexed data, not synthetic):
+
+```
+uv run --python 3.12 --extra dev python perfo/benchmark_call_edges.py [DIR]
+```
+
+`CodeGraphBackend.get_call_edges_with_lines()` (`graph/backend.py`) now
+formalizes this: **each backend uses whatever primitive is fastest for it**, not
+one shared Cypher string forced onto both. `LatticeBackend` implements it via the
+imperative edge/property API (`graph/backends/lattice_backend.py`); `KuzuBackend`
+keeps Cypher, since Kuzu has no equivalent slowdown (confirmed: 0.52ms for the same
+query shape). `QueryOperations.get_callers`/`get_callees`/
+`get_callers_and_callees_with_lines` (`graph/queries.py`) all route through it now.
+End-to-end, verified on the actual `code-explorer search` command against gemseo:
+**15.7s → 0.39s** (a full search-plus-context-assembly run) — roughly **40x**,
+confirmed on the real CLI path, not just an isolated query.
+
+One quirk found and worked around while building this: `Edge.properties` returned
+by `get_incoming_edges`/`get_outgoing_edges` is unreliably empty (the same
+lazy-load pattern already found on `Node.properties` earlier this session) —
+`Transaction.get_edge_property(edge.id, key)` must be used instead to actually read
+an edge property like `call_line`.
 
 **Why this matters for architecture, not just numbers**: `ImpactAnalyzer` does one
-Cypher query per graph node visited during its BFS (Section 13's traversal). On
-Kuzu that's cheap enough not to notice; on LatticeDB, at real fan-out, it compounds
-into seconds. If LatticeDB is to be the default (per prior direction in this
-project), the eventual fix is architectural, not tuning: replace the per-hop BFS
-with a single variable-length-path Cypher query (`MATCH (a)-[:CALLS*1..5]->(b)`),
-collapsing N round-trips into 1 — this would help *both* backends, LatticeDB's
-higher per-query cost most of all. Not built yet; noted here as the real next lever
-if impact-analysis latency on LatticeDB becomes a blocker.
+Cypher query per graph node visited during its BFS (Section 13's traversal) via
+`get_callers`/`get_callees` — which now use the fast imperative path automatically,
+so `ImpactAnalyzer` inherits this fix for free, no changes needed there. The
+earlier idea of collapsing the BFS into a single variable-length-path Cypher query
+(`MATCH (a)-[:CALLS*1..5]->(b)`) is no longer the right next lever — a
+Cypher-based fix would still hit the same `Expand`/`LabelScan` planner behavior
+this section just worked around. If depth-N traversal ever needs to be faster than
+"N calls to `get_call_edges_with_lines`," the next step would be extending the
+imperative-API approach to multi-hop traversal directly, not a fancier Cypher
+query.
 
 ### Search query latency: what BM25 is actually buying us
 

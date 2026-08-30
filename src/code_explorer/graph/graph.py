@@ -351,6 +351,12 @@ class DependencyGraph:
         """Get functions called by the specified function."""
         return self.queries.get_callees(*args, **kwargs)
 
+    def get_callers_and_callees_with_lines(self, *args, **kwargs):
+        """Combined get_callers()+get_callees(), sharing one function-id
+        resolution and returning each result's (start_line, end_line) too
+        -- see QueryOperations.get_callers_and_callees_with_lines."""
+        return self.queries.get_callers_and_callees_with_lines(*args, **kwargs)
+
     def get_variable_usage(self, *args, **kwargs) -> List[Tuple[str, str, int]]:
         """Get functions that use the specified variable."""
         return self.queries.get_variable_usage(*args, **kwargs)

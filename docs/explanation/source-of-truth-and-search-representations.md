@@ -1,10 +1,13 @@
 # Source of Truth: Stop Storing Full Source in LatticeDB
 
-> Status: **not implemented**. Design spec for future work, saved for later —
-> not scoped or scheduled yet. Companion to
-> [LatticeDB Migration](latticedb-migration.md) and its
-> [Implementation Status](latticedb-migration.md#1a-implementation-status)
-> section; read that first for what search/context assembly currently do.
+> Status: **implemented**. `src/code_explorer/source_provider.py` (the
+> `SourceProvider` protocol), `src/code_explorer/graph/ingest.py` (the derived
+> `search_text` field), and `src/code_explorer/context.py` (`ContextAssembler`
+> reading source via `SourceProvider` instead of a stored property) all exist
+> and are in use by `code-explorer search`. See "Measured result" below for
+> real numbers. Companion to [LatticeDB Migration](latticedb-migration.md) and
+> its [Implementation Status](latticedb-migration.md#1a-implementation-status)
+> section.
 
 ## The gap, stated plainly
 
@@ -166,6 +169,30 @@ introduces — the graph structure itself is already stale in that scenario
 (no incremental re-index exists yet, migration doc Phase 3), so line-range
 drift is a symptom of that same known, already-documented gap, not an
 additional one.
+
+## Measured result
+
+Run `perfo/benchmark_index_size.py` yourself to reproduce:
+
+```
+uv run --python 3.12 --extra dev python perfo/benchmark_index_size.py [DIR]
+```
+
+On this repo's own `src/code_explorer` (44 files, ~450 nodes), indexing with the
+default compact `search_text` instead of full `source_code`
+(`include_source=True`) produced:
+
+| Mode | Index size |
+|---|---|
+| Compact `search_text` (default) | 8,068 KiB |
+| Full `source_code` (`include_source=True`) | 10,164 KiB |
+| Reduction | 21% |
+
+A real reduction, but more modest than the gap's framing above might suggest —
+FTS/vector index structures themselves are a meaningful share of file size
+independent of the indexed property's text length, so shrinking the property
+doesn't shrink the file 1:1. The staleness and BM25-relevance-dilution
+arguments for this design stand independent of the size number.
 
 ## What this is not
 

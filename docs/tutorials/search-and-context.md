@@ -164,6 +164,20 @@ can't share one file) — the first `--semantic` run on a directory always
 indexes and embeds from scratch, even if you already ran plain `search`
 there.
 
+## Benchmarking It Yourself
+
+Each capability in this tutorial has a small `perfo/` script that measures it
+directly, without going through the CLI's progress bars:
+
+- `perfo/benchmark_search.py` — BM25 query latency for a handful of
+  representative queries
+- `perfo/benchmark_context.py` — `ContextAssembler.assemble_context()` timing,
+  printing the full rendered markdown so you can inspect output quality
+- `perfo/benchmark_vector_search.py` — embedding + semantic search latency,
+  needs local Ollama (Step 5's prerequisite)
+
+Run any of them with `uv run --python 3.12 --extra dev python perfo/<script>.py [DIR]`.
+
 ## What's Next?
 
 - [CLI Commands Reference](../reference/cli-commands.md#search---find-code-by-keyword-or-meaning-experimental) —

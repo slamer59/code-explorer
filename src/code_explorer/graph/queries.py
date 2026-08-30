@@ -137,6 +137,66 @@ class QueryOperations:
             )
             return []
 
+    def get_callers_and_callees_with_lines(
+        self, file: str, function: str
+    ) -> Tuple[
+        List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
+    ]:
+        """Like get_callers()+get_callees() combined, but resolves the
+        function id once (shared) instead of twice, and returns each
+        caller/callee's (start_line, end_line) directly from the same
+        matched node instead of requiring a separate lookup per node.
+
+        Built for context.py's ContextAssembler, which previously issued
+        one query per caller/callee just to fetch line ranges -- 23 queries
+        measured for one seed with 10 callers + 8 callees (see
+        docs/explanation/latticedb-migration.md's Performance Findings).
+        Returning start_line/end_line from the already-matched CALLS-edge
+        node is also more correct than a fresh (file, name) lookup would
+        be: it can't hit the same name-ambiguity class _resolve_function_id
+        exists to guard against, since it's the exact node the edge points
+        to, not a fresh name-based re-match.
+
+        Returns:
+            (callers, callees), each a list of
+            (file, name, call_line, start_line, end_line) tuples.
+        """
+        rel_file = self._to_relative_path(file)
+        try:
+            fn_id = self._resolve_function_id(rel_file, function)
+            if fn_id is None:
+                return [], []
+            caller_rows = self.backend.query(
+                """
+                MATCH (caller:Function)-[c:CALLS]->(callee:Function {id: $id})
+                RETURN caller.file AS file, caller.name AS name, c.call_line AS call_line,
+                       caller.start_line AS start_line, caller.end_line AS end_line
+            """,
+                {"id": fn_id},
+            )
+            callee_rows = self.backend.query(
+                """
+                MATCH (caller:Function {id: $id})-[c:CALLS]->(callee:Function)
+                RETURN callee.file AS file, callee.name AS name, c.call_line AS call_line,
+                       callee.start_line AS start_line, callee.end_line AS end_line
+            """,
+                {"id": fn_id},
+            )
+
+            def _to_tuples(rows):
+                return [
+                    (r["file"], r["name"], r["call_line"], r["start_line"], r["end_line"])
+                    for r in rows
+                ]
+
+            return _to_tuples(caller_rows), _to_tuples(callee_rows)
+        except Exception as e:
+            console.print(
+                f"[red]Error getting callers/callees with lines for {function} "
+                f"in {file}: {e}[/red]"
+            )
+            return [], []
+
     def get_variable_usage(
         self, file: str, var_name: str, definition_line: int
     ) -> List[Tuple[str, str, int]]:

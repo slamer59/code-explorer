@@ -158,8 +158,17 @@ class ContextAssembler:
         callee_budget = remaining // 2
         caller_budget = remaining - callee_budget
 
-        caller_rows = self.graph.get_callers(file, function)
-        callee_rows = self.graph.get_callees(file, function)
+        # One shared function-id resolution + 2 queries total (not 2 separate
+        # get_callers()/get_callees() calls, each re-resolving the id, plus
+        # one _get_source() query per caller/callee) -- see
+        # docs/explanation/latticedb-migration.md's Performance Findings:
+        # this cut a measured 23-query/38.7ms context assembly down
+        # substantially by fetching each node's (start_line, end_line)
+        # straight from the already-matched CALLS-edge node instead of a
+        # second per-node lookup.
+        caller_rows, callee_rows = self.graph.get_callers_and_callees_with_lines(
+            file, function
+        )
 
         callers = self._resolve_nodes(caller_rows[:caller_budget])
         callees = self._resolve_nodes(callee_rows[:callee_budget])
@@ -173,25 +182,25 @@ class ContextAssembler:
         )
 
     def _resolve_nodes(self, rows) -> List[ContextNode]:
-        """Resolve caller/callee rows to ContextNodes, best-effort.
-
-        Unlike the seed (assemble_context raises if that fails -- it's the
-        thing being asked about), one caller/callee whose source can't be
-        read (stale line range, moved file) shouldn't abort the whole
-        bundle -- note it inline instead and keep the rest.
+        """Build ContextNodes from (file, name, call_line, start_line,
+        end_line) rows, best-effort: unlike the seed (assemble_context
+        raises if that fails -- it's the thing being asked about), one
+        caller/callee whose source can't be read (stale line range, moved
+        file) shouldn't abort the whole bundle -- note it inline instead
+        and keep the rest. No DB query here -- start_line/end_line already
+        came from the caller/callee query itself; this is a local disk read.
         """
         nodes: List[ContextNode] = []
-        for row_file, row_name, line in rows:
+        for row_file, row_name, call_line, start_line, end_line in rows:
             try:
-                src = self._get_source(row_file, row_name)
-                source_code = (src["source_code"] if src else "") or "(source not found in graph)"
+                source_code = self.source_provider.get_range(row_file, start_line, end_line)
             except (ValueError, FileNotFoundError) as e:
                 source_code = f"(could not read source: {e})"
             nodes.append(
                 ContextNode(
                     name=row_name,
                     file=row_file,
-                    line_number=line,
+                    line_number=call_line,
                     source_code=source_code,
                 )
             )

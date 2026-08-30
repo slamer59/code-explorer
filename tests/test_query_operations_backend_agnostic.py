@@ -85,6 +85,23 @@ def test_get_callers_and_callees_match_across_backends(backend):
     assert queries.get_callees("foo.py", "caller") == [("foo.py", "callee", 3)]
 
 
+def test_get_callers_and_callees_with_lines_matches_separate_calls(backend):
+    """The combined method (built to cut context assembly's query count,
+    see docs/explanation/latticedb-migration.md's Performance Findings)
+    must return the same callers/callees as the two separate calls, plus
+    accurate start_line/end_line for each -- not a shortcut that drops
+    data or gets the wrong node's line range."""
+    queries = QueryOperations(backend, Path("."), HELPER_METHODS, schema_version="v2")
+
+    callers, callees = queries.get_callers_and_callees_with_lines("foo.py", "callee")
+    assert callers == [("foo.py", "caller", 3, 1, 5)]  # (file, name, call_line, start_line, end_line)
+    assert callees == []
+
+    callers2, callees2 = queries.get_callers_and_callees_with_lines("foo.py", "caller")
+    assert callers2 == []
+    assert callees2 == [("foo.py", "callee", 3, 10, 15)]
+
+
 def test_get_statistics_counts_match_across_backends(backend):
     queries = QueryOperations(backend, Path("."), HELPER_METHODS, schema_version="v2")
 

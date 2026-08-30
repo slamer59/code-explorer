@@ -697,8 +697,9 @@ def search(
     graph_vectors.lattice for --semantic, which needs vectors enabled at
     index-creation time -- kept as a separate index so plain/fuzzy search
     doesn't pay for vector storage it doesn't use), separate from
-    `analyze`'s Kuzu index -- there is no incremental update yet (Phase 3),
-    so re-run with --reindex after the code changes.
+    `analyze`'s Kuzu index. When an index already exists, changed/new/
+    deleted files are re-indexed incrementally (content-hash based, Phase
+    3) rather than reused as-is; --reindex forces a full rebuild instead.
 
     QUERY: text to search for, e.g. "refresh token"
     PATH: directory to search (default: current directory)
@@ -790,6 +791,35 @@ def search(
 
     try:
         graph = _build_index(needs_index)
+        if not needs_index:
+            # Index already exists and --reindex wasn't passed: don't
+            # silently reuse it as-is (stale data), and don't pay for a
+            # full rebuild either -- hash every file, skip unchanged ones,
+            # and invalidate+reprocess only what changed (Phase 3).
+            t0 = time.time()
+            stats = graph.ingest_incremental(target)
+            elapsed = time.time() - t0
+            if stats["reprocessed"] or stats["deleted"]:
+                console.print(
+                    f"[cyan]Updated[/cyan] {stats['reprocessed']} changed file(s), "
+                    f"removed {stats['deleted']} deleted file(s), "
+                    f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
+                )
+                if semantic and stats["reprocessed"]:
+                    # ingest_incremental only touches nodes/edges/BM25 text --
+                    # it does not call build_vector_index, so changed/new
+                    # functions and classes have no vector yet (deleted/old
+                    # ones are cleanly gone via delete_file, not stale --
+                    # just the new ones are invisible to --semantic until
+                    # re-embedded). Rather than silently miss them, or pay
+                    # for a full re-embed of the whole repo on every
+                    # incremental update, tell the user plainly.
+                    console.print(
+                        "[yellow]Note:[/yellow] semantic search does not "
+                        "incrementally re-embed changed code -- results for "
+                        "changed/new functions may be missing until you "
+                        "re-run with --reindex."
+                    )
     except Exception as e:
         if needs_index:
             # We were already building a fresh index -- this is a real

@@ -537,6 +537,142 @@ class DependencyGraph:
         )
         return {"total_nodes": len(nodes), "total_edges": len(edges)}
 
+    def ingest_incremental(self, target: Path) -> dict:
+        """Re-index `target` incrementally: hash every current .py file,
+        skip ones whose content is unchanged, and for changed/new/deleted
+        files, invalidate and update only what's needed (Phase 3 of
+        docs/explanation/latticedb-migration.md, "Incremental Updates").
+
+        Unlike ingest_results (which ingests a pre-parsed List[FileAnalysis]
+        the caller already has), this does its own file discovery + parsing
+        internally, since it needs to decide per-file whether to parse at
+        all -- parsing is exactly the cost incremental re-indexing exists to
+        avoid for unchanged files.
+
+        CALLS-edge limitation, real and worth knowing, not silently
+        papered over: CALLS edges are resolved by function name across the
+        whole repo (see analyzer/call_resolver.py -- a plain name join, no
+        import resolution), so a changed file's own outgoing calls are
+        correctly re-resolved against the full current function set here.
+        But if an UNCHANGED file calls into a function that just moved,
+        was renamed, or was deleted in a changed file, that unchanged
+        file's CALLS edges are not re-examined by this method and can go
+        stale until that caller file is also reprocessed (e.g. via a full
+        `--reindex`). This is a real gap of per-file incremental updates
+        without a full call-graph re-resolution, not a bug to silently
+        hide.
+
+        Args:
+            target: Directory to re-index (same directory that was
+                originally indexed via ingest_results/analyze_directory).
+
+        Returns:
+            {'unchanged': int, 'reprocessed': int, 'deleted': int} -- file
+            counts, for the caller to report to the user.
+
+        Raises:
+            RuntimeError: If database is in read-only mode
+        """
+        self._check_read_only()
+
+        from code_explorer.analyzer.base_analyzer import CodeAnalyzer
+        from code_explorer.analyzer.export_parquet import to_relative_path
+        from code_explorer.graph.ingest import file_analyses_to_records
+
+        default_exclude_patterns = [
+            "__pycache__",
+            ".pytest_cache",
+            "htmlcov",
+            "dist",
+            "build",
+            ".git",
+            ".venv",
+            "venv",
+        ]
+        current_files = {
+            to_relative_path(str(py_file), target): py_file
+            for py_file in target.rglob("*.py")
+            if not any(p in str(py_file) for p in default_exclude_patterns)
+        }
+
+        existing_files = {
+            row["path"]: row["hash"]
+            for row in self.backend.query(
+                "MATCH (f:File) RETURN f.path AS path, f.content_hash AS hash"
+            )
+        }
+
+        deleted = 0
+        for rel_path in set(existing_files) - set(current_files):
+            self.backend.delete_file(rel_path)
+            deleted += 1
+
+        unchanged = 0
+        changed_results = []
+        for rel_path, abs_path in current_files.items():
+            current_hash = self.compute_file_hash(abs_path)
+            if existing_files.get(rel_path) == current_hash:
+                unchanged += 1
+                continue
+            if rel_path in existing_files:
+                self.backend.delete_file(rel_path)
+            changed_results.append(CodeAnalyzer().analyze_file(abs_path))
+
+        if changed_results:
+            nodes, edges = file_analyses_to_records(changed_results, target)
+            node_id_map = self.backend.upsert_nodes(nodes, assume_new=True)
+            if edges:
+                self.backend.upsert_edges(edges, node_id_map=node_id_map)
+
+            # Re-resolve CALLS for the changed files' own outgoing calls
+            # against the full current function set (now includes the
+            # changed files' freshly-upserted functions too) -- see the
+            # CALLS-edge limitation note above for what this doesn't cover.
+            all_functions = self.backend.query(
+                "MATCH (f:Function) RETURN f.name AS name, f.file AS file, "
+                "f.start_line AS start_line"
+            )
+            functions_by_name: Dict[str, List[Tuple[str, int]]] = {}
+            for row in all_functions:
+                functions_by_name.setdefault(row["name"], []).append(
+                    (row["file"], row["start_line"])
+                )
+
+            resolved_calls = []
+            for result in changed_results:
+                rel_file = to_relative_path(result.file_path, target)
+                caller_start_lines = {fn.name: fn.start_line for fn in result.functions}
+                for call in result.function_calls:
+                    caller_start_line = caller_start_lines.get(call.caller_function)
+                    if caller_start_line is None:
+                        continue
+                    for callee_file, callee_start_line in functions_by_name.get(
+                        call.called_name, []
+                    ):
+                        resolved_calls.append(
+                            {
+                                "caller_file": rel_file,
+                                "caller_function": call.caller_function,
+                                "caller_start_line": caller_start_line,
+                                "callee_file": callee_file,
+                                "callee_function": call.called_name,
+                                "callee_start_line": callee_start_line,
+                                "call_line": call.call_line,
+                            }
+                        )
+
+            if resolved_calls:
+                _, call_edges = file_analyses_to_records(
+                    [], target, resolved_calls=resolved_calls
+                )
+                self.backend.upsert_edges(call_edges)
+
+        return {
+            "unchanged": unchanged,
+            "reprocessed": len(changed_results),
+            "deleted": deleted,
+        }
+
     def compute_file_hash(self, file_path: Path) -> str:
         """Compute SHA256 hash of file contents.
 

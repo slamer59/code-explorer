@@ -52,7 +52,7 @@ The goal is **not** to turn Code Explorer into a generic RAG system.
 | **0 — Canonical model + backend interface** | ✅ Done | `graph/records.py` (`NodeRecord`/`EdgeRecord`), `graph/backend.py` (`CodeGraphBackend` Protocol), `graph/backends/{kuzu,lattice}_backend.py` |
 | **1 — Read-only Lattice prototype** | ✅ Done | `graph/queries.py` routes through `backend.query()`; `get_callers`/`get_callees`/`ImpactAnalyzer` verified identical on both backends |
 | **2 — Initial ingestion** | ⚠️ Partial | `graph/ingest.py`'s `file_analyses_to_records()` covers only File/Function/Class nodes + CONTAINS_FUNCTION/CONTAINS_CLASS/CALLS edges. No Variable/Import/Decorator/Attribute/Exception/Module yet — deliberately deprioritized, see ranking below. |
-| **3 — Incremental updates** | ❌ Not implemented | `CodeGraphBackend.delete_file()`/`clear_all()` exist and work, but nothing in the CLI calls them for a single changed file — `search`/`analyze` always rebuild fully. |
+| **3 — Incremental updates** | ✅ Done | `DependencyGraph.ingest_incremental()` in `src/code_explorer/graph/graph.py` — hashes every current file, skips unchanged ones, and for changed/new files calls `delete_file()` then re-ingests just that file; deleted-from-disk files are also removed via `delete_file()`. Wired into `code-explorer search` (`src/code_explorer/cli.py`): an existing index is updated incrementally by default, `--reindex` forces a full rebuild. Known limitation: an *unchanged* file's CALLS edges into a function that moved/renamed/was-deleted in a changed file are not re-examined until that caller file is itself reprocessed. Tests: `tests/test_incremental_ingestion.py`. Benchmark: `perfo/benchmark_incremental_ingest.py` (speed + accuracy vs. full rebuild — see Section 1b). |
 | **4 — BM25** | ✅ Done | `code-explorer search "query" PATH` — BM25 (default) + `--fuzzy`, over a compact derived `search_text` (see `source-of-truth-and-search-representations.md`), plus an exact-match shortcut for `file.py:function` queries. Tutorial: `docs/tutorials/search-and-context.md`. |
 | **Minimal LLM context assembly** | ✅ Done | `src/code_explorer/context.py`'s `ContextAssembler` — seed + one-hop callers/callees with source (read live from disk via `SourceProvider`, not stored), wired into `search`'s default output. |
 | **5 — Vector search** | ✅ Done | `code-explorer search "query" PATH --semantic`, backed by local Ollama (`nomic-embed-text`) — see `src/code_explorer/embeddings.py`. Verified genuine semantic ranking (zero keyword overlap) on real code, not just synthetic vectors. |
@@ -264,6 +264,40 @@ overhead) on operations chosen to showcase LatticeDB's strengths (bulk/vector
 operations), not the small-sequential-query pattern our own `ImpactAnalyzer`
 actually does. Our own measurement (same machine, same repo, both backends, same
 queries) is the one that governs decisions in this project — not the vendor's.
+
+### Incremental re-index (Phase 3): speed and accuracy vs. full rebuild
+
+`DependencyGraph.ingest_incremental()` (`src/code_explorer/graph/graph.py`) hashes
+every file on disk (SHA256, same `compute_hash` as full ingest), skips files whose
+hash matches what's already indexed, and for changed/new files calls
+`CodeGraphBackend.delete_file()` then re-ingests just that file; files removed from
+disk are deleted the same way. `perfo/benchmark_incremental_ingest.py` measures
+this on `src/code_explorer` itself (44 files, 387 functions):
+
+| Scenario | Time | Detail |
+|---|---|---|
+| Full rebuild | 0.37s | 44 files |
+| Incremental, no changes | 0.01s | unchanged=44, reprocessed=0 |
+| Incremental, 1 file changed | 0.05s | unchanged=43, reprocessed=1 |
+
+~8x faster than a full rebuild on this small repo for a single-file change, and the
+gap widens with repo size since unchanged files are never re-parsed or re-upserted.
+The benchmark also cross-checks accuracy: it diffs the `(file, name, start_line)`
+Function set produced by the incremental path against a full rebuild's — they must
+match exactly, or the run is flagged as a mismatch rather than silently trusted.
+
+Run it yourself:
+
+```
+uv run --python 3.12 --extra dev python perfo/benchmark_incremental_ingest.py [DIR]
+```
+
+**Known limitation, not silently papered over**: a changed file's own outgoing CALLS
+are correctly re-resolved against the full current function set. But if an
+*unchanged* file calls into a function that just moved, was renamed, or was deleted
+in a changed file, that unchanged file's CALLS edges are not re-examined by this
+method and can go stale until that caller file is also reprocessed (e.g. via a full
+`--reindex`).
 
 ---
 

@@ -7,7 +7,7 @@ Delegates to specialized operation classes while maintaining backward compatibil
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from rich.console import Console
 
@@ -486,6 +486,8 @@ class DependencyGraph:
         results: List,
         resolved_calls: Optional[List[dict]] = None,
         include_source: bool = False,
+        on_node_progress: Optional[Callable[[], None]] = None,
+        on_edge_progress: Optional[Callable[[], None]] = None,
     ) -> dict:
         """Ingest FileAnalysis results via the generic NodeRecord/EdgeRecord
         backend interface (backend.upsert_nodes/upsert_edges).
@@ -516,8 +518,8 @@ class DependencyGraph:
         nodes, edges = file_analyses_to_records(
             results, self.project_root, resolved_calls, include_source=include_source
         )
-        self.backend.upsert_nodes(nodes)
-        self.backend.upsert_edges(edges)
+        self.backend.upsert_nodes(nodes, on_progress=on_node_progress)
+        self.backend.upsert_edges(edges, on_progress=on_edge_progress)
         return {"total_nodes": len(nodes), "total_edges": len(edges)}
 
     def compute_file_hash(self, file_path: Path) -> str:

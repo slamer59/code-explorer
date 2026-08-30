@@ -14,7 +14,7 @@ Phase 0 (see docs/explanation/latticedb-migration.md, Phase 0 scope).
 """
 
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import kuzu
 
@@ -101,7 +101,11 @@ class KuzuBackend:
         """Preserved from SchemaManager for DependencyGraph's existing use."""
         return self.schema_manager.detect_schema_version()
 
-    def upsert_nodes(self, nodes: Iterable[NodeRecord]) -> None:
+    def upsert_nodes(
+        self,
+        nodes: Iterable[NodeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
         for node in nodes:
             pk = NODE_PRIMARY_KEY.get(node.type)
             if pk is None:
@@ -114,8 +118,14 @@ class KuzuBackend:
             if set_clause:
                 query += f" ON CREATE SET {set_clause} ON MATCH SET {set_clause}"
             self.conn.execute(query, params)
+            if on_progress is not None:
+                on_progress()
 
-    def upsert_edges(self, edges: Iterable[EdgeRecord]) -> None:
+    def upsert_edges(
+        self,
+        edges: Iterable[EdgeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
         for edge in edges:
             endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
             if endpoints is None:
@@ -141,6 +151,8 @@ class KuzuBackend:
                 f"MERGE (a)-[{rel_pattern}]->(b)"
             )
             self.conn.execute(query, params)
+            if on_progress is not None:
+                on_progress()
 
     def delete_file(self, file_key: str) -> None:
         for node_type in FILE_SCOPED_NODE_TYPES:

@@ -13,7 +13,7 @@ embeddings (see embeddings.py) rather than LatticeDB's own native embedding
 client (found broken -- opaque "Generic error" -- in testing).
 """
 
-from typing import Any, Dict, Iterable, List, Optional, Protocol
+from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol
 
 from code_explorer.graph.records import EdgeRecord, NodeRecord, SearchResult
 
@@ -33,12 +33,28 @@ class CodeGraphBackend(Protocol):
         """Create node/edge tables if they don't already exist."""
         ...
 
-    def upsert_nodes(self, nodes: Iterable[NodeRecord]) -> None:
-        """Insert or update nodes, matched by their canonical primary key."""
+    def upsert_nodes(
+        self,
+        nodes: Iterable[NodeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
+        """Insert or update nodes, matched by their canonical primary key.
+
+        on_progress, if given, is called once per node processed -- there's
+        no batching (one write per node), so on a large codebase this is the
+        only way to know it's still making progress rather than hung. See
+        cli.py's `search` command for the intended caller pattern
+        (rich.progress.Progress.advance).
+        """
         ...
 
-    def upsert_edges(self, edges: Iterable[EdgeRecord]) -> None:
-        """Insert or update edges between existing nodes."""
+    def upsert_edges(
+        self,
+        edges: Iterable[EdgeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
+        """Insert or update edges between existing nodes. on_progress: see
+        upsert_nodes."""
         ...
 
     def delete_file(self, file_key: str) -> None:

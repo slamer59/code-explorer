@@ -23,7 +23,7 @@ Key differences from KuzuBackend that shape this implementation:
 """
 
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 import latticedb
 
@@ -124,7 +124,11 @@ class LatticeBackend:
         matches = txn.find_nodes_by_label_property(node_type, pk, pk_value, limit=1)
         return matches[0] if matches else None
 
-    def upsert_nodes(self, nodes: Iterable[NodeRecord]) -> None:
+    def upsert_nodes(
+        self,
+        nodes: Iterable[NodeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
         with self.db.write() as txn:
             for node in nodes:
                 pk = NODE_PRIMARY_KEY.get(node.type)
@@ -137,9 +141,15 @@ class LatticeBackend:
                         txn.set_property(existing_id, key, value)
                 else:
                     txn.create_node(labels=[node.type], properties=dict(node.properties))
+                if on_progress is not None:
+                    on_progress()
             txn.commit()
 
-    def upsert_edges(self, edges: Iterable[EdgeRecord]) -> None:
+    def upsert_edges(
+        self,
+        edges: Iterable[EdgeRecord],
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> None:
         with self.db.write() as txn:
             for edge in edges:
                 endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
@@ -157,6 +167,8 @@ class LatticeBackend:
                 txn.create_edge(
                     src_id, dst_id, edge.type, properties=dict(edge.properties)
                 )
+                if on_progress is not None:
+                    on_progress()
             txn.commit()
 
     def delete_file(self, file_key: str) -> None:

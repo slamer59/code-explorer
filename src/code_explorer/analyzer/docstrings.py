@@ -39,8 +39,13 @@ def extract_docstring(body_node: Any) -> Optional[str]:
     except Exception:
         return None
 
-    docstring = text.strip("\"'")
+    docstring = text.strip("\"'").strip()
     if not docstring:
+        # A whitespace-only docstring (e.g. '"""   """') survives quote
+        # stripping as a non-empty string of spaces -- .strip() here is
+        # what actually catches it; splitlines()[0] below would otherwise
+        # IndexError on an empty list. Found via a real crash indexing
+        # gemseo's sompy.py.
         return None
-    first_line = docstring.strip().splitlines()[0].strip()
+    first_line = docstring.splitlines()[0].strip()
     return first_line or None

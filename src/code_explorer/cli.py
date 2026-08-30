@@ -724,16 +724,41 @@ def search(
         for stale in db_path.parent.glob(db_path.name + "*"):
             stale.unlink(missing_ok=True)
 
-    try:
+    def _build_index(needs_index: bool) -> DependencyGraph:
         backend = LatticeBackend(db_path, enable_vectors=semantic)
         graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
         if needs_index:
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
             results = CodeAnalyzer().analyze_directory(target)
             resolved_calls = CallResolver(results).resolve_all_calls()
-            graph.ingest_results(
-                results, resolved_calls=resolved_calls, include_source=include_source
-            )
+
+            n_functions = sum(len(r.functions) for r in results)
+            n_classes = sum(len(r.classes) for r in results)
+            # Matches graph/ingest.py's file_analyses_to_records: one File
+            # node per file, one CONTAINS_FUNCTION/CONTAINS_CLASS edge per
+            # function/class, one CALLS edge per resolved call.
+            n_nodes_estimate = len(results) + n_functions + n_classes
+            n_edges_estimate = n_functions + n_classes + len(resolved_calls)
+
+            t0 = time.time()
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                MofNCompleteColumn(),
+                TimeElapsedColumn(),
+                console=console,
+            ) as progress:
+                node_task = progress.add_task("Writing nodes", total=n_nodes_estimate)
+                edge_task = progress.add_task("Writing edges", total=n_edges_estimate)
+                graph.ingest_results(
+                    results,
+                    resolved_calls=resolved_calls,
+                    include_source=include_source,
+                    on_node_progress=lambda: progress.advance(node_task),
+                    on_edge_progress=lambda: progress.advance(edge_task),
+                )
+            console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "
@@ -741,9 +766,33 @@ def search(
                 )
                 n = graph.backend.build_vector_index()
                 console.print(f"Embedded {n:,} nodes.")
+        return graph
+
+    try:
+        graph = _build_index(needs_index)
     except Exception as e:
-        console.print(f"[red]Error:[/red] Failed to build search index: {e}")
-        sys.exit(1)
+        if needs_index:
+            # We were already building a fresh index -- this is a real
+            # failure (permissions, disk, Ollama down for --semantic, etc.),
+            # not a stale-index problem. Don't retry, just report it.
+            console.print(f"[red]Error:[/red] Failed to build search index: {e}")
+            sys.exit(1)
+        # We tried to reuse an existing index and opening it failed -- most
+        # likely leftover state from an interrupted previous run (a killed
+        # process, a crash mid-write). It's a disposable derived cache, not
+        # source data, so rebuild it automatically instead of surfacing a
+        # raw "I/O error" and making the user diagnose it themselves.
+        console.print(
+            f"[yellow]Existing index at {db_path} looks corrupt or "
+            f"incomplete ({e}) -- rebuilding from scratch...[/yellow]"
+        )
+        for stale in db_path.parent.glob(db_path.name + "*"):
+            stale.unlink(missing_ok=True)
+        try:
+            graph = _build_index(needs_index=True)
+        except Exception as e2:
+            console.print(f"[red]Error:[/red] Failed to build search index: {e2}")
+            sys.exit(1)
 
     # Minimal "try exact match, fall back to BM25" heuristic (see
     # docs/explanation/latticedb-migration.md's Implementation Status

@@ -50,6 +50,9 @@ environment variable, or a `.env` file in the current working directory
 | `embedding_timeout` | `CODE_EXPLORER_EMBEDDING_TIMEOUT` | `30.0` | `embeddings.embed_text`'s HTTP timeout (seconds) |
 | `embed_batch_size` | `CODE_EXPLORER_EMBED_BATCH_SIZE` | `50` | `LatticeBackend.build_vector_index` — texts per Ollama `/api/embed` call (see the migration doc's batching measurement) |
 | `upsert_batch_size` | `CODE_EXPLORER_UPSERT_BATCH_SIZE` | `1000` | `LatticeBackend` — nodes/edges per write transaction during ingestion |
+| `ingest_batch_bytes` | `CODE_EXPLORER_INGEST_BATCH_BYTES` | `8388608` | Lattice search indexing — secondary byte ceiling for a parsed/write batch |
+| `lattice_cache_size_mb` | `CODE_EXPLORER_LATTICE_CACHE_SIZE_MB` | `100` | LatticeDB page-cache ceiling |
+| `analysis_workers` | `CODE_EXPLORER_ANALYSIS_WORKERS` | `4` | CPU-bound parser processes used by Lattice search indexing |
 | `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", "htmlcov", "dist", "build", ".git", ".worktrees", ".venv", "venv"]` | Full and incremental discovery — paths excluded in addition to Git ignore rules |
 
 To override a list-valued setting (`default_exclude_patterns`) via an env

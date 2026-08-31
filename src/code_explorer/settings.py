@@ -28,6 +28,12 @@ class Settings(BaseSettings):
 
     # LatticeDB write-transaction chunking (see graph/backends/lattice_backend.py).
     upsert_batch_size: int = 1000
+    ingest_batch_bytes: int = 8 * 1024 * 1024
+    lattice_cache_size_mb: int = 100
+
+    # Search indexing uses CPU-bound parser processes. Four leaves headroom on
+    # development machines while the bounded pending queue supplies the writer.
+    analysis_workers: int = 4
 
     # Directories skipped by ingest_incremental's file walk (see graph/graph.py).
     default_exclude_patterns: List[str] = [

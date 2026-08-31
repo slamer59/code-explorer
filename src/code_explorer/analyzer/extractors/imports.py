@@ -58,39 +58,58 @@ class ImportExtractor(BaseExtractor):
             result: FileAnalysis to populate
         """
         for node in walk_tree(tree):
-            if hasattr(node, 'type') and node.type == 'import_statement':
+            if hasattr(node, "type") and node.type == "import_statement":
                 # Handle: import module [as alias]
                 # Flatten dotted names from import_statement children
-                if hasattr(node, 'children'):
+                if hasattr(node, "children"):
                     for child in node.children:
-                        if hasattr(child, 'type'):
-                            if child.type == 'dotted_name':
+                        if hasattr(child, "type"):
+                            if child.type == "dotted_name":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                     import_info = ImportInfo(
                                         module=module_name,
-                                        line_number=node.start_point[0] + 1 if hasattr(node, 'start_point') else 0,
+                                        line_number=node.start_point[0] + 1
+                                        if hasattr(node, "start_point")
+                                        else 0,
                                         is_relative=False,
                                     )
                                     result.imports.append(import_info)
                                 except Exception as e:
-                                    logger.warning(f"Could not extract import module from dotted_name: {e}")
-                            elif child.type == 'aliased_import':
+                                    logger.warning(
+                                        f"Could not extract import module from dotted_name: {e}"
+                                    )
+                            elif child.type == "aliased_import":
                                 # Handle aliased imports: import x as y
                                 for alias_child in child.children:
-                                    if hasattr(alias_child, 'type') and alias_child.type == 'dotted_name':
+                                    if (
+                                        hasattr(alias_child, "type")
+                                        and alias_child.type == "dotted_name"
+                                    ):
                                         try:
-                                            module_name = alias_child.text.decode('utf-8') if isinstance(alias_child.text, bytes) else alias_child.text
+                                            module_name = (
+                                                alias_child.text.decode("utf-8")
+                                                if isinstance(alias_child.text, bytes)
+                                                else alias_child.text
+                                            )
                                             import_info = ImportInfo(
                                                 module=module_name,
-                                                line_number=node.start_point[0] + 1 if hasattr(node, 'start_point') else 0,
+                                                line_number=node.start_point[0] + 1
+                                                if hasattr(node, "start_point")
+                                                else 0,
                                                 is_relative=False,
                                             )
                                             result.imports.append(import_info)
                                         except Exception as e:
-                                            logger.warning(f"Could not extract import module from aliased_import: {e}")
+                                            logger.warning(
+                                                f"Could not extract import module from aliased_import: {e}"
+                                            )
 
-            elif hasattr(node, 'type') and node.type == 'import_from_statement':
+            elif hasattr(node, "type") and node.type == "import_from_statement":
                 # Handle: from module import name [as alias]
                 # Extract source module from dotted_name or identifier field
                 module_name = None
@@ -98,38 +117,52 @@ class ImportExtractor(BaseExtractor):
                 level = 0
 
                 # Check for relative imports (dots)
-                if hasattr(node, 'children'):
+                if hasattr(node, "children"):
                     for child in node.children:
-                        if hasattr(child, 'type'):
-                            if child.type == 'import_keyword':
+                        if hasattr(child, "type"):
+                            if child.type == "import_keyword":
                                 break
-                            if child.type == '.':
+                            if child.type == ".":
                                 level += 1
 
                 is_relative = level > 0
 
                 # Get the module name (if present)
-                if hasattr(node, 'children'):
+                if hasattr(node, "children"):
                     for child in node.children:
-                        if hasattr(child, 'type'):
-                            if child.type == 'dotted_name':
+                        if hasattr(child, "type"):
+                            if child.type == "dotted_name":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                 except Exception as e:
-                                    logger.warning(f"Could not extract from module name (dotted): {e}")
+                                    logger.warning(
+                                        f"Could not extract from module name (dotted): {e}"
+                                    )
                                 break
-                            elif child.type == 'identifier':
+                            elif child.type == "identifier":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                 except Exception as e:
-                                    logger.warning(f"Could not extract from module name (identifier): {e}")
+                                    logger.warning(
+                                        f"Could not extract from module name (identifier): {e}"
+                                    )
                                 break
 
                 # Only add if we have a module name
                 if module_name:
                     import_info = ImportInfo(
                         module=module_name,
-                        line_number=node.start_point[0] + 1 if hasattr(node, 'start_point') else 0,
+                        line_number=node.start_point[0] + 1
+                        if hasattr(node, "start_point")
+                        else 0,
                         is_relative=is_relative,
                     )
                     result.imports.append(import_info)
@@ -157,7 +190,9 @@ class ImportExtractor(BaseExtractor):
                     )
                     result.imports.append(import_info)
 
-    def _extract_imports_detailed_tree_sitter(self, tree: Any, result: FileAnalysis) -> None:
+    def _extract_imports_detailed_tree_sitter(
+        self, tree: Any, result: FileAnalysis
+    ) -> None:
         """Extract detailed import information using Tree-sitter.
 
         Args:
@@ -165,32 +200,51 @@ class ImportExtractor(BaseExtractor):
             result: FileAnalysis to populate
         """
         for node in walk_tree(tree):
-            if hasattr(node, 'type') and node.type == 'import_statement':
+            if hasattr(node, "type") and node.type == "import_statement":
                 # Handle: import module [as alias]
                 module_name = None
                 alias_name = None
 
                 # Extract from dotted_name or aliased_import
-                if hasattr(node, 'children'):
+                if hasattr(node, "children"):
                     for i, child in enumerate(node.children):
-                        if hasattr(child, 'type'):
-                            if child.type == 'dotted_name':
+                        if hasattr(child, "type"):
+                            if child.type == "dotted_name":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                     # Check if next token is 'as'
                                     if i + 1 < len(node.children) - 1:
                                         next_child = node.children[i + 1]
-                                        if hasattr(next_child, 'type') and next_child.type == 'as' and i + 2 < len(node.children):
+                                        if (
+                                            hasattr(next_child, "type")
+                                            and next_child.type == "as"
+                                            and i + 2 < len(node.children)
+                                        ):
                                             alias_node = node.children[i + 2]
-                                            if hasattr(alias_node, 'type') and alias_node.type == 'identifier':
-                                                alias_name = alias_node.text.decode('utf-8') if isinstance(alias_node.text, bytes) else alias_node.text
+                                            if (
+                                                hasattr(alias_node, "type")
+                                                and alias_node.type == "identifier"
+                                            ):
+                                                alias_name = (
+                                                    alias_node.text.decode("utf-8")
+                                                    if isinstance(
+                                                        alias_node.text, bytes
+                                                    )
+                                                    else alias_node.text
+                                                )
 
                                     if module_name:
                                         import_info = ImportDetailedInfo(
                                             imported_name=module_name,
                                             import_type="module",
                                             alias=alias_name,
-                                            line_number=node.start_point[0] + 1 if hasattr(node, 'start_point') else 0,
+                                            line_number=node.start_point[0] + 1
+                                            if hasattr(node, "start_point")
+                                            else 0,
                                             is_relative=False,
                                             module=None,
                                         )
@@ -198,21 +252,53 @@ class ImportExtractor(BaseExtractor):
                                         module_name = None
                                         alias_name = None
                                 except Exception as e:
-                                    logger.warning(f"Could not extract detailed import from dotted_name: {e}")
+                                    logger.warning(
+                                        f"Could not extract detailed import from dotted_name: {e}"
+                                    )
 
-                            elif child.type == 'aliased_import':
+                            elif child.type == "aliased_import":
                                 # Extract from aliased_import node
-                                if hasattr(child, 'children'):
+                                if hasattr(child, "children"):
                                     for alias_child in child.children:
-                                        if hasattr(alias_child, 'type') and alias_child.type == 'dotted_name':
+                                        if (
+                                            hasattr(alias_child, "type")
+                                            and alias_child.type == "dotted_name"
+                                        ):
                                             try:
-                                                module_name = alias_child.text.decode('utf-8') if isinstance(alias_child.text, bytes) else alias_child.text
+                                                module_name = (
+                                                    alias_child.text.decode("utf-8")
+                                                    if isinstance(
+                                                        alias_child.text, bytes
+                                                    )
+                                                    else alias_child.text
+                                                )
                                                 # Look for 'as' and alias
-                                                for j, sub_child in enumerate(child.children):
-                                                    if hasattr(sub_child, 'type') and sub_child.type == 'as' and j + 1 < len(child.children):
-                                                        next_node = child.children[j + 1]
-                                                        if hasattr(next_node, 'type') and next_node.type == 'identifier':
-                                                            alias_name = next_node.text.decode('utf-8') if isinstance(next_node.text, bytes) else next_node.text
+                                                for j, sub_child in enumerate(
+                                                    child.children
+                                                ):
+                                                    if (
+                                                        hasattr(sub_child, "type")
+                                                        and sub_child.type == "as"
+                                                        and j + 1 < len(child.children)
+                                                    ):
+                                                        next_node = child.children[
+                                                            j + 1
+                                                        ]
+                                                        if (
+                                                            hasattr(next_node, "type")
+                                                            and next_node.type
+                                                            == "identifier"
+                                                        ):
+                                                            alias_name = (
+                                                                next_node.text.decode(
+                                                                    "utf-8"
+                                                                )
+                                                                if isinstance(
+                                                                    next_node.text,
+                                                                    bytes,
+                                                                )
+                                                                else next_node.text
+                                                            )
                                                             break
 
                                                 if module_name:
@@ -220,63 +306,104 @@ class ImportExtractor(BaseExtractor):
                                                         imported_name=module_name,
                                                         import_type="module",
                                                         alias=alias_name,
-                                                        line_number=node.start_point[0] + 1 if hasattr(node, 'start_point') else 0,
+                                                        line_number=node.start_point[0]
+                                                        + 1
+                                                        if hasattr(node, "start_point")
+                                                        else 0,
                                                         is_relative=False,
                                                         module=None,
                                                     )
-                                                    result.imports_detailed.append(import_info)
+                                                    result.imports_detailed.append(
+                                                        import_info
+                                                    )
                                                     module_name = None
                                                     alias_name = None
                                             except Exception as e:
-                                                logger.warning(f"Could not extract detailed import from aliased_import: {e}")
+                                                logger.warning(
+                                                    f"Could not extract detailed import from aliased_import: {e}"
+                                                )
 
-            elif hasattr(node, 'type') and node.type == 'import_from_statement':
+            elif hasattr(node, "type") and node.type == "import_from_statement":
                 # Handle: from module import name [as alias]
                 module_name = None
                 is_relative = False
                 level = 0
 
                 # Check for relative imports
-                if hasattr(node, 'children'):
+                if hasattr(node, "children"):
                     for child in node.children:
-                        if hasattr(child, 'type'):
-                            if child.type == 'import_keyword':
+                        if hasattr(child, "type"):
+                            if child.type == "import_keyword":
                                 break
-                            if child.type == '.':
+                            if child.type == ".":
                                 level += 1
 
                 is_relative = level > 0
 
-                # Extract module name
-                if hasattr(node, 'children'):
-                    for child in node.children:
-                        if hasattr(child, 'type'):
-                            if child.type == 'dotted_name':
+                import_index = next(
+                    (
+                        index
+                        for index, child in enumerate(node.children)
+                        if getattr(child, "type", None) == "import"
+                    ),
+                    None,
+                )
+
+                # Extract the module only from tokens before ``import``. Both
+                # the module and imported symbol are ``dotted_name`` nodes in
+                # current tree-sitter-python, so selecting the first node by
+                # type without this boundary loses ``from x import y`` facts.
+                if hasattr(node, "children"):
+                    module_children = (
+                        node.children[:import_index]
+                        if import_index is not None
+                        else node.children
+                    )
+                    for child in module_children:
+                        if hasattr(child, "type"):
+                            if child.type == "dotted_name":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                 except Exception as e:
-                                    logger.warning(f"Could not extract from module name: {e}")
+                                    logger.warning(
+                                        f"Could not extract from module name: {e}"
+                                    )
                                 break
-                            elif child.type == 'identifier':
+                            elif child.type == "identifier":
                                 try:
-                                    module_name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                                    module_name = (
+                                        child.text.decode("utf-8")
+                                        if isinstance(child.text, bytes)
+                                        else child.text
+                                    )
                                 except Exception as e:
-                                    logger.warning(f"Could not extract from module name: {e}")
+                                    logger.warning(
+                                        f"Could not extract from module name: {e}"
+                                    )
                                 break
 
-                # Extract imported names
-                if hasattr(node, 'children'):
-                    for i, child in enumerate(node.children):
-                        if hasattr(child, 'type') and child.type == 'import_keyword':
-                            # Look at next siblings for imported names
-                            if i + 1 < len(node.children):
-                                next_node = node.children[i + 1]
-                                self._extract_imported_names_tree_sitter(
-                                    next_node, result, module_name, is_relative, node.start_point[0] + 1 if hasattr(node, 'start_point') else 0
-                                )
-                            break
+                # Extract imported names after the literal ``import`` token.
+                if import_index is not None and import_index + 1 < len(node.children):
+                    self._extract_imported_names_tree_sitter(
+                        node.children[import_index + 1],
+                        result,
+                        module_name,
+                        is_relative,
+                        node.start_point[0] + 1 if hasattr(node, "start_point") else 0,
+                    )
 
-    def _extract_imported_names_tree_sitter(self, node: Any, result: FileAnalysis, module_name: Optional[str], is_relative: bool, line_number: int) -> None:
+    def _extract_imported_names_tree_sitter(
+        self,
+        node: Any,
+        result: FileAnalysis,
+        module_name: Optional[str],
+        is_relative: bool,
+        line_number: int,
+    ) -> None:
         """Extract individual imported names from import_from_statement.
 
         Args:
@@ -286,14 +413,14 @@ class ImportExtractor(BaseExtractor):
             is_relative: Whether this is a relative import
             line_number: Line number of the import statement
         """
-        if not hasattr(node, 'type'):
+        if not hasattr(node, "type"):
             return
 
-        if node.type == '*':
+        if node.type == "*":
             # Handle: from module import *
             import_info = ImportDetailedInfo(
-                imported_name='*',
-                import_type='*',
+                imported_name="*",
+                import_type="*",
                 alias=None,
                 line_number=line_number,
                 is_relative=is_relative,
@@ -301,27 +428,36 @@ class ImportExtractor(BaseExtractor):
             )
             result.imports_detailed.append(import_info)
 
-        elif node.type == 'import_alias':
+        elif node.type in {"import_alias", "aliased_import"}:
             # Handle single aliased import
             imported_name = None
             alias_name = None
 
-            if hasattr(node, 'children'):
+            if hasattr(node, "children"):
                 for child in node.children:
-                    if hasattr(child, 'type') and child.type == 'identifier':
+                    if hasattr(child, "type") and child.type in {
+                        "identifier",
+                        "dotted_name",
+                    }:
                         try:
-                            name = child.text.decode('utf-8') if isinstance(child.text, bytes) else child.text
+                            name = (
+                                child.text.decode("utf-8")
+                                if isinstance(child.text, bytes)
+                                else child.text
+                            )
                             if imported_name is None:
                                 imported_name = name
                             else:
                                 alias_name = name
                         except Exception as e:
-                            logger.warning(f"Could not extract imported name from alias: {e}")
+                            logger.warning(
+                                f"Could not extract imported name from alias: {e}"
+                            )
 
             if imported_name:
                 import_info = ImportDetailedInfo(
                     imported_name=imported_name,
-                    import_type='unknown',
+                    import_type="unknown",
                     alias=alias_name,
                     line_number=line_number,
                     is_relative=is_relative,
@@ -329,21 +465,25 @@ class ImportExtractor(BaseExtractor):
                 )
                 result.imports_detailed.append(import_info)
 
-        elif node.type == 'import_alias_list':
+        elif node.type == "import_alias_list":
             # Handle multiple imports: from X import a, b, c
-            if hasattr(node, 'children'):
+            if hasattr(node, "children"):
                 for child in node.children:
-                    if hasattr(child, 'type') and child.type == 'import_alias':
+                    if hasattr(child, "type") and child.type == "import_alias":
                         self._extract_imported_names_tree_sitter(
                             child, result, module_name, is_relative, line_number
                         )
-        elif node.type == 'identifier':
+        elif node.type in {"identifier", "dotted_name"}:
             # Handle single simple import: from module import name
             try:
-                imported_name = node.text.decode('utf-8') if isinstance(node.text, bytes) else node.text
+                imported_name = (
+                    node.text.decode("utf-8")
+                    if isinstance(node.text, bytes)
+                    else node.text
+                )
                 import_info = ImportDetailedInfo(
                     imported_name=imported_name,
-                    import_type='unknown',
+                    import_type="unknown",
                     alias=None,
                     line_number=line_number,
                     is_relative=is_relative,
@@ -353,7 +493,9 @@ class ImportExtractor(BaseExtractor):
             except Exception as e:
                 logger.warning(f"Could not extract simple import name: {e}")
 
-    def _extract_imports_detailed_ast(self, tree: ast.AST, result: FileAnalysis) -> None:
+    def _extract_imports_detailed_ast(
+        self, tree: ast.AST, result: FileAnalysis
+    ) -> None:
         """Extract detailed import information using standard AST.
 
         Extracted from _extract_imports_detailed (lines 718-760).

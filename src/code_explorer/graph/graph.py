@@ -5,9 +5,8 @@ Delegates to specialized operation classes while maintaining backward compatibil
 """
 
 import hashlib
-from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 from rich.console import Console
 
@@ -15,11 +14,9 @@ from code_explorer.graph.models import (
     AttributeNode,
     ClassNode,
     DecoratorNode,
-    ExceptionNode,
     FunctionNode,
     ImportNode,
     ModuleNode,
-    VariableNode,
 )
 from code_explorer.graph.backend import CodeGraphBackend
 from code_explorer.graph.backends.kuzu_backend import KuzuBackend
@@ -71,8 +68,10 @@ class DependencyGraph:
         self.read_only = read_only
         self.project_root = project_root if project_root else Path.cwd()
 
-        self.backend = backend if backend is not None else KuzuBackend(
-            db_path, read_only=read_only
+        self.backend = (
+            backend
+            if backend is not None
+            else KuzuBackend(db_path, read_only=read_only)
         )
         self.backend.open()
 
@@ -474,7 +473,7 @@ class DependencyGraph:
         self,
         results: List,
         output_dir: Path,
-        resolved_calls: Optional[List[dict]] = None
+        resolved_calls: Optional[List[dict]] = None,
     ) -> None:
         """Internal helper to export FileAnalysis results to Parquet.
 
@@ -536,6 +535,38 @@ class DependencyGraph:
             edges, on_progress=on_edge_progress, node_id_map=node_id_map
         )
         return {"total_nodes": len(nodes), "total_edges": len(edges)}
+
+    def ingest_analysis_stream(
+        self,
+        analyses: Iterable,
+        *,
+        batch_size: int = 1000,
+        batch_bytes: int = 8 * 1024 * 1024,
+        include_source: bool = False,
+        assume_new: bool = False,
+        on_batch_committed: Optional[Callable[[Dict[str, int]], None]] = None,
+    ) -> Dict[str, int]:
+        """Bounded search-index ingestion available only for LatticeDB.
+
+        Parsed files are converted and released batch-by-batch. A native
+        Lattice durable stream preserves unresolved extraction facts, while
+        direct CALLS edges are materialized only for targets the streaming
+        resolver can justify.
+        """
+        self._check_read_only()
+        from code_explorer.graph.backends.lattice_backend import LatticeBackend
+        from code_explorer.graph.lattice_streaming import LatticeStreamingIngestor
+
+        if not isinstance(self.backend, LatticeBackend):
+            raise TypeError("ingest_analysis_stream is only supported by LatticeDB")
+        return LatticeStreamingIngestor(self.backend, self.project_root).ingest(
+            analyses,
+            batch_size=batch_size,
+            batch_bytes=batch_bytes,
+            include_source=include_source,
+            assume_new=assume_new,
+            on_batch_committed=on_batch_committed,
+        )
 
     def ingest_incremental(self, target: Path) -> dict:
         """Re-index `target` incrementally: hash every current .py file,
@@ -620,6 +651,32 @@ class DependencyGraph:
 
         changed_node_ids: List[int] = []
         if changed_results:
+            from code_explorer.graph.backends.lattice_backend import LatticeBackend
+
+            if isinstance(self.backend, LatticeBackend):
+                # Keep incremental search indexes on the same durable call
+                # stream as full Lattice builds. Kuzu's existing path below is
+                # intentionally unchanged.
+                self.ingest_analysis_stream(
+                    iter(changed_results),
+                    batch_size=settings.upsert_batch_size,
+                    batch_bytes=settings.ingest_batch_bytes,
+                    assume_new=True,
+                )
+                changed_files = [
+                    to_relative_path(result.file_path, target)
+                    for result in changed_results
+                ]
+                changed_node_ids = self.backend.get_search_node_ids_for_files(
+                    changed_files
+                )
+                return {
+                    "unchanged": unchanged,
+                    "reprocessed": len(changed_results),
+                    "deleted": deleted,
+                    "changed_node_ids": changed_node_ids,
+                }
+
             nodes, edges = file_analyses_to_records(changed_results, target)
             node_id_map = self.backend.upsert_nodes(nodes, assume_new=True)
             if edges:

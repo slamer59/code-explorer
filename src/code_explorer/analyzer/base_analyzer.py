@@ -6,11 +6,12 @@ Refactored from analyzer.py to use extractor-based architecture.
 
 import hashlib
 import logging
+import multiprocessing
 import os
 import subprocess
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import Any, Iterator, List, Optional
 
 from rich.progress import (
     BarColumn,
@@ -29,7 +30,7 @@ from code_explorer.analyzer.extractors.functions import FunctionExtractor
 from code_explorer.analyzer.extractors.imports import ImportExtractor
 from code_explorer.analyzer.extractors.variables import VariableExtractor
 from code_explorer.analyzer.models import FileAnalysis, ModuleInfo
-from code_explorer.analyzer.parser import parse_python_file, get_parser_type, ParseError
+from code_explorer.analyzer.parser import ParseError, parse_python_file
 from code_explorer.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -332,14 +333,26 @@ class CodeAnalyzer:
 
                     # Parse using Tree-sitter to extract module docstring
                     from code_explorer.analyzer.parser import parse_python_file
+
                     tree = parse_python_file(content, filename=str(file_path))
                     # Check for module-level string literal (docstring)
                     for child in tree.children:
-                        if hasattr(child, "type") and child.type == "expression_statement":
+                        if (
+                            hasattr(child, "type")
+                            and child.type == "expression_statement"
+                        ):
                             # Check if the expression is a string
-                            expr = child.child_by_field_name("expression") if hasattr(child, "child_by_field_name") else None
+                            expr = (
+                                child.child_by_field_name("expression")
+                                if hasattr(child, "child_by_field_name")
+                                else None
+                            )
                             if expr and hasattr(expr, "type") and expr.type == "string":
-                                docstring = expr.text.decode("utf-8") if isinstance(expr.text, bytes) else expr.text
+                                docstring = (
+                                    expr.text.decode("utf-8")
+                                    if isinstance(expr.text, bytes)
+                                    else expr.text
+                                )
                                 # Remove quotes
                                 docstring = docstring.strip("\"'")
                                 break
@@ -378,13 +391,34 @@ class CodeAnalyzer:
         Returns:
             List of FileAnalysis results
         """
+        return list(
+            self.iter_analyze_directory(
+                root_path,
+                parallel=parallel,
+                exclude_patterns=exclude_patterns,
+                verbose_progress=verbose_progress,
+                max_workers=max_workers,
+            )
+        )
+
+    def iter_analyze_directory(
+        self,
+        root_path: Path,
+        parallel: bool = True,
+        exclude_patterns: Optional[List[str]] = None,
+        verbose_progress: bool = False,
+        max_workers: Optional[int] = None,
+    ) -> Iterator[FileAnalysis]:
+        """Yield completed files with bounded parser work in flight.
+
+        Consumers can write and release each result while worker processes
+        continue parsing the bounded set of already-submitted files.
+        """
         python_files = discover_python_files(root_path, exclude_patterns)
 
         if not python_files:
             logger.warning(f"No Python files found in {root_path}")
-            return []
-
-        results = []
+            return
 
         with Progress(
             SpinnerColumn(),
@@ -403,35 +437,54 @@ class CodeAnalyzer:
                 # Use ProcessPoolExecutor for CPU-bound parsing operations.
                 # Tree-sitter AST parsing is CPU-intensive and benefits from true parallelism.
                 # Threads are blocked by Python's GIL, making them ineffective for CPU-bound work.
-                # max_workers defaults to None which uses os.cpu_count()
-                with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                    # Submit all files for analysis
-                    future_to_file = {
-                        executor.submit(
-                            self.analyze_file,
-                            py_file,
-                            progress if verbose_progress else None,
-                            task,
-                        ): py_file
-                        for py_file in python_files
-                    }
+                worker_count = max_workers or min(4, os.cpu_count() or 1)
+                max_pending = max(worker_count * 2, 1)
+                file_iterator = iter(python_files)
 
-                    # Collect results as they complete
-                    for future in as_completed(future_to_file):
-                        py_file = future_to_file[future]
+                with ProcessPoolExecutor(
+                    max_workers=worker_count,
+                    mp_context=multiprocessing.get_context("spawn"),
+                ) as executor:
+                    future_to_file = {}
+
+                    def submit_next() -> bool:
                         try:
-                            result = future.result()
-                            results.append(result)
-                            if not verbose_progress:
-                                # Show which file just completed
-                                progress.update(
-                                    task,
-                                    description="Analyzing files...",
-                                )
-                        except Exception as e:
-                            logger.error(f"Failed to analyze {py_file}: {e}")
-                        finally:
-                            progress.update(task, advance=1)
+                            py_file = next(file_iterator)
+                        except StopIteration:
+                            return False
+                        future_to_file[
+                            executor.submit(
+                                self.analyze_file,
+                                py_file,
+                                progress if verbose_progress else None,
+                                task,
+                            )
+                        ] = py_file
+                        return True
+
+                    for _ in range(min(max_pending, len(python_files))):
+                        submit_next()
+
+                    while future_to_file:
+                        completed, _ = wait(future_to_file, return_when=FIRST_COMPLETED)
+                        for future in completed:
+                            py_file = future_to_file.pop(future)
+                            try:
+                                result = future.result()
+                                if not verbose_progress:
+                                    progress.update(
+                                        task,
+                                        description="Analyzing files...",
+                                    )
+                                # Refill before yielding so parsing overlaps the
+                                # consumer's LatticeDB transaction.
+                                submit_next()
+                                yield result
+                            except Exception as e:
+                                logger.error(f"Failed to analyze {py_file}: {e}")
+                                submit_next()
+                            finally:
+                                progress.update(task, advance=1)
             else:
                 # Sequential analysis
                 for py_file in python_files:
@@ -441,16 +494,14 @@ class CodeAnalyzer:
                             progress if verbose_progress else None,
                             task,
                         )
-                        results.append(result)
                         if not verbose_progress:
                             # Show which file just completed
                             progress.update(
                                 task,
                                 description="Analyzing files...",
                             )
+                        yield result
                     except Exception as e:
                         logger.error(f"Failed to analyze {py_file}: {e}")
                     finally:
                         progress.update(task, advance=1)
-
-        return results

@@ -15,6 +15,9 @@ def test_settings_defaults_match_previous_hardcoded_values():
     assert s.embedding_dimensions == 768
     assert s.embed_batch_size == 50
     assert s.upsert_batch_size == 1000
+    assert s.ingest_batch_bytes == 8 * 1024 * 1024
+    assert s.lattice_cache_size_mb == 100
+    assert s.analysis_workers == 4
     assert "__pycache__" in s.default_exclude_patterns
     assert ".git" in s.default_exclude_patterns
     assert ".worktrees" in s.default_exclude_patterns

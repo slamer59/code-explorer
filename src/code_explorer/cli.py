@@ -89,7 +89,9 @@ Run `code-explorer <command> --help` for full per-command flags.
 """
 
 
-def _print_skills_guide(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+def _print_skills_guide(
+    ctx: click.Context, param: click.Parameter, value: bool
+) -> None:
     if not value or ctx.resilient_parsing:
         return
     click.echo(SKILLS_GUIDE)
@@ -325,8 +327,12 @@ def analyze(
                 load_time = time.time() - step_start
 
                 # Extract node and edge times for backward compatibility
-                nodes_time = sum(time for time, _ in stats.get("node_times", {}).values())
-                edges_time = sum(time for time, _ in stats.get("edge_times", {}).values())
+                nodes_time = sum(
+                    time for time, _ in stats.get("node_times", {}).values()
+                )
+                edges_time = sum(
+                    time for time, _ in stats.get("edge_times", {}).values()
+                )
 
                 console.print(
                     f"[green]✓[/green] Loaded {stats['total_nodes']:,} nodes and "
@@ -348,7 +354,9 @@ def analyze(
                 )
                 step_start = time.time()
                 stats = graph.ingest_results(
-                    results, resolved_calls=all_matched_calls, include_source=include_source
+                    results,
+                    resolved_calls=all_matched_calls,
+                    include_source=include_source,
                 )
                 load_time = time.time() - step_start
                 nodes_time = 0
@@ -405,7 +413,7 @@ def analyze(
         if edge_times:
             rel_table = create_summary_table("Relationship Statistics")
 
-            total_rel_edges = stats['total_edges']
+            total_rel_edges = stats["total_edges"]
 
             for edge_type in [
                 "CONTAINS_FUNCTION",
@@ -421,7 +429,9 @@ def analyze(
                 "CALLS",
                 "INHERITS",
             ]:
-                count = edge_times.get(edge_type, (0, 0))[1]  # Get count from (time, count) tuple
+                count = edge_times.get(edge_type, (0, 0))[
+                    1
+                ]  # Get count from (time, count) tuple
                 if total_rel_edges > 0:
                     percentage = (count / total_rel_edges) * 100
                 else:
@@ -429,8 +439,7 @@ def analyze(
 
                 if count > 0:
                     rel_table.add_row(
-                        edge_type,
-                        f"{format_count(count)} ({percentage:.1f}%)"
+                        edge_type, f"{format_count(count)} ({percentage:.1f}%)"
                     )
 
             console.print(rel_table)
@@ -564,7 +573,7 @@ def impact(
     console.print(
         create_header_panel(
             "Impact Analysis: Function Dependency",
-            f"Target: {file_name}::{function_name} | Direction: {direction.title()} | Depth: {max_depth}"
+            f"Target: {file_name}::{function_name} | Direction: {direction.title()} | Depth: {max_depth}",
         )
     )
     console.print()
@@ -584,7 +593,9 @@ def impact(
         # Display results using the format_as_table method
         table = analyzer.format_as_table(results)
         console.print(table)
-        console.print(f"\n{StyleGuide.success_icon} Found [yellow]{format_count(len(results))}[/yellow] impacted functions")
+        console.print(
+            f"\n{StyleGuide.success_icon} Found [yellow]{format_count(len(results))}[/yellow] impacted functions"
+        )
 
     except Exception as e:
         console.print(f"[red]Error during impact analysis:[/red] {e}")
@@ -703,7 +714,6 @@ def search(
         code-explorer search "resolve call" --no-context --limit 10
     """
     from .analyzer.base_analyzer import CodeAnalyzer
-    from .analyzer.call_resolver import CallResolver
     from .context import ContextAssembler
     from .graph import DependencyGraph
     from .graph.backends.lattice_backend import LatticeBackend
@@ -722,41 +732,28 @@ def search(
         graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
         if needs_index:
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
-            results = CodeAnalyzer().analyze_directory(target)
-            resolved_calls = CallResolver(results).resolve_all_calls()
-
-            n_functions = sum(len(r.functions) for r in results)
-            n_classes = sum(len(r.classes) for r in results)
-            # Matches graph/ingest.py's file_analyses_to_records: one File
-            # node per file, one CONTAINS_FUNCTION/CONTAINS_CLASS edge per
-            # function/class, one CALLS edge per resolved call.
-            n_nodes_estimate = len(results) + n_functions + n_classes
-            n_edges_estimate = n_functions + n_classes + len(resolved_calls)
-
             t0 = time.time()
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                MofNCompleteColumn(),
-                TimeElapsedColumn(),
-                console=console,
-            ) as progress:
-                node_task = progress.add_task("Writing nodes", total=n_nodes_estimate)
-                edge_task = progress.add_task("Writing edges", total=n_edges_estimate)
-                graph.ingest_results(
-                    results,
-                    resolved_calls=resolved_calls,
-                    include_source=include_source,
-                    on_node_progress=lambda: progress.advance(node_task),
-                    on_edge_progress=lambda: progress.advance(edge_task),
-                    # Safe here specifically: this branch only runs right
-                    # after either a brand-new db_path or one we just deleted
-                    # (see needs_index/--reindex above) -- never against a
-                    # backend that might already hold some of these nodes.
-                    assume_new=True,
-                )
-            console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
+            analyses = CodeAnalyzer().iter_analyze_directory(
+                target,
+                max_workers=settings.analysis_workers,
+            )
+            stats = graph.ingest_analysis_stream(
+                analyses,
+                batch_size=settings.upsert_batch_size,
+                batch_bytes=settings.ingest_batch_bytes,
+                include_source=include_source,
+                # This branch only runs after creating or deleting db_path.
+                assume_new=True,
+            )
+            n_functions = stats["functions"]
+            n_classes = stats["classes"]
+            console.print(
+                f"[green]Done[/green] {stats['files']:,} files in "
+                f"{stats['batches']:,} bounded batches; "
+                f"{stats['calls_resolved']:,} calls resolved, "
+                f"{stats['calls_unresolved']:,} retained unresolved "
+                f"({time.time() - t0:.1f}s)."
+            )
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "
@@ -778,7 +775,9 @@ def search(
                     n = graph.backend.build_vector_index(
                         on_progress=lambda: progress.advance(embed_task)
                     )
-                console.print(f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s.")
+                console.print(
+                    f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s."
+                )
         return graph
 
     try:
@@ -854,7 +853,9 @@ def search(
                 if not no_context:
                     console.print("[dim]Assembling context...[/dim]")
                     try:
-                        ctx = ContextAssembler(graph).assemble_context(exact_file, exact_name)
+                        ctx = ContextAssembler(graph).assemble_context(
+                            exact_file, exact_name
+                        )
                         console.print()
                         console.print(
                             create_header_panel(
@@ -863,7 +864,9 @@ def search(
                         )
                         console.print(ctx.to_markdown())
                     except (ValueError, FileNotFoundError) as e:
-                        console.print(f"[yellow]Could not assemble context:[/yellow] {e}")
+                        console.print(
+                            f"[yellow]Could not assemble context:[/yellow] {e}"
+                        )
                 graph.backend.close()
                 return
             # QUERY looked target-shaped but didn't resolve -- fall through
@@ -917,18 +920,20 @@ def search(
                 "Function-only for now.[/yellow]"
             )
         else:
-            console.print(f"[dim]Assembling context for {top.file}::{top.name}...[/dim]")
+            console.print(
+                f"[dim]Assembling context for {top.file}::{top.name}...[/dim]"
+            )
             try:
                 ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
                 console.print()
                 console.print(
-                    create_header_panel(
-                        "Context", f"Top hit: {top.file}::{top.name}"
-                    )
+                    create_header_panel("Context", f"Top hit: {top.file}::{top.name}")
                 )
                 console.print(ctx.to_markdown())
             except (ValueError, FileNotFoundError) as e:
-                console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
+                console.print(
+                    f"[yellow]Could not assemble context for top hit:[/yellow] {e}"
+                )
 
     graph.backend.close()
 
@@ -1014,7 +1019,7 @@ def trace(
     console.print(
         create_header_panel(
             "Variable Trace Analysis",
-            f"Tracing: {variable} at {file_name}:{line_number}"
+            f"Tracing: {variable} at {file_name}:{line_number}",
         )
     )
     console.print()
@@ -1033,7 +1038,7 @@ def trace(
                 ("File", "left", "cyan"),
                 ("Function", "left", "green"),
                 ("Line", "right", "yellow"),
-            ]
+            ],
         )
 
         for file, function, line in results:
@@ -1119,17 +1124,30 @@ def stats(db_path: Optional[str], top: int) -> None:
         # Overall statistics
         overview_table = create_summary_table("Overview")
 
-        overview_table.add_row("Total files", format_count(stats_data.get("total_files", 0)))
-        overview_table.add_row("Total classes", format_count(stats_data.get("total_classes", 0)))
-        overview_table.add_row("Total functions", format_count(stats_data.get("total_functions", 0)))
-        overview_table.add_row("Total variables", format_count(stats_data.get("total_variables", 0)))
-        overview_table.add_row("Total edges", format_count(stats_data.get("total_edges", 0)))
-        overview_table.add_row("Function calls", format_count(stats_data.get("function_calls", 0)))
+        overview_table.add_row(
+            "Total files", format_count(stats_data.get("total_files", 0))
+        )
+        overview_table.add_row(
+            "Total classes", format_count(stats_data.get("total_classes", 0))
+        )
+        overview_table.add_row(
+            "Total functions", format_count(stats_data.get("total_functions", 0))
+        )
+        overview_table.add_row(
+            "Total variables", format_count(stats_data.get("total_variables", 0))
+        )
+        overview_table.add_row(
+            "Total edges", format_count(stats_data.get("total_edges", 0))
+        )
+        overview_table.add_row(
+            "Function calls", format_count(stats_data.get("function_calls", 0))
+        )
 
         # Show new node types if schema v2
         if stats_data.get("schema_version") == "v2":
             overview_table.add_row(
-                "Total imports (detailed)", format_count(stats_data.get("total_imports", 0))
+                "Total imports (detailed)",
+                format_count(stats_data.get("total_imports", 0)),
             )
             overview_table.add_row(
                 "Total decorators", format_count(stats_data.get("total_decorators", 0))
@@ -1140,7 +1158,9 @@ def stats(db_path: Optional[str], top: int) -> None:
             overview_table.add_row(
                 "Total exceptions", format_count(stats_data.get("total_exceptions", 0))
             )
-            overview_table.add_row("Total modules", format_count(stats_data.get("total_modules", 0)))
+            overview_table.add_row(
+                "Total modules", format_count(stats_data.get("total_modules", 0))
+            )
 
         console.print(overview_table)
         console.print()
@@ -1154,7 +1174,7 @@ def stats(db_path: Optional[str], top: int) -> None:
                     ("Relationship", "left", "green"),
                     ("Count", "right", "yellow"),
                     ("% of Total", "right", "cyan"),
-                ]
+                ],
             )
 
             total_edges = stats_data.get("total_edges", 0)
@@ -1199,7 +1219,7 @@ def stats(db_path: Optional[str], top: int) -> None:
                         ("File", "left", "cyan"),
                         ("Count", "right", "yellow"),
                         ("Decorators", "left", "magenta"),
-                    ]
+                    ],
                 )
 
                 for func in multi_decorators[:top]:
@@ -1227,7 +1247,7 @@ def stats(db_path: Optional[str], top: int) -> None:
                     ("Function", "left", "green"),
                     ("File", "left", "cyan"),
                     ("Calls", "right", "yellow"),
-                ]
+                ],
             )
 
             for i, func in enumerate(most_called[:top], 1):
@@ -1323,10 +1343,12 @@ def visualize(
 
     # Display header
     console.print()
-    subtitle = f"Function: {function} | Depth: {max_depth}" if function else f"Module: {target}"
-    console.print(
-        create_header_panel("Dependency Graph Visualization", subtitle)
+    subtitle = (
+        f"Function: {function} | Depth: {max_depth}"
+        if function
+        else f"Module: {target}"
     )
+    console.print(create_header_panel("Dependency Graph Visualization", subtitle))
     console.print()
 
     try:
@@ -1336,7 +1358,7 @@ def visualize(
             [
                 ("Parameter", "left", "cyan"),
                 ("Value", "left", "green"),
-            ]
+            ],
         )
         config_table.add_row("Target", target)
         config_table.add_row("Function", function if function else "Module-level")

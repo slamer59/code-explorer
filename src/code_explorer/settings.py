@@ -51,9 +51,18 @@ class Settings(BaseSettings):
     analysis_queue_depth: int = 256
 
     # Directories skipped by ingest_incremental's file walk (see graph/graph.py).
+    # Third-party trees matter more than build artefacts here: a single
+    # unexcluded site-packages or conda env pulls an entire dependency tree
+    # into the graph, which is both the dominant ingestion cost and noise in
+    # every search result. ".venv"/"venv" alone don't cover the common
+    # alternatives -- "env" (conda/virtualenv default), a "site-packages"
+    # living outside any recognised env dir, or ".tox"/".eggs" -- so those are
+    # listed explicitly rather than assumed to be caught by Git ignore rules.
     default_exclude_patterns: List[str] = [
         "__pycache__",
         ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
         "htmlcov",
         "dist",
         "build",
@@ -61,6 +70,11 @@ class Settings(BaseSettings):
         ".worktrees",
         ".venv",
         "venv",
+        "env",
+        ".tox",
+        ".eggs",
+        "site-packages",
+        "node_modules",
     ]
 
 

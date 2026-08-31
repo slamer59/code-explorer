@@ -451,3 +451,53 @@ def test_incremental_target_change_requeues_and_later_resolves_call_reference(
         "MATCH (:Function)-[c:CALLS]->(:Function) RETURN c.call_line AS line"
     ) == [{"line": 4}]
     assert _unresolved(graph) == []
+
+
+def test_deferred_fts_index_still_searchable_after_bulk_build(temp_dir):
+    """Search must work when the BM25 indexes are built after the bulk load.
+
+    The build path passes defer_fts_indexes=True so initialize_schema skips
+    FTS creation and ingest() builds it in one pass at the end (see
+    LatticeBackend.ensure_fts_indexes -- worth -26% commit time on gemseo).
+    This asserts the observable consequence:
+    identical hits either way, and a second (incremental) run over an
+    existing database neither loses nor double-creates the index.
+    """
+    source = (
+        '"""Module docstring."""\n\n\n'
+        "def rehydrate_credential():\n"
+        '    """Renew an expired authentication token."""\n'
+        "    return None\n"
+    )
+    path = temp_dir / "auth.py"
+    path.write_text(source, encoding="utf-8")
+    db_path = temp_dir / "graph.lattice"
+    backend = LatticeBackend(db_path)
+    graph = DependencyGraph(
+        db_path=db_path,
+        project_root=temp_dir,
+        backend=backend,
+        defer_fts_indexes=True,
+    )
+    # No FTS index yet: it must not have been created up-front.
+    assert not backend.db.has_node_fts_index("Function", "search_text")
+
+    graph.ingest_analysis_stream(
+        iter([CodeAnalyzer().analyze_file(path)]), batch_size=4, assume_new=True
+    )
+
+    assert backend.db.has_node_fts_index("Function", "search_text")
+    hits = backend.search_text("renew expired token", limit=5)
+    assert [hit.name for hit in hits] == ["rehydrate_credential"]
+
+    # Incremental re-run against the now-existing index: create_node_fts_index
+    # would raise LatticeAlreadyExistsError if ensure_fts_indexes skipped its
+    # has_node_fts_index guard, and search must still work afterwards.
+    graph.ingest_incremental(temp_dir)
+    graph.ingest_analysis_stream(
+        iter([CodeAnalyzer().analyze_file(path)]), batch_size=4, assume_new=False
+    )
+    assert backend.db.has_node_fts_index("Function", "search_text")
+    assert [hit.name for hit in backend.search_text("renew expired token", limit=5)] == [
+        "rehydrate_credential"
+    ]

@@ -730,7 +730,16 @@ def search(
 
         def _build_index(needs_index: bool) -> DependencyGraph:
             backend = LatticeBackend(db_path, enable_vectors=enable_vectors)
-            graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
+            # On a from-scratch build, let ingest_analysis_stream create the
+            # BM25 indexes in one pass at the end instead of maintaining them
+            # across ~15K node writes (-26% commit time on gemseo -- see
+            # LatticeBackend.ensure_fts_indexes).
+            graph = DependencyGraph(
+                db_path=db_path,
+                project_root=target,
+                backend=backend,
+                defer_fts_indexes=needs_index,
+            )
             if needs_index:
                 console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
                 t0 = time.time()

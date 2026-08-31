@@ -657,4 +657,11 @@ class LatticeStreamingIngestor:
         stats["calls_unresolved"] = unresolved
         stats["calls_pending"] = unresolved
         stats["total_edges"] += resolved
+        # Build the BM25 indexes here, after the last write transaction has
+        # closed rather than maintaining them across every node write. A no-op
+        # when they already exist (re-index / incremental runs), which is why
+        # this is safe to call unconditionally. Must stay outside any
+        # db.write() block -- LatticeDB raises LatticeLockTimeoutError if an
+        # index is created while a write transaction is open.
+        self.backend.ensure_fts_indexes()
         return stats

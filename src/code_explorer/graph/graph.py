@@ -46,6 +46,7 @@ class DependencyGraph:
         read_only: bool = False,
         project_root: Optional[Path] = None,
         backend: Optional[CodeGraphBackend] = None,
+        defer_fts_indexes: bool = False,
     ):
         """Initialize the graph backend and create schema if needed.
 
@@ -60,6 +61,13 @@ class DependencyGraph:
             backend: CodeGraphBackend instance to use. Defaults to a KuzuBackend
                     opened at db_path. Pass an already-open backend to reuse a
                     connection or to use a different backend implementation.
+            defer_fts_indexes: Set True when this graph is about to be
+                    bulk-loaded from empty via ingest_analysis_stream, which
+                    builds the full-text indexes itself once ingestion
+                    finishes (see LatticeBackend.ensure_fts_indexes for the
+                    measured cost of maintaining them per write instead).
+                    Leave False for incremental updates and read paths, where
+                    the indexes must already exist.
         """
         if db_path is None:
             db_path = Path.cwd() / ".code-explorer" / "graph.db"
@@ -90,7 +98,7 @@ class DependencyGraph:
 
         # Create schema if tables don't exist (only in read-write mode)
         if not self.read_only:
-            self.backend.initialize_schema()
+            self.backend.initialize_schema(create_fts_indexes=not defer_fts_indexes)
 
         # Detect schema version (after schema creation)
         self.schema_version = self.backend.detect_schema_version()

@@ -31,7 +31,10 @@ one these defaults were measured against:
 - `default_exclude_patterns` adds common exclusions (`.venv`, `.git`,
   `.worktrees`, `__pycache__`, ...) to both discovery paths, including
   `ingest_incremental` (see [LatticeDB Migration, Phase
-  3](latticedb-migration.md)).
+  3](latticedb-migration.md)). It covers third-party trees as well as build
+  artefacts — `site-packages`, `env`, `.tox`, `.eggs`, `node_modules` — because
+  a single unexcluded dependency tree is indexed as if it were project code,
+  which dominates both index build time and search noise.
 
 ## Settings
 
@@ -56,7 +59,7 @@ environment variable, or a `.env` file in the current working directory
 | `ingest_throughput_tolerance` | `CODE_EXPLORER_INGEST_THROUGHPUT_TOLERANCE` | `0.05` | Select the smallest candidate whose median operations/second is within this fraction of the measured peak |
 | `lattice_cache_size_mb` | `CODE_EXPLORER_LATTICE_CACHE_SIZE_MB` | `100` | LatticeDB page-cache ceiling |
 | `analysis_workers` | `CODE_EXPLORER_ANALYSIS_WORKERS` | All logical CPUs | CPU-bound parser processes used by Lattice search indexing |
-| `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", "htmlcov", "dist", "build", ".git", ".worktrees", ".venv", "venv"]` | Full and incremental discovery — paths excluded in addition to Git ignore rules |
+| `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "htmlcov", "dist", "build", ".git", ".worktrees", ".venv", "venv", "env", ".tox", ".eggs", "site-packages", "node_modules"]` | Full and incremental discovery — paths excluded in addition to Git ignore rules |
 
 To override a list-valued setting (`default_exclude_patterns`) via an env
 var, pydantic-settings expects a JSON array, e.g.:

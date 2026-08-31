@@ -138,7 +138,12 @@ class LatticeBackend:
         except latticedb.LatticeAlreadyExistsError:
             pass
 
-    def initialize_schema(self) -> None:
+    def initialize_schema(self, *, create_fts_indexes: bool = True) -> None:
+        """
+        create_fts_indexes: pass False for a bulk build, then call
+            ensure_fts_indexes() once ingestion is done. See that method for
+            the measured reason.
+        """
         if self.read_only:
             return
         # find_nodes_by_label_property requires a property index to exist for
@@ -154,6 +159,45 @@ class LatticeBackend:
         self._ensure_node_property_index("Function", "module")
         self._ensure_node_property_index("Function", "parent_class")
         self._ensure_edge_property_index("CALLS", "call_reference_id")
+        if create_fts_indexes:
+            self.ensure_fts_indexes()
+
+    def ensure_fts_indexes(self) -> None:
+        """Create the BM25 FTS indexes if they don't already exist.
+
+        Deliberately callable *after* a bulk load rather than only before it:
+        create_node_fts_index scans the nodes already in the database when it
+        is created (documented LatticeDB behaviour), so building the inverted
+        index in one pass at the end is equivalent in content to maintaining
+        it incrementally across every node write -- and much cheaper.
+
+        Measured on the gemseo corpus (2,103 files, 15.4K nodes,
+        perfo/benchmark_ingest_stage_balance.py, two runs each): commit time
+        drops 19.6s/18.3s -> 14.2s/13.7s (-26%), wall 33.0s/30.7s ->
+        29.0s/31.2s. A Function write touches five property indexes *plus*
+        the BM25 index while a CALLS edge write touches one -- the ~30x
+        commit-cost asymmetry py-spy shows between upsert_nodes (64.6% of
+        commit samples) and upsert_edges (2.2%).
+
+        Note the wall-clock win is much smaller than the commit win, and
+        within run-to-run noise: the one-pass build still costs real time,
+        it just isn't attributed to per-batch commits any more. Database size
+        is unchanged (~242 MB) -- the 84 MB the FTS index occupies is paid
+        either way; only the *maintenance* is avoided.
+
+        Hypothesis worth stating since we don't re-verify it here: we assume
+        the post-hoc scan produces the same index as incremental maintenance.
+        tests/test_streaming_ingestion.py's deferred-FTS test checks the
+        observable consequence (search returns the same hits after a deferred
+        build) rather than the index internals.
+
+        Must NOT be called inside a db.write() block: LatticeDB refuses index
+        creation while a write transaction is open (LatticeLockTimeoutError).
+        Idempotent, so the incremental path (which re-opens a database whose
+        index already exists) neither double-creates nor loses it.
+        """
+        if self.read_only:
+            return
         for label, prop in SEARCHABLE_TEXT_FIELDS.items():
             if not self.db.has_node_fts_index(label, prop):
                 self.db.create_node_fts_index(label, prop)
@@ -352,15 +396,15 @@ class LatticeBackend:
         self, requests: Mapping[Tuple[str, Any], int]
     ) -> Dict[Tuple[str, Any], List[Dict[str, Any]]]:
         """Resolve a bounded group of index lookups in one read transaction."""
-        properties = (
-            "id",
-            "name",
-            "file",
-            "module",
-            "parent_class",
-            "start_line",
-            "end_line",
-        )
+        # Exactly the fields lattice_streaming._resolution() reads off a
+        # candidate -- nothing more. start_line/end_line used to be fetched
+        # here and were never read by any caller (this method and its
+        # single-key wrapper have one caller, the streaming call resolver),
+        # which is two wasted get_property ctypes round-trips per candidate.
+        # Measured: get_property is 14.4% of ingest self-time in py-spy with
+        # another ~9% in the raw ctypes marshalling underneath it, so those
+        # two of seven properties were ~29% of the second-hottest path.
+        properties = ("id", "name", "file", "module", "parent_class")
         results: Dict[Tuple[str, Any], List[Dict[str, Any]]] = {}
         with self.db.read() as txn:
             for (property_key, value), limit in requests.items():

@@ -305,10 +305,24 @@ This is consistent with the Cypher planner problems already documented in
 | All indexes (current) | 29.7s | 17.2s | 243 MB |
 | No FTS index | **25.4s** | **13.3s** | **159 MB** |
 
-The BM25 index costs **4.3s (14% of wall) and 84 MB (35% of the file)**. Real, and
-worth moving to a post-load build eventually — `create_node_fts_index` scans
-existing nodes once, so the same index can be had for one bulk scan instead of
-maintenance across ~15k individual writes — but it is not the dominant cost.
+The BM25 index costs **4.3s (14% of wall) and 84 MB (35% of the file)**. Real, but
+not the dominant cost.
+
+**Since done** (`LatticeBackend.ensure_fts_indexes`): the index is now built in one
+pass *after* the bulk load rather than maintained across ~15k individual writes
+(`create_node_fts_index` scans existing nodes when created).
+`perfo/benchmark_ingest_stage_balance.py` on the same corpus, two runs each:
+
+| | Wall | Commit | DB size |
+|---|---|---|---|
+| FTS maintained per write | 33.0s / 30.7s | 19.6s / 18.3s | 243 MB |
+| FTS built after the load | 29.0s / 31.2s | **14.2s / 13.7s** | 242 MB |
+
+Commit time drops ~26%. Wall drops much less and stays inside run-to-run noise —
+the one-pass build still costs real time, it is just no longer attributed to
+per-batch commits. The 84 MB is paid either way; only the maintenance is avoided.
+The `no FTS index` row above remains the ceiling for anyone who genuinely does not
+need lexical search.
 
 ## The dominant cost: unresolved call references
 

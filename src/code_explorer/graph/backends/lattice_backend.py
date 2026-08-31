@@ -435,9 +435,10 @@ class LatticeBackend:
                 txn.commit()
         return count
 
-    def requeue_unresolved_calls(self, limit: int = 1000) -> None:
+    def requeue_unresolved_calls(self, limit: int = 1000) -> int:
         """Move durable unresolved facts back to the pending stream."""
         after = 0
+        moved = 0
         while records := self.db.read_stream(
             UNRESOLVED_CALL_STREAM, after_sequence=after, limit=limit
         ):
@@ -449,9 +450,11 @@ class LatticeBackend:
                     txn.publish_stream(
                         PENDING_CALL_STREAM, reference, kind="call.pending"
                     )
+                    moved += 1
                 txn.trim_stream(UNRESOLVED_CALL_STREAM, through)
                 txn.commit()
             after = through
+        return moved
 
     def query(
         self, statement: str, params: Optional[Dict[str, Any]] = None

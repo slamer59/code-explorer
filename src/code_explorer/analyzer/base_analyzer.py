@@ -9,6 +9,7 @@ import logging
 import multiprocessing
 import os
 import subprocess
+from contextlib import nullcontext
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from pathlib import Path
 from typing import Any, Iterator, List, Optional
@@ -20,6 +21,7 @@ from rich.progress import (
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
+    TimeRemainingColumn,
 )
 
 from code_explorer.analyzer.extractors.attributes import AttributeExtractor
@@ -408,11 +410,14 @@ class CodeAnalyzer:
         exclude_patterns: Optional[List[str]] = None,
         verbose_progress: bool = False,
         max_workers: Optional[int] = None,
+        progress: Optional[Progress] = None,
     ) -> Iterator[FileAnalysis]:
         """Yield completed files with bounded parser work in flight.
 
         Consumers can write and release each result while worker processes
-        continue parsing the bounded set of already-submitted files.
+        continue parsing the bounded set of already-submitted files. An
+        optional shared Rich Progress lets a streaming consumer render its
+        own nested task below the file-analysis task.
         """
         python_files = discover_python_files(root_path, exclude_patterns)
 
@@ -420,15 +425,22 @@ class CodeAnalyzer:
             logger.warning(f"No Python files found in {root_path}")
             return
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            expand=verbose_progress,
-        ) as progress:
+        owns_progress = progress is None
+        if progress is None:
+            progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                MofNCompleteColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TimeElapsedColumn(),
+                TextColumn("ETA"),
+                TimeRemainingColumn(),
+                expand=verbose_progress,
+            )
+
+        progress_context = progress if owns_progress else nullcontext(progress)
+        with progress_context:
             task = progress.add_task(
                 f"Analyzing {len(python_files)} files...", total=len(python_files)
             )

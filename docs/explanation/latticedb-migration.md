@@ -155,11 +155,23 @@ are converted into batches capped by both record count and estimated bytes; whil
 the single Lattice writer commits batch A, workers fill batch B. Only the current
 batch's canonical-to-internal node map remains in Python memory.
 
+The record target is calibrated inside that same pipeline rather than by a
+preliminary scan. Initial commits interleave doubled targets from 1,000 through
+8,000 operations (three samples per target by default), measure real end-to-end
+writer throughput, and then hold the smallest target whose median throughput is
+within 5% of the measured peak. The 8 MiB estimated-payload ceiling remains in
+force throughout calibration and steady state, so exploration cannot turn into a
+repository-sized intermediate buffer. All limits and calibration parameters are
+Pydantic settings documented in `configuration.md`.
+
 Resolved calls become normal `Function -[:CALLS]-> Function` edges immediately.
 Calls whose target has not arrived are published as compact records to a native
 Lattice durable stream. At end-of-input that stream is read and resolved in
 1,000-record windows; still-unresolved or ambiguous records move to a durable
-unresolved stream for later incremental reconsideration. This was materially
+unresolved stream for later incremental reconsideration. The CLI replaces the
+completed parser line with progress and ETA for this final streamed pass, so a
+large pending-call set is not presented as an apparently stale completed scan.
+This was materially
 faster than representing every call as a property-heavy staging node: on this
 repository's 46-file `src` tree, that first design took 52.0s; the durable-stream
 version took 3.0s with about 178 MiB peak RSS and no swap.

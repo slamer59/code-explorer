@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import click
-from rich.console import Console
+from rich.console import Console, Group
+from rich.live import Live
 from rich.panel import Panel
 from rich.progress import (
     BarColumn,
@@ -21,6 +22,7 @@ from rich.progress import (
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
+    TimeRemainingColumn,
     track,
 )
 from rich.table import Table
@@ -733,18 +735,99 @@ def search(
         if needs_index:
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
             t0 = time.time()
-            analyses = CodeAnalyzer().iter_analyze_directory(
-                target,
-                max_workers=settings.analysis_workers,
+            graph_task = None
+            finalize_task = None
+            graph_progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                TimeElapsedColumn(),
+                console=console,
             )
-            stats = graph.ingest_analysis_stream(
-                analyses,
-                batch_size=settings.upsert_batch_size,
-                batch_bytes=settings.ingest_batch_bytes,
-                include_source=include_source,
-                # This branch only runs after creating or deleting db_path.
-                assume_new=True,
+
+            def show_graph_progress(batch_stats: dict) -> None:
+                nonlocal graph_task
+                batches = batch_stats["batches"]
+                tuning = ""
+                if batch_stats.get("adaptive_batching"):
+                    selected = batch_stats.get("selected_batch_size", 0)
+                    if selected:
+                        tuning = f" · batch {selected:,} ops"
+                    else:
+                        tuning = (
+                            f" · tune {batch_stats['adaptive_samples']}/"
+                            f"{batch_stats['adaptive_required_samples']} "
+                            f"@ {batch_stats['batch_target_size']:,}"
+                        )
+                description = (
+                    f"  ↳ Graph: {batches:,} "
+                    f"{'batch' if batches == 1 else 'batches'} · "
+                    f"{batch_stats['total_nodes']:,} nodes · "
+                    f"{batch_stats['total_edges']:,} edges · "
+                    f"{batch_stats['calls_resolved']:,} calls{tuning}"
+                )
+                if graph_task is None:
+                    graph_task = graph_progress.add_task(description, total=None)
+                else:
+                    graph_progress.update(graph_task, description=description)
+
+            def show_finalize_progress(finalize_stats: dict) -> None:
+                nonlocal finalize_task
+                if finalize_task is None:
+                    for task in list(analysis_progress.tasks):
+                        analysis_progress.remove_task(task.id)
+                    finalize_task = analysis_progress.add_task(
+                        "Resolving pending calls...",
+                        total=finalize_stats["total"],
+                    )
+                analysis_progress.update(
+                    finalize_task,
+                    completed=finalize_stats["processed"],
+                    description=(
+                        "Resolving pending calls "
+                        f"({finalize_stats['resolved']:,} resolved · "
+                        f"{finalize_stats['unresolved']:,} unresolved)..."
+                    ),
+                )
+
+            analysis_progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                MofNCompleteColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TimeElapsedColumn(),
+                TextColumn("ETA"),
+                TimeRemainingColumn(),
+                console=console,
             )
+            with Live(
+                Group(analysis_progress, graph_progress),
+                console=console,
+                refresh_per_second=10,
+            ):
+                analyses = CodeAnalyzer().iter_analyze_directory(
+                    target,
+                    max_workers=settings.analysis_workers,
+                    progress=analysis_progress,
+                )
+                stats = graph.ingest_analysis_stream(
+                    analyses,
+                    batch_size=settings.upsert_batch_size,
+                    batch_bytes=settings.ingest_batch_bytes,
+                    include_source=include_source,
+                    # This branch only runs after creating or deleting db_path.
+                    assume_new=True,
+                    adaptive=settings.adaptive_ingest_batching,
+                    max_batch_size=settings.ingest_batch_max_size,
+                    calibration_batches=settings.ingest_calibration_batches,
+                    throughput_tolerance=settings.ingest_throughput_tolerance,
+                    on_batch_committed=show_graph_progress,
+                    on_finalize_progress=show_finalize_progress,
+                )
+                # Include calls resolved during the final durable-stream pass.
+                show_graph_progress(stats)
+                if graph_task is not None:
+                    graph_progress.stop_task(graph_task)
             n_functions = stats["functions"]
             n_classes = stats["classes"]
             console.print(
@@ -754,6 +837,12 @@ def search(
                 f"{stats['calls_unresolved']:,} retained unresolved "
                 f"({time.time() - t0:.1f}s)."
             )
+            if stats["adaptive_batching"]:
+                console.print(
+                    "[dim]Adaptive batching selected "
+                    f"{stats['selected_batch_size']:,} operations/batch from "
+                    f"{stats['adaptive_samples']:,} measured batches.[/dim]"
+                )
             if semantic:
                 console.print(
                     "[cyan]Generating embeddings via local Ollama[/cyan] "

@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
+from statistics import median
+from time import perf_counter
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Sequence
 
 from code_explorer.analyzer.export_parquet import make_function_id, to_relative_path
@@ -25,6 +27,119 @@ class LatticeIngestBatch:
     call_references: List[Dict[str, Any]] = field(default_factory=list)
     operation_count: int = 0
     estimated_bytes: int = 0
+    target_operations: int = 0
+
+
+@dataclass(frozen=True)
+class BatchMeasurement:
+    target_size: int
+    operation_count: int
+    estimated_bytes: int
+    duration_seconds: float
+
+    @property
+    def operations_per_second(self) -> float:
+        return self.operation_count / max(self.duration_seconds, 1e-9)
+
+
+class AdaptiveBatchController:
+    """Explore bounded batch sizes, then hold the empirical throughput knee.
+
+    Candidate sizes are interleaved rather than tested in contiguous phases,
+    reducing bias from repository ordering and database growth. After every
+    candidate has enough samples, the controller chooses the smallest size
+    whose median throughput is within ``throughput_tolerance`` of the peak.
+    """
+
+    def __init__(
+        self,
+        *,
+        initial_size: int,
+        max_size: int,
+        samples_per_size: int = 3,
+        throughput_tolerance: float = 0.05,
+    ) -> None:
+        if initial_size < 1:
+            raise ValueError("initial_size must be at least 1")
+        if max_size < initial_size:
+            raise ValueError("max_size must be at least initial_size")
+        if samples_per_size < 1:
+            raise ValueError("samples_per_size must be at least 1")
+        if not 0 <= throughput_tolerance < 1:
+            raise ValueError("throughput_tolerance must be in [0, 1)")
+
+        self.initial_size = initial_size
+        candidates = [initial_size]
+        while candidates[-1] < max_size:
+            candidates.append(min(candidates[-1] * 2, max_size))
+        self.candidates = tuple(candidates)
+        self.samples_per_size = samples_per_size
+        self.throughput_tolerance = throughput_tolerance
+        self.measurements: List[BatchMeasurement] = []
+        self.selected_size: Optional[int] = None
+
+    @property
+    def required_samples(self) -> int:
+        return len(self.candidates) * self.samples_per_size
+
+    @property
+    def current_size(self) -> int:
+        if self.selected_size is not None:
+            return self.selected_size
+        return self.candidates[len(self.measurements) % len(self.candidates)]
+
+    def observe(
+        self,
+        *,
+        target_size: int,
+        operation_count: int,
+        estimated_bytes: int,
+        duration_seconds: float,
+    ) -> None:
+        if self.selected_size is not None:
+            return
+        self.measurements.append(
+            BatchMeasurement(
+                target_size=target_size,
+                operation_count=operation_count,
+                estimated_bytes=estimated_bytes,
+                duration_seconds=duration_seconds,
+            )
+        )
+        if len(self.measurements) < self.required_samples:
+            return
+
+        self._select_size()
+
+    def _select_size(self) -> None:
+        sampled_candidates = {
+            measurement.target_size for measurement in self.measurements
+        }
+        throughput_by_size = {
+            candidate: median(
+                measurement.operations_per_second
+                for measurement in self.measurements
+                if measurement.target_size == candidate
+            )
+            for candidate in sampled_candidates
+        }
+        peak = max(throughput_by_size.values())
+        near_peak = peak * (1 - self.throughput_tolerance)
+        self.selected_size = min(
+            candidate
+            for candidate, throughput in throughput_by_size.items()
+            if throughput >= near_peak
+        )
+
+    def finish(self) -> int:
+        """Select from partial calibration data when the input stream ends."""
+        if self.selected_size is None:
+            if self.measurements:
+                self._select_size()
+            else:
+                self.selected_size = self.initial_size
+        assert self.selected_size is not None
+        return self.selected_size
 
 
 def _value_bytes(value: Any) -> int:
@@ -200,6 +315,7 @@ def iter_lattice_ingest_batches(
     batch_size: int,
     batch_bytes: int,
     include_source: bool = False,
+    batch_size_provider: Optional[Callable[[], int]] = None,
 ) -> Iterator[LatticeIngestBatch]:
     """Convert and group files without retaining repository-sized analyses."""
     if batch_size < 1:
@@ -207,7 +323,15 @@ def iter_lattice_ingest_batches(
     if batch_bytes < 1:
         raise ValueError("batch_bytes must be at least 1")
 
-    batch = LatticeIngestBatch()
+    def new_batch() -> LatticeIngestBatch:
+        target_operations = (
+            batch_size_provider() if batch_size_provider is not None else batch_size
+        )
+        if target_operations < 1:
+            raise ValueError("batch size provider must return at least 1")
+        return LatticeIngestBatch(target_operations=target_operations)
+
+    batch = new_batch()
     for analysis in analyses:
         nodes, edges, references = _records_for_file(
             analysis, project_root, include_source
@@ -217,12 +341,12 @@ def iter_lattice_ingest_batches(
             _value_bytes(record) for record in (*nodes, *edges, *references)
         )
         exceeds_limit = (
-            batch.operation_count + file_operations > batch_size
+            batch.operation_count + file_operations > batch.target_operations
             or batch.estimated_bytes + file_bytes > batch_bytes
         )
         if batch.operation_count and exceeds_limit:
             yield batch
-            batch = LatticeIngestBatch()
+            batch = new_batch()
 
         batch.nodes.extend(nodes)
         batch.structural_edges.extend(edges)
@@ -230,9 +354,12 @@ def iter_lattice_ingest_batches(
         batch.operation_count += file_operations
         batch.estimated_bytes += file_bytes
 
-        if batch.operation_count >= batch_size or batch.estimated_bytes >= batch_bytes:
+        if (
+            batch.operation_count >= batch.target_operations
+            or batch.estimated_bytes >= batch_bytes
+        ):
             yield batch
-            batch = LatticeIngestBatch()
+            batch = new_batch()
 
     if batch.operation_count:
         yield batch
@@ -376,10 +503,26 @@ class LatticeStreamingIngestor:
                 deferred.append(pending)
         return resolutions, deferred
 
-    def _finalize_pending(self) -> tuple[int, int]:
+    def _finalize_pending(
+        self,
+        total: int,
+        on_progress: Optional[Callable[[Dict[str, int]], None]] = None,
+    ) -> tuple[int, int]:
         resolved = 0
         unresolved = 0
+        processed = 0
+        windows = 0
         after = 0
+        if total and on_progress is not None:
+            on_progress(
+                {
+                    "total": total,
+                    "processed": 0,
+                    "resolved": 0,
+                    "unresolved": 0,
+                    "windows": 0,
+                }
+            )
         while records := self.backend.db.read_stream(
             PENDING_CALL_STREAM, after_sequence=after, limit=1000
         ):
@@ -394,6 +537,18 @@ class LatticeStreamingIngestor:
                 trim_through=through,
             )
             unresolved += len(deferred)
+            processed += len(records)
+            windows += 1
+            if on_progress is not None:
+                on_progress(
+                    {
+                        "total": total,
+                        "processed": processed,
+                        "resolved": resolved,
+                        "unresolved": unresolved,
+                        "windows": windows,
+                    }
+                )
             after = through
         return resolved, unresolved
 
@@ -405,9 +560,24 @@ class LatticeStreamingIngestor:
         batch_bytes: int,
         include_source: bool = False,
         assume_new: bool = False,
+        adaptive: bool = False,
+        max_batch_size: Optional[int] = None,
+        calibration_batches: int = 3,
+        throughput_tolerance: float = 0.05,
         on_batch_committed: Optional[Callable[[Dict[str, int]], None]] = None,
+        on_finalize_progress: Optional[Callable[[Dict[str, int]], None]] = None,
     ) -> Dict[str, int]:
-        self.backend.requeue_unresolved_calls()
+        requeued_calls = self.backend.requeue_unresolved_calls()
+        controller = (
+            AdaptiveBatchController(
+                initial_size=batch_size,
+                max_size=max(batch_size, max_batch_size or batch_size),
+                samples_per_size=calibration_batches,
+                throughput_tolerance=throughput_tolerance,
+            )
+            if adaptive
+            else None
+        )
         stats = {
             "batches": 0,
             "total_nodes": 0,
@@ -418,6 +588,17 @@ class LatticeStreamingIngestor:
             "call_references": 0,
             "calls_resolved": 0,
             "calls_unresolved": 0,
+            "calls_pending": requeued_calls,
+            "adaptive_batching": int(controller is not None),
+            "adaptive_samples": 0,
+            "adaptive_required_samples": (
+                controller.required_samples if controller is not None else 0
+            ),
+            "batch_target_size": batch_size,
+            "selected_batch_size": 0,
+            "last_batch_operations": 0,
+            "last_batch_bytes": 0,
+            "last_batch_write_ms": 0,
         }
         for batch in iter_lattice_ingest_batches(
             analyses,
@@ -425,13 +606,25 @@ class LatticeStreamingIngestor:
             batch_size=batch_size,
             batch_bytes=batch_bytes,
             include_source=include_source,
+            batch_size_provider=(
+                (lambda: controller.current_size) if controller is not None else None
+            ),
         ):
+            write_started = perf_counter()
             node_ids = self.backend.upsert_nodes(batch.nodes, assume_new=assume_new)
             self.backend.upsert_edges(batch.structural_edges, node_id_map=node_ids)
             resolutions, pending = self._resolve_references(
                 batch.call_references, finalize=False
             )
             resolved = self.backend.apply_call_outcomes(resolutions, pending)
+            write_seconds = perf_counter() - write_started
+            if controller is not None:
+                controller.observe(
+                    target_size=batch.target_operations,
+                    operation_count=batch.operation_count,
+                    estimated_bytes=batch.estimated_bytes,
+                    duration_seconds=write_seconds,
+                )
 
             stats["batches"] += 1
             stats["total_nodes"] += len(batch.nodes)
@@ -441,11 +634,27 @@ class LatticeStreamingIngestor:
             stats["classes"] += sum(node.type == "Class" for node in batch.nodes)
             stats["call_references"] += len(batch.call_references)
             stats["calls_resolved"] += resolved
+            stats["calls_pending"] += len(pending)
+            stats["adaptive_samples"] = (
+                len(controller.measurements) if controller is not None else 0
+            )
+            stats["batch_target_size"] = batch.target_operations
+            stats["selected_batch_size"] = (
+                (controller.selected_size or 0) if controller is not None else 0
+            )
+            stats["last_batch_operations"] = batch.operation_count
+            stats["last_batch_bytes"] = batch.estimated_bytes
+            stats["last_batch_write_ms"] = round(write_seconds * 1000)
             if on_batch_committed is not None:
                 on_batch_committed(dict(stats))
 
-        resolved, unresolved = self._finalize_pending()
+        if controller is not None:
+            stats["selected_batch_size"] = controller.finish()
+        resolved, unresolved = self._finalize_pending(
+            stats["calls_pending"], on_progress=on_finalize_progress
+        )
         stats["calls_resolved"] += resolved
         stats["calls_unresolved"] = unresolved
+        stats["calls_pending"] = unresolved
         stats["total_edges"] += resolved
         return stats

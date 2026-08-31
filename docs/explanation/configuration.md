@@ -3,8 +3,7 @@
 > Status: **implemented**. `src/code_explorer/settings.py` (`Settings`,
 > `pydantic-settings`-backed) is the single source of truth for the values
 > documented below. All existing callers (`embeddings.py`,
-> `graph/backends/lattice_backend.py`, `graph/graph.py`) read from it; none
-> of the defaults changed from what was previously hardcoded.
+> `graph/backends/lattice_backend.py`, `graph/graph.py`) read from it.
 
 ## The gap, stated plainly
 
@@ -49,10 +48,14 @@ environment variable, or a `.env` file in the current working directory
 | `embedding_dimensions` | `CODE_EXPLORER_EMBEDDING_DIMENSIONS` | `768` | `LatticeBackend(enable_vectors=True)` — vector index dimensionality, fixed at DB-creation time (see the migration doc) |
 | `embedding_timeout` | `CODE_EXPLORER_EMBEDDING_TIMEOUT` | `30.0` | `embeddings.embed_text`'s HTTP timeout (seconds) |
 | `embed_batch_size` | `CODE_EXPLORER_EMBED_BATCH_SIZE` | `50` | `LatticeBackend.build_vector_index` — texts per Ollama `/api/embed` call (see the migration doc's batching measurement) |
-| `upsert_batch_size` | `CODE_EXPLORER_UPSERT_BATCH_SIZE` | `1000` | `LatticeBackend` — nodes/edges per write transaction during ingestion |
+| `upsert_batch_size` | `CODE_EXPLORER_UPSERT_BATCH_SIZE` | `1000` | Initial adaptive operation target and `LatticeBackend` nodes/edges per write transaction |
 | `ingest_batch_bytes` | `CODE_EXPLORER_INGEST_BATCH_BYTES` | `8388608` | Lattice search indexing — secondary byte ceiling for a parsed/write batch |
+| `adaptive_ingest_batching` | `CODE_EXPLORER_ADAPTIVE_INGEST_BATCHING` | `true` | Interleave measured batch sizes during initial ingestion, then hold the smallest target within 5% of peak median throughput |
+| `ingest_batch_max_size` | `CODE_EXPLORER_INGEST_BATCH_MAX_SIZE` | `8000` | Maximum operation target explored by adaptive ingestion; the byte ceiling still applies |
+| `ingest_calibration_batches` | `CODE_EXPLORER_INGEST_CALIBRATION_BATCHES` | `3` | Measurements collected for each candidate batch size before selection |
+| `ingest_throughput_tolerance` | `CODE_EXPLORER_INGEST_THROUGHPUT_TOLERANCE` | `0.05` | Select the smallest candidate whose median operations/second is within this fraction of the measured peak |
 | `lattice_cache_size_mb` | `CODE_EXPLORER_LATTICE_CACHE_SIZE_MB` | `100` | LatticeDB page-cache ceiling |
-| `analysis_workers` | `CODE_EXPLORER_ANALYSIS_WORKERS` | `4` | CPU-bound parser processes used by Lattice search indexing |
+| `analysis_workers` | `CODE_EXPLORER_ANALYSIS_WORKERS` | All logical CPUs | CPU-bound parser processes used by Lattice search indexing |
 | `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", "htmlcov", "dist", "build", ".git", ".worktrees", ".venv", "venv"]` | Full and incremental discovery — paths excluded in addition to Git ignore rules |
 
 To override a list-valued setting (`default_exclude_patterns`) via an env
@@ -68,6 +71,15 @@ Or via a `.env` file in the directory you run `code-explorer` from:
 CODE_EXPLORER_OLLAMA_ENDPOINT=http://gpu-box.internal:11434
 CODE_EXPLORER_EMBED_BATCH_SIZE=20
 ```
+
+Adaptive ingestion does not perform a preliminary scan. It starts with the
+configured `upsert_batch_size`, interleaves doubled targets up to
+`ingest_batch_max_size`, and feeds each real LatticeDB commit duration back to
+the next batch produced by the same iterator. The configured
+`ingest_batch_bytes` remains a hard ceiling except for one indivisible source
+file whose own records exceed it. Set
+`CODE_EXPLORER_ADAPTIVE_INGEST_BATCHING=false` to retain a fixed logical batch
+target.
 
 ## Deliberately not built
 

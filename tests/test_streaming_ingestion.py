@@ -9,6 +9,10 @@ from code_explorer.graph.backends.lattice_backend import (
     LatticeBackend,
 )
 from code_explorer.graph.graph import DependencyGraph
+from code_explorer.graph.lattice_streaming import (
+    AdaptiveBatchController,
+    iter_lattice_ingest_batches,
+)
 
 
 def _analyze(temp_dir, relative_path: str, source: str):
@@ -109,6 +113,34 @@ def test_stream_keeps_an_ambiguous_plugin_call_as_a_reference(temp_dir):
     assert stats["calls_unresolved"] == 1
 
 
+def test_final_call_resolution_reports_streamed_progress(temp_dir):
+    caller = _analyze(temp_dir, "caller.py", "def run():\n    missing()\n")
+    graph = _graph(temp_dir)
+    updates = []
+
+    graph.ingest_analysis_stream(
+        iter([caller]),
+        batch_size=1000,
+        assume_new=True,
+        on_finalize_progress=lambda progress: updates.append(progress),
+    )
+
+    assert updates[0] == {
+        "total": 1,
+        "processed": 0,
+        "resolved": 0,
+        "unresolved": 0,
+        "windows": 0,
+    }
+    assert updates[-1] == {
+        "total": 1,
+        "processed": 1,
+        "resolved": 0,
+        "unresolved": 1,
+        "windows": 1,
+    }
+
+
 def test_same_file_call_is_materialized_without_waiting_for_end_of_stream(temp_dir):
     first = _analyze(
         temp_dir,
@@ -195,6 +227,75 @@ def test_stream_flushes_on_byte_budget_even_below_record_limit(temp_dir):
     assert stats["batches"] == 2
 
 
+def test_batch_iterator_reads_the_next_limit_after_each_committed_batch(temp_dir):
+    analyses = [_analyze(temp_dir, f"file_{index}.py", "") for index in range(3)]
+    current_limit = {"operations": 1}
+    batches = iter_lattice_ingest_batches(
+        iter(analyses),
+        temp_dir,
+        batch_size=1,
+        batch_bytes=1024 * 1024,
+        batch_size_provider=lambda: current_limit["operations"],
+    )
+
+    first = next(batches)
+    current_limit["operations"] = 2
+    second = next(batches)
+
+    assert first.operation_count == 1
+    assert first.target_operations == 1
+    assert second.operation_count == 2
+    assert second.target_operations == 2
+
+
+def test_adaptive_batch_controller_selects_smallest_size_near_peak_throughput():
+    controller = AdaptiveBatchController(
+        initial_size=100,
+        max_size=400,
+        samples_per_size=2,
+        throughput_tolerance=0.05,
+    )
+    throughput_by_size = {100: 950.0, 200: 1000.0, 400: 1020.0}
+
+    observed_targets = []
+    for _ in range(6):
+        target = controller.current_size
+        observed_targets.append(target)
+        controller.observe(
+            target_size=target,
+            operation_count=target,
+            estimated_bytes=target * 100,
+            duration_seconds=target / throughput_by_size[target],
+        )
+
+    assert observed_targets == [100, 200, 400, 100, 200, 400]
+    assert controller.selected_size == 200
+    assert controller.current_size == 200
+
+
+def test_streaming_ingest_feeds_commit_measurements_into_next_batch(temp_dir):
+    analyses = [_analyze(temp_dir, f"adaptive_{index}.py", "") for index in range(5)]
+    observed_targets = []
+    graph = _graph(temp_dir)
+
+    stats = graph.ingest_analysis_stream(
+        iter(analyses),
+        batch_size=1,
+        batch_bytes=1024 * 1024,
+        adaptive=True,
+        max_batch_size=2,
+        calibration_batches=1,
+        assume_new=True,
+        on_batch_committed=lambda batch_stats: observed_targets.append(
+            batch_stats["batch_target_size"]
+        ),
+    )
+
+    assert observed_targets[:2] == [1, 2]
+    assert stats["adaptive_samples"] == 2
+    assert stats["selected_batch_size"] in {1, 2}
+
+
 def test_search_reindex_uses_streaming_analysis_not_full_repository_list(
     temp_dir, monkeypatch
 ):
@@ -214,6 +315,37 @@ def test_search_reindex_uses_streaming_analysis_not_full_repository_list(
 
     assert result.exit_code == 0, result.output
     assert "rebuild_helper" in result.output
+
+
+def test_search_reindex_displays_committed_graph_batches(temp_dir):
+    (temp_dir / "service.py").write_text(
+        "def rebuild_helper():\n    pass\n", encoding="utf-8"
+    )
+
+    result = CliRunner().invoke(
+        cli,
+        ["search", "rebuild_helper", str(temp_dir), "--reindex", "--no-context"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Graph:" in result.output
+    assert "1 batch" in result.output
+    assert "2 nodes" in result.output
+
+
+def test_search_reindex_displays_final_call_resolution_progress(temp_dir):
+    (temp_dir / "service.py").write_text(
+        "def rebuild_helper():\n    missing()\n", encoding="utf-8"
+    )
+
+    result = CliRunner().invoke(
+        cli,
+        ["search", "rebuild_helper", str(temp_dir), "--reindex", "--no-context"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Resolving pending calls" in result.output
+    assert "1 unresolved" in result.output
 
 
 def test_self_call_resolves_to_its_class_despite_plugin_overrides(temp_dir):

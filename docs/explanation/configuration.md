@@ -25,11 +25,14 @@ one these defaults were measured against:
   `ollama serve` listens by default. Anyone running Ollama on another host,
   in a container, or behind a different port needs to override this, not
   patch the source.
-- `default_exclude_patterns` (used by `ingest_incremental`'s file walk, see
-  [LatticeDB Migration, Phase 3](latticedb-migration.md)) covers common cases
-  (`.venv`, `.git`, `__pycache__`, ...) but a given repo may have its own
-  generated/vendored directory that should never be re-hashed on every
-  incremental reindex.
+- Python-file discovery uses Git's tracked/untracked file list when the target
+  is inside a Git repository. This respects every applicable `.gitignore`,
+  `.git/info/exclude`, and the user's global Git excludes. Non-Git targets use
+  a pruned filesystem walk instead.
+- `default_exclude_patterns` adds common exclusions (`.venv`, `.git`,
+  `.worktrees`, `__pycache__`, ...) to both discovery paths, including
+  `ingest_incremental` (see [LatticeDB Migration, Phase
+  3](latticedb-migration.md)).
 
 ## Settings
 
@@ -47,7 +50,7 @@ environment variable, or a `.env` file in the current working directory
 | `embedding_timeout` | `CODE_EXPLORER_EMBEDDING_TIMEOUT` | `30.0` | `embeddings.embed_text`'s HTTP timeout (seconds) |
 | `embed_batch_size` | `CODE_EXPLORER_EMBED_BATCH_SIZE` | `50` | `LatticeBackend.build_vector_index` — texts per Ollama `/api/embed` call (see the migration doc's batching measurement) |
 | `upsert_batch_size` | `CODE_EXPLORER_UPSERT_BATCH_SIZE` | `1000` | `LatticeBackend` — nodes/edges per write transaction during ingestion |
-| `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", "htmlcov", "dist", "build", ".git", ".venv", "venv"]` | `DependencyGraph.ingest_incremental` — directories skipped during the incremental file walk |
+| `default_exclude_patterns` | `CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS` | `["__pycache__", ".pytest_cache", "htmlcov", "dist", "build", ".git", ".worktrees", ".venv", "venv"]` | Full and incremental discovery — paths excluded in addition to Git ignore rules |
 
 To override a list-valued setting (`default_exclude_patterns`) via an env
 var, pydantic-settings expects a JSON array, e.g.:

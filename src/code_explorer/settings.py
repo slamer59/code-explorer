@@ -37,6 +37,7 @@ class Settings(BaseSettings):
         "dist",
         "build",
         ".git",
+        ".worktrees",
         ".venv",
         "venv",
     ]

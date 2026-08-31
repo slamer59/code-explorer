@@ -32,6 +32,7 @@ from .console_styles import (
     StyleGuide,
     create_header_panel,
 )
+from .settings import settings
 
 console = Console()
 
@@ -233,16 +234,7 @@ def analyze(
 
     # Build final exclusion list
     # Start with defaults
-    default_exclusions = [
-        "__pycache__",
-        ".pytest_cache",
-        "htmlcov",
-        "dist",
-        "build",
-        ".git",
-        ".venv",
-        "venv",
-    ]
+    default_exclusions = settings.default_exclude_patterns
 
     # Apply includes (remove from defaults)
     final_exclusions = [e for e in default_exclusions if e not in include]

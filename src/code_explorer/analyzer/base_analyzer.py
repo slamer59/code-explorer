@@ -7,6 +7,7 @@ Refactored from analyzer.py to use extractor-based architecture.
 import hashlib
 import logging
 import os
+import subprocess
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Callable, List, Optional
@@ -29,8 +30,74 @@ from code_explorer.analyzer.extractors.imports import ImportExtractor
 from code_explorer.analyzer.extractors.variables import VariableExtractor
 from code_explorer.analyzer.models import FileAnalysis, ModuleInfo
 from code_explorer.analyzer.parser import parse_python_file, get_parser_type, ParseError
+from code_explorer.settings import settings
 
 logger = logging.getLogger(__name__)
+
+
+def discover_python_files(
+    root_path: Path, exclude_patterns: Optional[List[str]] = None
+) -> List[Path]:
+    """Find Python files without walking ignored directory trees.
+
+    Git already has an optimized index and ignore matcher, so use its file list
+    when possible. Non-Git directories fall back to a top-down filesystem walk
+    that prunes configured exclusions before descending into them.
+    """
+    patterns = (
+        settings.default_exclude_patterns
+        if exclude_patterns is None
+        else exclude_patterns
+    )
+
+    try:
+        completed = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root_path),
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+                "-z",
+                "--",
+                "*.py",
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        completed = None
+
+    if completed is not None and completed.returncode == 0:
+        return [
+            path
+            for raw_path in completed.stdout.split(b"\0")
+            if raw_path
+            for path in [root_path / os.fsdecode(raw_path)]
+            if path.is_file() and not any(pattern in str(path) for pattern in patterns)
+        ]
+
+    python_files: List[Path] = []
+    for directory, dirnames, filenames in os.walk(root_path, topdown=True):
+        dirnames[:] = [
+            dirname
+            for dirname in dirnames
+            if not any(
+                pattern in str(Path(directory) / dirname) for pattern in patterns
+            )
+        ]
+        python_files.extend(
+            Path(directory) / filename
+            for filename in filenames
+            if filename.endswith(".py")
+            and not any(
+                pattern in str(Path(directory) / filename) for pattern in patterns
+            )
+        )
+    return python_files
 
 
 class CodeAnalyzer:
@@ -311,25 +378,7 @@ class CodeAnalyzer:
         Returns:
             List of FileAnalysis results
         """
-        if exclude_patterns is None:
-            exclude_patterns = [
-                "__pycache__",
-                ".pytest_cache",
-                "htmlcov",
-                "dist",
-                "build",
-                ".git",
-                ".venv",
-                "venv",
-            ]
-
-        # Find all Python files
-        python_files = []
-        for py_file in root_path.rglob("*.py"):
-            # Skip excluded patterns
-            if any(pattern in str(py_file) for pattern in exclude_patterns):
-                continue
-            python_files.append(py_file)
+        python_files = discover_python_files(root_path, exclude_patterns)
 
         if not python_files:
             logger.warning(f"No Python files found in {root_path}")

@@ -17,6 +17,7 @@ def test_settings_defaults_match_previous_hardcoded_values():
     assert s.upsert_batch_size == 1000
     assert "__pycache__" in s.default_exclude_patterns
     assert ".git" in s.default_exclude_patterns
+    assert ".worktrees" in s.default_exclude_patterns
 
 
 def test_settings_env_var_overrides_default(monkeypatch):

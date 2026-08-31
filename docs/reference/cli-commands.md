@@ -55,7 +55,7 @@ code-explorer analyze ./src --workers 16
 ```
 Analyzing codebase at: /home/user/project/src
 Database location: /home/user/project/.code-explorer/graph.db
-Excluding: __pycache__, .pytest_cache, htmlcov, dist, build, .git, .venv, venv
+Excluding: __pycache__, .pytest_cache, htmlcov, dist, build, .git, .worktrees, .venv, venv
 
 Analysis complete!
 ┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓

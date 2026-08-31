@@ -581,7 +581,10 @@ class DependencyGraph:
         """
         self._check_read_only()
 
-        from code_explorer.analyzer.base_analyzer import CodeAnalyzer
+        from code_explorer.analyzer.base_analyzer import (
+            CodeAnalyzer,
+            discover_python_files,
+        )
         from code_explorer.analyzer.export_parquet import to_relative_path
         from code_explorer.graph.ingest import file_analyses_to_records
         from code_explorer.settings import settings
@@ -589,8 +592,7 @@ class DependencyGraph:
         default_exclude_patterns = settings.default_exclude_patterns
         current_files = {
             to_relative_path(str(py_file), target): py_file
-            for py_file in target.rglob("*.py")
-            if not any(p in str(py_file) for p in default_exclude_patterns)
+            for py_file in discover_python_files(target, default_exclude_patterns)
         }
 
         existing_files = {

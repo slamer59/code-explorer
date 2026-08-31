@@ -23,6 +23,7 @@ Key differences from KuzuBackend that shape this implementation:
 """
 
 import heapq
+from itertools import islice
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -73,9 +74,10 @@ _UPSERT_BATCH_SIZE = settings.upsert_batch_size
 _EMBED_BATCH_SIZE = settings.embed_batch_size
 
 
-def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:
-    for i in range(0, len(items), size):
-        yield items[i : i + size]
+def _chunked(items: Iterable[Any], size: int) -> Iterable[List[Any]]:
+    iterator = iter(items)
+    while batch := list(islice(iterator, size)):
+        yield batch
 
 
 class LatticeBackend:
@@ -178,9 +180,8 @@ class LatticeBackend:
         gemseo: 15K nodes, 338K resolved calls), so avoiding a lookup per
         edge endpoint matters far more than avoiding one per node.
         """
-        node_list = list(nodes)
         id_map: Dict[Tuple[str, str], int] = {}
-        for batch in _chunked(node_list, _UPSERT_BATCH_SIZE):
+        for batch in _chunked(nodes, _UPSERT_BATCH_SIZE):
             with self.db.write() as txn:
                 for node in batch:
                     pk = NODE_PRIMARY_KEY.get(node.type)
@@ -220,9 +221,8 @@ class LatticeBackend:
         # prior upsert_nodes call) resolves that from memory when it covers
         # the edge; falls back to a DB lookup only for endpoints outside the
         # current batch (e.g. incremental ingestion referencing older data).
-        edge_list = list(edges)
         node_id_map = node_id_map or {}
-        for batch in _chunked(edge_list, _UPSERT_BATCH_SIZE):
+        for batch in _chunked(edges, _UPSERT_BATCH_SIZE):
             with self.db.write() as txn:
                 for edge in batch:
                     endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)

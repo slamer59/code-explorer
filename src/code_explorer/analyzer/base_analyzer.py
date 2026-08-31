@@ -8,7 +8,7 @@ import hashlib
 import logging
 import os
 import subprocess
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from pathlib import Path
 from typing import Any, Callable, List, Optional
 
@@ -33,6 +33,8 @@ from code_explorer.analyzer.parser import parse_python_file, get_parser_type, Pa
 from code_explorer.settings import settings
 
 logger = logging.getLogger(__name__)
+
+_MAX_SIGNATURE_LINES = 20
 
 
 def discover_python_files(
@@ -100,6 +102,18 @@ def discover_python_files(
     return python_files
 
 
+def _compact_definition_source(source_code: Optional[str]) -> Optional[str]:
+    """Keep only a definition header for search indexing."""
+    if not source_code:
+        return source_code
+    lines = []
+    for line in source_code.splitlines(keepends=True)[:_MAX_SIGNATURE_LINES]:
+        lines.append(line)
+        if line.strip().endswith(":"):
+            break
+    return "".join(lines)
+
+
 class CodeAnalyzer:
     """
     Orchestrates code analysis using specialized extractors.
@@ -108,8 +122,17 @@ class CodeAnalyzer:
     and maintainability.
     """
 
-    def __init__(self):
-        """Initialize analyzer with all extractors."""
+    def __init__(
+        self, search_only: bool = False, retain_full_source: bool = True
+    ) -> None:
+        """Initialize the analyzer.
+
+        ``search_only`` skips metadata that the search graph never stores.
+        ``retain_full_source`` can be disabled because search context reads
+        source from the filesystem rather than from graph properties.
+        """
+        self.search_only = search_only
+        self.retain_full_source = retain_full_source
         self.function_extractor = FunctionExtractor()
         self.class_extractor = ClassExtractor()
         self.import_extractor = ImportExtractor()
@@ -152,35 +175,36 @@ class CodeAnalyzer:
         except Exception as e:
             logger.error(f"Function extraction failed: {e}")
 
-        try:
-            self.import_extractor.extract(tree, result)
-        except Exception as e:
-            logger.error(f"Import extraction failed: {e}")
+        if not self.search_only:
+            try:
+                self.import_extractor.extract(tree, result)
+            except Exception as e:
+                logger.error(f"Import extraction failed: {e}")
 
-        try:
-            self.variable_extractor.extract(tree, result)
-        except Exception as e:
-            logger.error(f"Variable extraction failed: {e}")
+            try:
+                self.variable_extractor.extract(tree, result)
+            except Exception as e:
+                logger.error(f"Variable extraction failed: {e}")
 
-        try:
-            self.decorator_extractor.extract(tree, result)
-        except Exception as e:
-            logger.error(f"Decorator extraction failed: {e}")
+            try:
+                self.decorator_extractor.extract(tree, result)
+            except Exception as e:
+                logger.error(f"Decorator extraction failed: {e}")
 
-        try:
-            self.exception_extractor.extract(tree, result)
-        except Exception as e:
-            logger.error(f"Exception extraction failed: {e}")
+            try:
+                self.exception_extractor.extract(tree, result)
+            except Exception as e:
+                logger.error(f"Exception extraction failed: {e}")
 
-        try:
-            self.attribute_extractor.extract(tree, result)
-        except Exception as e:
-            logger.error(f"Attribute extraction failed: {e}")
+            try:
+                self.attribute_extractor.extract(tree, result)
+            except Exception as e:
+                logger.error(f"Attribute extraction failed: {e}")
 
-        try:
-            self._extract_module_info(result)
-        except Exception as e:
-            logger.error(f"Module info extraction failed: {e}")
+            try:
+                self._extract_module_info(result)
+            except Exception as e:
+                logger.error(f"Module info extraction failed: {e}")
 
         # Extract classes (depends on functions being extracted first)
         try:
@@ -277,6 +301,17 @@ class CodeAnalyzer:
             if sub_task_id is not None:
                 file_name = Path(file_path).name
                 progress.update(sub_task_id, description=f"  └─ {file_name}: Failed ✗")
+        finally:
+            # These caches are extraction-only. Keeping them on every result
+            # duplicates the repository source while a full index is built.
+            result._source_content = None
+            result._source_lines = None
+
+            if not self.retain_full_source:
+                for definition in [*result.functions, *result.classes]:
+                    definition.source_code = _compact_definition_source(
+                        definition.source_code
+                    )
 
         return result
 
@@ -404,34 +439,47 @@ class CodeAnalyzer:
                 # Tree-sitter AST parsing is CPU-intensive and benefits from true parallelism.
                 # Threads are blocked by Python's GIL, making them ineffective for CPU-bound work.
                 # max_workers defaults to None which uses os.cpu_count()
+                worker_count = max_workers or os.cpu_count() or 1
+                max_pending = max(worker_count * 2, 1)
+                file_iterator = iter(python_files)
+
                 with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                    # Submit all files for analysis
-                    future_to_file = {
-                        executor.submit(
+                    future_to_file = {}
+
+                    def submit_next() -> bool:
+                        try:
+                            py_file = next(file_iterator)
+                        except StopIteration:
+                            return False
+                        future = executor.submit(
                             self.analyze_file,
                             py_file,
                             progress if verbose_progress else None,
                             task,
-                        ): py_file
-                        for py_file in python_files
-                    }
+                        )
+                        future_to_file[future] = py_file
+                        return True
 
-                    # Collect results as they complete
-                    for future in as_completed(future_to_file):
-                        py_file = future_to_file[future]
-                        try:
-                            result = future.result()
-                            results.append(result)
-                            if not verbose_progress:
-                                # Show which file just completed
-                                progress.update(
-                                    task,
-                                    description="Analyzing files...",
-                                )
-                        except Exception as e:
-                            logger.error(f"Failed to analyze {py_file}: {e}")
-                        finally:
-                            progress.update(task, advance=1)
+                    for _ in range(min(max_pending, len(python_files))):
+                        submit_next()
+
+                    while future_to_file:
+                        completed, _ = wait(future_to_file, return_when=FIRST_COMPLETED)
+                        for future in completed:
+                            py_file = future_to_file.pop(future)
+                            try:
+                                result = future.result()
+                                results.append(result)
+                                if not verbose_progress:
+                                    progress.update(
+                                        task,
+                                        description="Analyzing files...",
+                                    )
+                            except Exception as e:
+                                logger.error(f"Failed to analyze {py_file}: {e}")
+                            finally:
+                                progress.update(task, advance=1)
+                            submit_next()
             else:
                 # Sequential analysis
                 for py_file in python_files:

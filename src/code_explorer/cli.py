@@ -74,8 +74,8 @@ search vs. impact:
 
 Gotchas:
   - search builds its own index at PATH/.code-explorer/graph.lattice on
-    first run (separate from analyze's graph). There is no incremental
-    update yet -- pass --reindex after the code under PATH changes.
+    first run (separate from analyze's graph). Later runs incrementally
+    refresh changed/new/deleted files; --reindex forces a full rebuild.
   - --semantic requires a local Ollama server with the nomic-embed-text
     model pulled (ollama pull nomic-embed-text). Without it, use plain
     search or --fuzzy instead.
@@ -657,6 +657,14 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     help="Force a fresh index instead of reusing an existing one",
 )
 @click.option(
+    "-w",
+    "--workers",
+    type=click.IntRange(min=1),
+    default=4,
+    show_default=True,
+    help="Parser worker processes; lower values leave CPU and memory headroom",
+)
+@click.option(
     "--include-source",
     is_flag=True,
     help=(
@@ -674,6 +682,7 @@ def search(
     semantic: bool,
     no_context: bool,
     reindex: bool,
+    workers: int,
     include_source: bool,
 ) -> None:
     """Search code by keyword and show a ready-to-use context bundle.
@@ -722,8 +731,18 @@ def search(
         graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
         if needs_index:
             console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
-            results = CodeAnalyzer().analyze_directory(target)
-            resolved_calls = CallResolver(results).resolve_all_calls()
+            results = CodeAnalyzer(
+                search_only=True,
+                retain_full_source=include_source,
+            ).analyze_directory(target, max_workers=workers)
+            resolve_started = time.time()
+            console.print("[cyan]Resolving calls[/cyan] ...")
+            resolved_call_frame = CallResolver(results).resolve_all_calls_frame()
+            resolved_call_count = resolved_call_frame.height
+            console.print(
+                f"[green]Resolved[/green] {resolved_call_count:,} calls in "
+                f"{time.time() - resolve_started:.1f}s."
+            )
 
             n_functions = sum(len(r.functions) for r in results)
             n_classes = sum(len(r.classes) for r in results)
@@ -731,7 +750,7 @@ def search(
             # node per file, one CONTAINS_FUNCTION/CONTAINS_CLASS edge per
             # function/class, one CALLS edge per resolved call.
             n_nodes_estimate = len(results) + n_functions + n_classes
-            n_edges_estimate = n_functions + n_classes + len(resolved_calls)
+            n_edges_estimate = n_functions + n_classes + resolved_call_count
 
             t0 = time.time()
             with Progress(
@@ -746,7 +765,7 @@ def search(
                 edge_task = progress.add_task("Writing edges", total=n_edges_estimate)
                 graph.ingest_results(
                     results,
-                    resolved_calls=resolved_calls,
+                    resolved_calls=resolved_call_frame.iter_rows(named=True),
                     include_source=include_source,
                     on_node_progress=lambda: progress.advance(node_task),
                     on_edge_progress=lambda: progress.advance(edge_task),
@@ -756,6 +775,8 @@ def search(
                     # backend that might already hold some of these nodes.
                     assume_new=True,
                 )
+            results.clear()
+            del resolved_call_frame
             console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
             if semantic:
                 console.print(

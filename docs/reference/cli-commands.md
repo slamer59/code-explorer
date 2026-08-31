@@ -213,8 +213,8 @@ for the design behind this.
 > `--semantic`, since vector dimensions are fixed when a LatticeDB index is
 > created and can't be added to an existing one) — it does not read or write
 > the Kuzu database `analyze` builds. Running `search` for the first time
-> against a directory re-parses and re-indexes it; there's no incremental
-> update yet, so re-run with `--reindex` after the code changes.
+> against a directory builds the index; later runs incrementally refresh
+> changed, new, and deleted files. Use `--reindex` only for a forced rebuild.
 
 **Synopsis:**
 ```bash
@@ -237,8 +237,11 @@ code-explorer search "walking a syntax tree recursively" src --semantic
 # Just the ranked hits, skip the context bundle
 code-explorer search "resolve call" --no-context --limit 10
 
-# Force a fresh index after the code has changed
+# Force a fresh index instead of the normal incremental refresh
 code-explorer search "resolve call" --reindex
+
+# Keep a full-repository rebuild responsive on a busy workstation
+code-explorer search "resolve call" /path/to/repo --reindex --workers 2
 ```
 
 **Options:**
@@ -249,6 +252,8 @@ code-explorer search "resolve call" --reindex
 - `--semantic`: Vector search instead of BM25 (needs local Ollama, see above)
 - `--no-context`: Only show the results table, skip the context bundle
 - `--reindex`: Force a fresh index instead of reusing an existing one
+- `-w, --workers N`: Parser worker processes (default: 4)
+- `--include-source`: Store full definition source in the index (off by default)
 
 **Notes:**
 - Only `Function` and `Class` nodes are indexed (their source code), and only
@@ -260,6 +265,10 @@ code-explorer search "resolve call" --reindex
   `search` says so instead of erroring.
 - `--fuzzy` and `--semantic` are separate modes, not merged/reranked together
   (that's a possible future "hybrid retrieval" phase, not implemented).
+- Full rebuilds cap queued parser work and stream node/edge records in bounded
+  transaction batches. Lower `--workers` to reduce CPU and worker memory.
+- Same-file call targets are preferred. Cross-file calls with multiple possible
+  definitions remain unresolved instead of producing many false edges.
 
 ---
 

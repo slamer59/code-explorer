@@ -155,6 +155,13 @@ return value / `upsert_edges`' `node_id_map` parameter). A separate optimization
 scale — it targeted the wrong side of the problem: edges outnumber nodes ~22:1 on
 a real codebase, so node-side savings barely register against edge-side cost.
 
+Full search rebuilds now feed node and edge generators directly into bounded
+transaction batches instead of first materializing repository-sized record lists.
+Parser work is similarly bounded to twice the configured worker count, with four
+workers by default for `search`. The canonical-node to internal-ID map is still
+retained for fast edge endpoint resolution, so this reduces peak pressure without
+claiming fully constant-memory ingestion.
+
 ### Query latency (reading data back)
 
 From `perfo/benchmark_backends.py`, on this repo's own small dataset:

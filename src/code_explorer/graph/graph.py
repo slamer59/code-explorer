@@ -7,7 +7,7 @@ Delegates to specialized operation classes while maintaining backward compatibil
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from rich.console import Console
 
@@ -490,7 +490,7 @@ class DependencyGraph:
     def ingest_results(
         self,
         results: List,
-        resolved_calls: Optional[List[dict]] = None,
+        resolved_calls: Optional[Iterable[Mapping[str, object]]] = None,
         include_source: bool = False,
         on_node_progress: Optional[Callable[[], None]] = None,
         on_edge_progress: Optional[Callable[[], None]] = None,
@@ -524,18 +524,34 @@ class DependencyGraph:
         """
         self._check_read_only()
 
-        from code_explorer.graph.ingest import file_analyses_to_records
+        from code_explorer.graph.ingest import iter_edge_records, iter_node_records
 
-        nodes, edges = file_analyses_to_records(
-            results, self.project_root, resolved_calls, include_source=include_source
-        )
+        node_count = 0
+        edge_count = 0
+
+        def count_node() -> None:
+            nonlocal node_count
+            node_count += 1
+            if on_node_progress is not None:
+                on_node_progress()
+
+        def count_edge() -> None:
+            nonlocal edge_count
+            edge_count += 1
+            if on_edge_progress is not None:
+                on_edge_progress()
+
         node_id_map = self.backend.upsert_nodes(
-            nodes, on_progress=on_node_progress, assume_new=assume_new
+            iter_node_records(results, self.project_root, include_source),
+            on_progress=count_node,
+            assume_new=assume_new,
         )
         self.backend.upsert_edges(
-            edges, on_progress=on_edge_progress, node_id_map=node_id_map
+            iter_edge_records(results, self.project_root, resolved_calls),
+            on_progress=count_edge,
+            node_id_map=node_id_map,
         )
-        return {"total_nodes": len(nodes), "total_edges": len(edges)}
+        return {"total_nodes": node_count, "total_edges": edge_count}
 
     def ingest_incremental(self, target: Path) -> dict:
         """Re-index `target` incrementally: hash every current .py file,

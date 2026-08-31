@@ -401,6 +401,7 @@ requirement.
 - `--semantic` - Vector search instead of BM25 (needs local Ollama)
 - `--no-context` - Only show the results table
 - `--reindex` - Force a fresh index
+- `--workers N` - Parser processes (default: 4; lower values leave system headroom)
 
 **Examples:**
 ```bash

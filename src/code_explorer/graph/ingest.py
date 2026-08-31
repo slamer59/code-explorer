@@ -20,7 +20,7 @@ export_parquet.py's own copy.
 """
 
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Iterable, Iterator, List, Mapping, Optional, Tuple
 
 from code_explorer.analyzer.export_parquet import (
     make_class_id,
@@ -93,54 +93,26 @@ def _derive_search_text(
     return "\n".join(p for p in parts if p)
 
 
-def file_analyses_to_records(
+def iter_node_records(
     results: List[FileAnalysis],
     project_root: Path,
-    resolved_calls: Optional[List[dict]] = None,
     include_source: bool = False,
-) -> Tuple[List[NodeRecord], List[EdgeRecord]]:
-    """Convert analyzer output into canonical NodeRecord/EdgeRecord lists.
-
-    Args:
-        results: FileAnalysis objects from CodeAnalyzer.analyze_directory.
-        project_root: Root directory for relative paths (matches the ID
-            hashing convention used elsewhere in the codebase).
-        resolved_calls: Optional resolved CALLS edges from
-            CallResolver.resolve_all_calls(), same shape export_to_parquet
-            expects.
-        include_source: If True, also store each function/class's full
-            source_code as a graph property (opt-in -- see
-            docs/explanation/source-of-truth-and-search-representations.md
-            for why this isn't the default: it duplicates storage across a
-            large repo and BM25/vector search always use the compact
-            search_text field regardless of this flag).
-
-    Returns:
-        (nodes, edges) ready for CodeGraphBackend.upsert_nodes/upsert_edges.
-    """
-    nodes: List[NodeRecord] = []
-    edges: List[EdgeRecord] = []
-
-    seen_files = set()
-    seen_funcs = set()
-    seen_classes = set()
-
+) -> Iterator[NodeRecord]:
+    """Yield canonical nodes without materializing a repository-sized list."""
     for result in results:
         rel_file = to_relative_path(result.file_path, project_root)
+        yield NodeRecord(
+            id=rel_file,
+            type="File",
+            properties={
+                "path": rel_file,
+                "language": "python",
+                "content_hash": result.content_hash,
+            },
+        )
 
-        if rel_file not in seen_files:
-            seen_files.add(rel_file)
-            nodes.append(
-                NodeRecord(
-                    id=rel_file,
-                    type="File",
-                    properties={
-                        "path": rel_file,
-                        "language": "python",
-                        "content_hash": result.content_hash,
-                    },
-                )
-            )
+        seen_funcs = set()
+        seen_classes = set()
 
         for func in result.functions:
             key = (rel_file, func.name, func.start_line)
@@ -159,25 +131,19 @@ def file_analyses_to_records(
                 "end_line": func.end_line,
                 "is_public": func.is_public,
                 "search_text": _derive_search_text(
-                    rel_file, func.name, func.source_code, func.docstring, func.called_names
+                    rel_file,
+                    func.name,
+                    func.source_code,
+                    func.docstring,
+                    func.called_names,
                 ),
             }
             if include_source:
                 func_properties["source_code"] = func.source_code or ""
-            nodes.append(
-                NodeRecord(
-                    id=func_id,
-                    type="Function",
-                    properties=func_properties,
-                )
-            )
-            edges.append(
-                EdgeRecord(
-                    src_id=rel_file,
-                    dst_id=func_id,
-                    type="CONTAINS_FUNCTION",
-                    properties={},
-                )
+            yield NodeRecord(
+                id=func_id,
+                type="Function",
+                properties=func_properties,
             )
 
         for cls in result.classes:
@@ -203,43 +169,100 @@ def file_analyses_to_records(
             }
             if include_source:
                 class_properties["source_code"] = cls.source_code or ""
-            nodes.append(
-                NodeRecord(
-                    id=class_id,
-                    type="Class",
-                    properties=class_properties,
-                )
-            )
-            edges.append(
-                EdgeRecord(
-                    src_id=rel_file,
-                    dst_id=class_id,
-                    type="CONTAINS_CLASS",
-                    properties={},
-                )
+            yield NodeRecord(
+                id=class_id,
+                type="Class",
+                properties=class_properties,
             )
 
-    if resolved_calls:
+
+def iter_edge_records(
+    results: List[FileAnalysis],
+    project_root: Path,
+    resolved_calls: Optional[Iterable[Mapping[str, object]]] = None,
+) -> Iterator[EdgeRecord]:
+    """Yield containment and call edges without a full in-memory edge list."""
+    for result in results:
+        rel_file = to_relative_path(result.file_path, project_root)
+        seen_funcs = set()
+        seen_classes = set()
+
+        for func in result.functions:
+            key = (rel_file, func.name, func.start_line)
+            if key in seen_funcs:
+                continue
+            seen_funcs.add(key)
+            yield EdgeRecord(
+                src_id=rel_file,
+                dst_id=make_function_id(
+                    result.file_path, func.name, func.start_line, project_root
+                ),
+                type="CONTAINS_FUNCTION",
+                properties={},
+            )
+
+        for cls in result.classes:
+            key = (rel_file, cls.name, cls.start_line)
+            if key in seen_classes:
+                continue
+            seen_classes.add(key)
+            yield EdgeRecord(
+                src_id=rel_file,
+                dst_id=make_class_id(
+                    result.file_path, cls.name, cls.start_line, project_root
+                ),
+                type="CONTAINS_CLASS",
+                properties={},
+            )
+
+    if resolved_calls is not None:
         for call in resolved_calls:
             caller_id = make_function_id(
-                call["caller_file"],
-                call["caller_function"],
-                call["caller_start_line"],
+                str(call["caller_file"]),
+                str(call["caller_function"]),
+                int(call["caller_start_line"]),
                 project_root,
             )
             callee_id = make_function_id(
-                call["callee_file"],
-                call["callee_function"],
-                call["callee_start_line"],
+                str(call["callee_file"]),
+                str(call["callee_function"]),
+                int(call["callee_start_line"]),
                 project_root,
             )
-            edges.append(
-                EdgeRecord(
-                    src_id=caller_id,
-                    dst_id=callee_id,
-                    type="CALLS",
-                    properties={"call_line": call["call_line"]},
-                )
+            yield EdgeRecord(
+                src_id=caller_id,
+                dst_id=callee_id,
+                type="CALLS",
+                properties={"call_line": int(call["call_line"])},
             )
 
-    return nodes, edges
+
+def file_analyses_to_records(
+    results: List[FileAnalysis],
+    project_root: Path,
+    resolved_calls: Optional[Iterable[Mapping[str, object]]] = None,
+    include_source: bool = False,
+) -> Tuple[List[NodeRecord], List[EdgeRecord]]:
+    """Convert analyzer output into canonical NodeRecord/EdgeRecord lists.
+
+    Args:
+        results: FileAnalysis objects from CodeAnalyzer.analyze_directory.
+        project_root: Root directory for relative paths (matches the ID
+            hashing convention used elsewhere in the codebase).
+        resolved_calls: Optional resolved CALLS edges from
+            CallResolver.resolve_all_calls(), same shape export_to_parquet
+            expects.
+        include_source: If True, also store each function/class's full
+            source_code as a graph property (opt-in -- see
+            docs/explanation/source-of-truth-and-search-representations.md
+            for why this isn't the default: it duplicates storage across a
+            large repo and BM25/vector search always use the compact
+            search_text field regardless of this flag).
+
+    Returns:
+        (nodes, edges) ready for CodeGraphBackend.upsert_nodes/upsert_edges.
+    """
+    return (
+        list(iter_node_records(results, project_root, include_source)),
+        list(iter_edge_records(results, project_root, resolved_calls)),
+    )

@@ -1,9 +1,18 @@
 # Streaming Ingestion: Measured Performance
 
 > Status: **evidence log**, not a design. Every number here was measured on this
-> machine against `/home/pedot/Developpments/gemseo` (2,107 Python files) with the
-> streaming ingestion pipeline (`graph/lattice_streaming.py`) merged into main.
-> Reproduce with the `perfo/` scripts named in each section.
+> machine against `/home/pedot/Developpments/gemseo` with the streaming ingestion
+> pipeline (`graph/lattice_streaming.py`) merged into main. Reproduce with the
+> `perfo/` scripts named in each section.
+>
+> **What the corpus actually is:** that path is not the `gemseo` library alone —
+> it is a parent directory holding three projects (`gemseo`, the MDO library;
+> `gemseo-scenario-configurable`, a FastAPI/SQLAlchemy/Kubernetes service; and
+> `gemseo_as_a_service`), 2,107 Python files in total. So it is a small
+> multi-project monorepo, which makes it a more representative target than a
+> single library — but it also means the call mix is skewed toward web-framework
+> and test-mock calls, which matters when reading the call-resolution numbers
+> below.
 
 ## Why this document exists
 
@@ -286,6 +295,74 @@ and that goal is met by converting and dropping each `FileAnalysis` as it arrive
 This is consistent with the Cypher planner problems already documented in
 `latticedb-migration.md`'s performance findings, and is why
 `perfo/benchmark_call_resolution_quality.py` uses the imperative API.
+
+## Index maintenance, measured
+
+`perfo/benchmark_index_maintenance_cost.py`, identical graph contents in both rows:
+
+| Configuration | Wall | Commit | DB size |
+|---|---|---|---|
+| All indexes (current) | 29.7s | 17.2s | 243 MB |
+| No FTS index | **25.4s** | **13.3s** | **159 MB** |
+
+The BM25 index costs **4.3s (14% of wall) and 84 MB (35% of the file)**. Real, and
+worth moving to a post-load build eventually — `create_node_fts_index` scans
+existing nodes once, so the same index can be had for one bulk scan instead of
+maintenance across ~15k individual writes — but it is not the dominant cost.
+
+## The dominant cost: unresolved call references
+
+Sampling 4,000 records from `UNRESOLVED_CALL_STREAM`:
+
+| | Share |
+|---|---|
+| Target name does **not** exist anywhere in the graph (stdlib, third-party, builtins) | **86.4%** |
+| Target name **does** exist — a potential missed edge | 13.6% |
+| `call.unresolved` / `call.ambiguous` | 90.7% / 9.3% |
+| Call shape: `obj.method()` / bare `func()` / `self.method()` | 55% / 44% / 0.3% |
+
+Classifying the absent names by what they actually are (8,000-record sample):
+
+| Bucket | Share of absent | Examples |
+|---|---|---|
+| Attribute calls on external objects | 36.8% | `logger.info`, `mock.patch`, `list.append`, `session.commit`, `client.post` |
+| External class constructors | 29.4% | `Mock`, `MagicMock`, `Column`, `HTTPException`, `Depends`, `Path` |
+| **Python builtins** | **24.1%** | `print`, `len`, `str`, `isinstance`, `object`, `ValueError`, `hasattr` |
+| **Stdlib** | **8.5%** | `json.dumps`, `uuid4`, `time.sleep`, `re.match`, `os.getenv` |
+| Bare names not in graph | 1.2% | `cls`, `get_type_hints`, `defaultdict` |
+
+About a third is core Python — and more than that in truth, since `Path`,
+`ValueError` and `object` land in the constructor bucket by capitalization rather
+than by origin. The rest is third-party framework and mock code, inflated here by
+the web-service and test-heavy projects in this particular corpus.
+
+This split matters for the fix: **builtins and stdlib can be filtered in-process
+for free**, using `dir(builtins)` and `sys.stdlib_module_names`, before a
+reference ever reaches the database. The framework calls need the graph's own
+function-name set, which is only complete at finalize time.
+
+So roughly **39,000 of the 45,320 references can never resolve**, no matter how
+many files arrive. Each one is nonetheless published to the pending stream, read
+back during finalize, put through a full candidate lookup, and republished to the
+unresolved stream — six operations for a call to `len()`. Summing what that
+costs: the finalize pass (10.7s, 35% of wall) plus the `apply_call_outcomes`
+share of commit time (~33% of 17.2s ≈ 5.7s) is **over half the run**, more than
+FTS, buffer-pool, batching, and parallelism put together.
+
+It is also the *quality* story, and it is better than the raw ratio suggests:
+only ~6,160 references (13.6% of 45,320) name a function that genuinely exists
+and were not linked. Against 8,237 resolved, the import-aware resolver captures
+roughly **57% of resolvable internal calls** — not 15%. The old name-matching
+resolver's ~320,000 edges were largely spurious by comparison.
+
+### `read_stream` is not quadratic
+
+Paging `UNRESOLVED_CALL_STREAM` at `limit=500` costs 8ms for the first page and
+7ms for the last — flat in offset. The earlier suspicion that `_finalize_pending`
+scales quadratically in pending-call count is **disproved**; its cost is simply
+proportional to how many references it re-examines, which is why cutting the
+external 86% matters. (An earlier probe that appeared to hang for minutes was
+doing a full label scan, not stream paging.)
 
 ## Open questions (measurements in flight)
 

@@ -450,7 +450,18 @@ class CodeAnalyzer:
                 # Tree-sitter AST parsing is CPU-intensive and benefits from true parallelism.
                 # Threads are blocked by Python's GIL, making them ineffective for CPU-bound work.
                 worker_count = max_workers or min(4, os.cpu_count() or 1)
-                max_pending = max(worker_count * 2, 1)
+                # In-flight window. Sized against the CONSUMER's batch, not just
+                # the worker count: submit_next() only fires when the consumer
+                # pulls, so while the consumer is committing a batch nothing new
+                # is submitted. If the window is smaller than one batch's worth
+                # of files, workers drain it during batch assembly and then sit
+                # idle for the whole commit -- visible as a flat/100%/flat
+                # sawtooth in CPU usage. Measured on gemseo: 16 workers gave a
+                # 32-file window against ~66 files per batch, so the pool idled
+                # through every commit. Each pending FileAnalysis costs ~63 KB
+                # (perfo/benchmark_ingest_stage_balance.py), so a deeper window
+                # is cheap: 256 in flight is ~16 MB.
+                max_pending = max(worker_count * 2, settings.analysis_queue_depth, 1)
                 file_iterator = iter(python_files)
 
                 with ProcessPoolExecutor(

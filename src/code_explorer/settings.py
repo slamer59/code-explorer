@@ -38,8 +38,17 @@ class Settings(BaseSettings):
 
     # Search indexing uses CPU-bound parser processes. Saturate all logical CPUs
     # by default; the environment setting remains available when headroom is
-    # preferred. The pending queue is still bounded to twice this worker count.
+    # preferred.
     analysis_workers: int = os.cpu_count() or 1
+
+    # Minimum number of parsed files kept in flight ahead of the consumer.
+    # Must exceed the files-per-batch the consumer swallows, or the worker pool
+    # drains during batch assembly and idles through the whole commit (a
+    # flat/100%/flat CPU sawtooth). Measured on gemseo: ~66 files per batch at
+    # the 2,000-op batch size the adaptive controller picked, against an
+    # in-flight window of only 32 (2 x 16 workers). At ~63 KB per pending
+    # FileAnalysis this is cheap -- 256 in flight is ~16 MB.
+    analysis_queue_depth: int = 256
 
     # Directories skipped by ingest_incremental's file walk (see graph/graph.py).
     default_exclude_patterns: List[str] = [

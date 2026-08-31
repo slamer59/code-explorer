@@ -31,11 +31,12 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Design Decisions](explanation/design-decisions.md) - Why we chose AST + Astroid + KuzuDB
 - [Incremental Updates](explanation/incremental-updates.md) - Content hash-based change detection
 - [Graph Algorithms](explanation/graph-algorithms.md) - Dependency traversal strategies
-- [LatticeDB Migration](explanation/latticedb-migration.md) - Kùzu → LatticeDB storage migration: implementation status, real Kuzu-vs-LatticeDB performance measurements, and remaining design (hybrid retrieval, confidence-aware impact)
+- [LatticeDB Migration](explanation/latticedb-migration.md) - Kùzu → LatticeDB storage migration: implementation status, real Kuzu-vs-LatticeDB performance measurements, and remaining design (confidence-aware impact)
 - [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
 - [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source doesn't live in LatticeDB at monorepo scale, and the SourceProvider design that implements it (implemented)
 - [Indexing Docs for Search Context](explanation/indexing-docs-for-search-context.md) - Idea to index Markdown headings/sections (README, docs/) alongside code for BM25/vector search, using tree-sitter-markdown (not yet implemented)
 - [Configuration](explanation/configuration.md) - Centralized pydantic-settings config for Ollama endpoint/model, embedding/upsert batch sizes, and incremental-reindex exclude patterns, overridable via CODE_EXPLORER_ env vars or a .env file (implemented)
+- [Scoped Monorepo Indexing](explanation/scoped-monorepo-indexing.md) - Design for a `--only PATH` include-scope so `analyze`/`search` can index just part of a large monorepo instead of walking the whole tree (not yet implemented)
 
 ## Quick Links
 

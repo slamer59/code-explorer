@@ -180,6 +180,20 @@ def _module_name(relative_file: str) -> str:
     return ".".join(parts)
 
 
+def _module_contains(module: str, imported_module: str) -> bool:
+    """True when `imported_module` appears in `module` as whole segments.
+
+    Segment-aligned on purpose: a plain substring test would make
+    `pkg.algos` match `pkg.algorithms`, and a plain prefix test would miss
+    the src-layout case entirely. Both directions count -- see the caller
+    for the two layouts this approximates.
+    """
+    if not module or not imported_module:
+        return False
+    padded = f".{module}."
+    return f".{imported_module}." in padded
+
+
 def _resolve_relative_module(
     caller_module: str, imported_module: Optional[str], is_relative: bool
 ) -> str:
@@ -264,6 +278,11 @@ def _records_for_file(
             function = functions_by_key[(properties["name"], properties["start_line"])]
             properties["module"] = module
             properties["parent_class"] = function.parent_class or ""
+        elif node.type == "Class":
+            # Same module property Function nodes get: a class is a valid
+            # call target (its constructor), and the explicit-import rule
+            # matches candidates on module.
+            properties["module"] = module
         enriched_nodes.append(
             NodeRecord(id=node.id, type=node.type, properties=properties)
         )
@@ -383,6 +402,11 @@ class LatticeStreamingIngestor:
         ]
 
         if reference["target_module"]:
+            # Class candidates have no parent_class property at all (only
+            # methods do), so `not candidate["parent_class"]` -- which exists
+            # to reject a method reached by a bare module-level import --
+            # admits them unchanged: a module-level class is exactly what a
+            # `from pkg.mod import Thing; Thing()` site should resolve to.
             imported = [
                 candidate
                 for candidate in named
@@ -391,7 +415,50 @@ class LatticeStreamingIngestor:
             ]
             if len(imported) == 1:
                 return imported[0], "explicit_import"
-            return None, "ambiguous" if finalize and len(imported) > 1 else None
+            if len(imported) > 1:
+                return None, "ambiguous" if finalize else None
+
+            # Approximation, deliberately not real import-following. A
+            # candidate's `module` is derived purely from its path relative
+            # to the indexed root, so it agrees with the module an import
+            # statement names only in the simplest layout. Two very common
+            # cases where it does not, both measured on the 2,107-file
+            # gemseo corpus (a parent directory holding three projects):
+            #
+            #  - src layout / multi-project root. `from gemseo.algos.
+            #    design_space import DesignSpace` resolves to a file whose
+            #    derived module is `gemseo.src.gemseo.algos.design_space`.
+            #    The imported module is a dotted *suffix* of it.
+            #  - package re-export. `from gemseo import create_discipline`
+            #    (119 unresolved references on its own) names a symbol
+            #    re-exported by an __init__.py but defined in a submodule,
+            #    so the imported module is a *prefix* of the definition's.
+            #
+            # So: accept a candidate whose derived module contains the
+            # imported module as a whole dotted segment run, in either
+            # direction. What this can get wrong is picking the wrong
+            # definition when two same-named module-level symbols sit under
+            # (or above) one package path and only one is really the import
+            # target -- e.g. a vendored copy alongside the original. We take
+            # the match only when it is unique among fetched candidates,
+            # which bounds that but does not eliminate it, and mark the
+            # result low-confidence. It is self-limiting to project code: a
+            # stdlib or third-party `from x import y` has no candidate nodes
+            # whose module mentions `x` at all, so nothing matches.
+            #
+            # Worth the imprecision at scale: 4,728 of 45,320 unresolved
+            # references on that corpus target an internal project module,
+            # and essentially none of them can match the exact rule above.
+            target_module = reference["target_module"]
+            related = [
+                candidate
+                for candidate in named
+                if _module_contains(candidate["module"] or "", target_module)
+                and not candidate["parent_class"]
+            ]
+            if len(related) == 1:
+                return related[0], "package_reexport"
+            return None, "ambiguous" if finalize and len(related) > 1 else None
 
         if reference["qualifier"] == "self" and reference["caller_class"]:
             same_class = [
@@ -444,7 +511,12 @@ class LatticeStreamingIngestor:
                 requests[("module", reference["target_module"])] = 10_000
             for base in reference["caller_bases"] or []:
                 requests[("parent_class", base)] = 10_000
-        candidates_by_key = self.backend.find_functions_by_properties(requests)
+        # Function *and* Class candidates: constructing a project class is a
+        # call site whose definition is a Class node. Measured on the 2,107-
+        # file gemseo corpus, 4,728 of 45,320 unresolved references pointed
+        # at an internal module, dominated by class constructors
+        # (DesignSpace: 250, MDOFunction: 199, AnalyticDiscipline: 103).
+        candidates_by_key = self.backend.find_symbols_by_properties(requests)
         file_hashes = self.backend.get_file_content_hashes(
             reference["caller_file"] for reference in references
         )
@@ -490,8 +562,15 @@ class LatticeStreamingIngestor:
                     {
                         "reference": reference,
                         "target_id": target["id"],
+                        "target_type": target.get("node_type", "Function"),
                         "resolution_method": method,
-                        "confidence": "low" if method == "global_unique" else "high",
+                        # package_reexport joins global_unique as "low": both
+                        # are name-level guesses, not a followed import.
+                        "confidence": (
+                            "low"
+                            if method in ("global_unique", "package_reexport")
+                            else "high"
+                        ),
                     }
                 )
             else:

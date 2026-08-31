@@ -394,6 +394,66 @@ def test_self_call_resolves_when_direct_base_arrives_in_a_later_batch(temp_dir):
     ) == [{"caller": "run", "target_file": "base.py", "method": "direct_base"}]
 
 
+def test_constructing_a_project_class_resolves_to_its_class_node(temp_dir):
+    caller = _analyze(
+        temp_dir,
+        "caller.py",
+        "from models.space import DesignSpace\n\ndef run():\n    DesignSpace()\n",
+    )
+    target = _analyze(
+        temp_dir,
+        "models/space.py",
+        "class DesignSpace:\n    pass\n",
+    )
+    graph = _graph(temp_dir)
+
+    stats = graph.ingest_analysis_stream(
+        iter([caller, target]), batch_size=4, assume_new=True
+    )
+
+    assert graph.backend.query(
+        "MATCH (a:Function)-[c:CALLS]->(b:Class) "
+        "RETURN a.name AS caller, b.name AS target, c.resolution_method AS method"
+    ) == [{"caller": "run", "target": "DesignSpace", "method": "explicit_import"}]
+    assert _unresolved(graph) == []
+    assert stats["calls_resolved"] == 1
+
+
+def test_package_reexported_function_resolves_to_its_defining_module(temp_dir):
+    caller = _analyze(
+        temp_dir,
+        "caller.py",
+        "from pkg import create_thing\n\ndef run():\n    create_thing()\n",
+    )
+    package_init = _analyze(
+        temp_dir,
+        "pkg/__init__.py",
+        "from pkg.factory import create_thing\n",
+    )
+    definition = _analyze(
+        temp_dir,
+        "pkg/factory.py",
+        "def create_thing():\n    pass\n",
+    )
+    graph = _graph(temp_dir)
+
+    graph.ingest_analysis_stream(
+        iter([caller, package_init, definition]), batch_size=4, assume_new=True
+    )
+
+    assert graph.backend.query(
+        "MATCH (a:Function)-[c:CALLS]->(b:Function) "
+        "RETURN b.file AS target_file, c.resolution_method AS method, "
+        "c.confidence AS confidence"
+    ) == [
+        {
+            "target_file": "pkg/factory.py",
+            "method": "package_reexport",
+            "confidence": "low",
+        }
+    ]
+
+
 def test_two_calls_to_same_target_on_one_line_remain_distinct_references(temp_dir):
     analysis = _analyze(
         temp_dir,

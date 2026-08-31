@@ -72,6 +72,12 @@ _UPSERT_BATCH_SIZE = settings.upsert_batch_size
 # monkeypatch-friendliness as _UPSERT_BATCH_SIZE above.
 _EMBED_BATCH_SIZE = settings.embed_batch_size
 
+# Node labels a call site can resolve to. Classes are here because `Foo()` on
+# a project class is a call whose definition is a Class node, not a Function
+# node; restricting candidate lookup to "Function" made every project-class
+# construction permanently unresolvable.
+CALL_TARGET_LABELS: Tuple[str, ...] = ("Function", "Class")
+
 PENDING_CALL_STREAM = "__code_explorer_pending_calls"
 UNRESOLVED_CALL_STREAM = "code_explorer_unresolved_calls"
 
@@ -150,9 +156,16 @@ class LatticeBackend:
         # 'file' property, which also needs an index.
         for label in FILE_SCOPED_NODE_TYPES:
             self._ensure_node_property_index(label, "file")
-        self._ensure_node_property_index("Function", "name")
-        self._ensure_node_property_index("Function", "module")
-        self._ensure_node_property_index("Function", "parent_class")
+        # Call resolution looks candidates up by these properties on *both*
+        # Function and Class labels (a call to a project class constructor
+        # targets a Class node -- see find_symbols_by_properties). Every
+        # property looked up must be indexed, including "parent_class" on
+        # Class, which no Class node actually carries: the lookup itself is
+        # still issued for that label, and an indexless lookup raises
+        # LatticeUnsupportedError rather than degrading to a scan.
+        for label in CALL_TARGET_LABELS:
+            for prop in ("name", "module", "parent_class"):
+                self._ensure_node_property_index(label, prop)
         self._ensure_edge_property_index("CALLS", "call_reference_id")
         for label, prop in SEARCHABLE_TEXT_FIELDS.items():
             if not self.db.has_node_fts_index(label, prop):
@@ -352,6 +365,25 @@ class LatticeBackend:
         self, requests: Mapping[Tuple[str, Any], int]
     ) -> Dict[Tuple[str, Any], List[Dict[str, Any]]]:
         """Resolve a bounded group of index lookups in one read transaction."""
+        return self.find_symbols_by_properties(requests, labels=("Function",))
+
+    def find_symbols_by_properties(
+        self,
+        requests: Mapping[Tuple[str, Any], int],
+        labels: Tuple[str, ...] = CALL_TARGET_LABELS,
+    ) -> Dict[Tuple[str, Any], List[Dict[str, Any]]]:
+        """Resolve a bounded group of index lookups in one read transaction.
+
+        Each candidate carries a "node_type" so the caller can tell a Class
+        definition from a Function one -- resolution rules differ (a Class
+        has no parent_class) and apply_call_outcomes needs the label to look
+        the target's internal id back up by primary key.
+
+        `limit` is applied per label, so a request asking for at most N
+        candidates can return up to N*len(labels). That only matters for the
+        finalize-time "is this name globally unique?" probe, which asks for 2
+        purely to distinguish one from many -- more is still "many".
+        """
         properties = (
             "id",
             "name",
@@ -364,12 +396,15 @@ class LatticeBackend:
         results: Dict[Tuple[str, Any], List[Dict[str, Any]]] = {}
         with self.db.read() as txn:
             for (property_key, value), limit in requests.items():
-                ids = txn.find_nodes_by_label_property(
-                    "Function", property_key, value, limit=limit
-                )
-                results[(property_key, value)] = [
-                    self._node_dict(txn, node_id, properties) for node_id in ids
-                ]
+                candidates: List[Dict[str, Any]] = []
+                for label in labels:
+                    for node_id in txn.find_nodes_by_label_property(
+                        label, property_key, value, limit=limit
+                    ):
+                        candidate = self._node_dict(txn, node_id, properties)
+                        candidate["node_type"] = label
+                        candidates.append(candidate)
+                results[(property_key, value)] = candidates
         return results
 
     def apply_call_outcomes(
@@ -397,8 +432,13 @@ class LatticeBackend:
                         caller_id = self._find_node_id(
                             txn, "Function", reference["caller_id"]
                         )
+                        # A CALLS edge can point at a Class (constructor
+                        # call), so the target's label comes from the
+                        # resolution rather than being assumed Function.
                         target_id = self._find_node_id(
-                            txn, "Function", resolution["target_id"]
+                            txn,
+                            resolution.get("target_type", "Function"),
+                            resolution["target_id"],
                         )
                         if caller_id is None or target_id is None:
                             continue

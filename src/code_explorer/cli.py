@@ -707,63 +707,43 @@ def search(
     from .context import ContextAssembler
     from .graph import DependencyGraph
     from .graph.backends.lattice_backend import LatticeBackend
+    from .hybrid_search import reciprocal_rank_fusion
 
     target = Path(path).resolve()
-    index_name = "graph_vectors.lattice" if semantic else "graph.lattice"
-    db_path = target / ".code-explorer" / index_name
+    bm25_db_path = target / ".code-explorer" / "graph.lattice"
+    vector_db_path = target / ".code-explorer" / "graph_vectors.lattice"
+    db_path = vector_db_path if semantic else bm25_db_path
 
-    needs_index = reindex or not db_path.exists()
-    if reindex:
-        for stale in db_path.parent.glob(db_path.name + "*"):
-            stale.unlink(missing_ok=True)
+    def _open_and_sync(db_path: Path, enable_vectors: bool, force_reindex: bool) -> DependencyGraph:
+        """Open (building/updating as needed) one LatticeDB index. Used
+        once for the primary index (BM25 or vector, per --semantic), and a
+        second time for the vector index when hybrid retrieval kicks in
+        (see the hybrid block below) -- factored out so both call sites
+        share the same build/incremental-update/corrupt-recovery logic
+        that previously lived inline here for the single-index case.
+        """
+        needs_index = force_reindex or not db_path.exists()
+        if force_reindex:
+            for stale in db_path.parent.glob(db_path.name + "*"):
+                stale.unlink(missing_ok=True)
 
-    def _build_index(needs_index: bool) -> DependencyGraph:
-        backend = LatticeBackend(db_path, enable_vectors=semantic)
-        graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
-        if needs_index:
-            console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
-            results = CodeAnalyzer().analyze_directory(target)
-            resolved_calls = CallResolver(results).resolve_all_calls()
+        def _build_index(needs_index: bool) -> DependencyGraph:
+            backend = LatticeBackend(db_path, enable_vectors=enable_vectors)
+            graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
+            if needs_index:
+                console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
+                results = CodeAnalyzer().analyze_directory(target)
+                resolved_calls = CallResolver(results).resolve_all_calls()
 
-            n_functions = sum(len(r.functions) for r in results)
-            n_classes = sum(len(r.classes) for r in results)
-            # Matches graph/ingest.py's file_analyses_to_records: one File
-            # node per file, one CONTAINS_FUNCTION/CONTAINS_CLASS edge per
-            # function/class, one CALLS edge per resolved call.
-            n_nodes_estimate = len(results) + n_functions + n_classes
-            n_edges_estimate = n_functions + n_classes + len(resolved_calls)
+                n_functions = sum(len(r.functions) for r in results)
+                n_classes = sum(len(r.classes) for r in results)
+                # Matches graph/ingest.py's file_analyses_to_records: one File
+                # node per file, one CONTAINS_FUNCTION/CONTAINS_CLASS edge per
+                # function/class, one CALLS edge per resolved call.
+                n_nodes_estimate = len(results) + n_functions + n_classes
+                n_edges_estimate = n_functions + n_classes + len(resolved_calls)
 
-            t0 = time.time()
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                MofNCompleteColumn(),
-                TimeElapsedColumn(),
-                console=console,
-            ) as progress:
-                node_task = progress.add_task("Writing nodes", total=n_nodes_estimate)
-                edge_task = progress.add_task("Writing edges", total=n_edges_estimate)
-                graph.ingest_results(
-                    results,
-                    resolved_calls=resolved_calls,
-                    include_source=include_source,
-                    on_node_progress=lambda: progress.advance(node_task),
-                    on_edge_progress=lambda: progress.advance(edge_task),
-                    # Safe here specifically: this branch only runs right
-                    # after either a brand-new db_path or one we just deleted
-                    # (see needs_index/--reindex above) -- never against a
-                    # backend that might already hold some of these nodes.
-                    assume_new=True,
-                )
-            console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
-            if semantic:
-                console.print(
-                    "[cyan]Generating embeddings via local Ollama[/cyan] "
-                    "(batched Ollama HTTP calls, this is the slow "
-                    "part) ..."
-                )
-                t1 = time.time()
+                t0 = time.time()
                 with Progress(
                     SpinnerColumn(),
                     TextColumn("[progress.description]{task.description}"),
@@ -772,69 +752,121 @@ def search(
                     TimeElapsedColumn(),
                     console=console,
                 ) as progress:
-                    embed_task = progress.add_task(
-                        "Embedding", total=n_functions + n_classes
+                    node_task = progress.add_task("Writing nodes", total=n_nodes_estimate)
+                    edge_task = progress.add_task("Writing edges", total=n_edges_estimate)
+                    graph.ingest_results(
+                        results,
+                        resolved_calls=resolved_calls,
+                        include_source=include_source,
+                        on_node_progress=lambda: progress.advance(node_task),
+                        on_edge_progress=lambda: progress.advance(edge_task),
+                        # Safe here specifically: this branch only runs right
+                        # after either a brand-new db_path or one we just deleted
+                        # (see needs_index/force_reindex above) -- never against
+                        # a backend that might already hold some of these nodes.
+                        assume_new=True,
                     )
-                    n = graph.backend.build_vector_index(
-                        on_progress=lambda: progress.advance(embed_task)
+                console.print(f"[green]Done[/green] in {time.time() - t0:.1f}s.")
+                if enable_vectors:
+                    console.print(
+                        "[cyan]Generating embeddings via local Ollama[/cyan] "
+                        "(batched Ollama HTTP calls, this is the slow "
+                        "part) ..."
                     )
-                console.print(f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s.")
+                    t1 = time.time()
+                    with Progress(
+                        SpinnerColumn(),
+                        TextColumn("[progress.description]{task.description}"),
+                        BarColumn(),
+                        MofNCompleteColumn(),
+                        TimeElapsedColumn(),
+                        console=console,
+                    ) as progress:
+                        embed_task = progress.add_task(
+                            "Embedding", total=n_functions + n_classes
+                        )
+                        n = graph.backend.build_vector_index(
+                            on_progress=lambda: progress.advance(embed_task)
+                        )
+                    console.print(f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s.")
+            return graph
+
+        try:
+            graph = _build_index(needs_index)
+            if not needs_index:
+                # Index already exists and force_reindex wasn't passed: don't
+                # silently reuse it as-is (stale data), and don't pay for a
+                # full rebuild either -- hash every file, skip unchanged ones,
+                # and invalidate+reprocess only what changed (Phase 3).
+                t0 = time.time()
+                stats = graph.ingest_incremental(target)
+                elapsed = time.time() - t0
+                if stats["reprocessed"] or stats["deleted"]:
+                    console.print(
+                        f"[cyan]Updated[/cyan] {stats['reprocessed']} changed file(s), "
+                        f"removed {stats['deleted']} deleted file(s), "
+                        f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
+                    )
+                    if enable_vectors and stats["changed_node_ids"]:
+                        # ingest_incremental only touches nodes/edges/BM25 text --
+                        # it doesn't call build_vector_index. Deleted/old vectors
+                        # are already gone (delete_file removes the node itself),
+                        # so the only gap is new/changed nodes having no vector
+                        # yet -- re-embed just those (node_ids scoping, see
+                        # LatticeBackend.build_vector_index), not the whole repo.
+                        t1 = time.time()
+                        n = graph.backend.build_vector_index(
+                            node_ids=stats["changed_node_ids"]
+                        )
+                        console.print(
+                            f"[cyan]Re-embedded[/cyan] {n} changed node(s) "
+                            f"({time.time() - t1:.1f}s)."
+                        )
+        except Exception as e:
+            if needs_index:
+                # We were already building a fresh index -- this is a real
+                # failure (permissions, disk, Ollama down for --semantic, etc.),
+                # not a stale-index problem. Don't retry, just report it.
+                console.print(f"[red]Error:[/red] Failed to build search index: {e}")
+                sys.exit(1)
+            # We tried to reuse an existing index and opening it failed -- most
+            # likely leftover state from an interrupted previous run (a killed
+            # process, a crash mid-write). It's a disposable derived cache, not
+            # source data, so rebuild it automatically instead of surfacing a
+            # raw "I/O error" and making the user diagnose it themselves.
+            console.print(
+                f"[yellow]Existing index at {db_path} looks corrupt or "
+                f"incomplete ({e}) -- rebuilding from scratch...[/yellow]"
+            )
+            for stale in db_path.parent.glob(db_path.name + "*"):
+                stale.unlink(missing_ok=True)
+            try:
+                graph = _build_index(needs_index=True)
+            except Exception as e2:
+                console.print(f"[red]Error:[/red] Failed to build search index: {e2}")
+                sys.exit(1)
         return graph
 
-    try:
-        graph = _build_index(needs_index)
-        if not needs_index:
-            # Index already exists and --reindex wasn't passed: don't
-            # silently reuse it as-is (stale data), and don't pay for a
-            # full rebuild either -- hash every file, skip unchanged ones,
-            # and invalidate+reprocess only what changed (Phase 3).
-            t0 = time.time()
-            stats = graph.ingest_incremental(target)
-            elapsed = time.time() - t0
-            if stats["reprocessed"] or stats["deleted"]:
-                console.print(
-                    f"[cyan]Updated[/cyan] {stats['reprocessed']} changed file(s), "
-                    f"removed {stats['deleted']} deleted file(s), "
-                    f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
-                )
-                if semantic and stats["changed_node_ids"]:
-                    # ingest_incremental only touches nodes/edges/BM25 text --
-                    # it doesn't call build_vector_index. Deleted/old vectors
-                    # are already gone (delete_file removes the node itself),
-                    # so the only gap is new/changed nodes having no vector
-                    # yet -- re-embed just those (node_ids scoping, see
-                    # LatticeBackend.build_vector_index), not the whole repo.
-                    t1 = time.time()
-                    n = graph.backend.build_vector_index(
-                        node_ids=stats["changed_node_ids"]
-                    )
-                    console.print(
-                        f"[cyan]Re-embedded[/cyan] {n} changed node(s) "
-                        f"({time.time() - t1:.1f}s)."
-                    )
-    except Exception as e:
-        if needs_index:
-            # We were already building a fresh index -- this is a real
-            # failure (permissions, disk, Ollama down for --semantic, etc.),
-            # not a stale-index problem. Don't retry, just report it.
-            console.print(f"[red]Error:[/red] Failed to build search index: {e}")
-            sys.exit(1)
-        # We tried to reuse an existing index and opening it failed -- most
-        # likely leftover state from an interrupted previous run (a killed
-        # process, a crash mid-write). It's a disposable derived cache, not
-        # source data, so rebuild it automatically instead of surfacing a
-        # raw "I/O error" and making the user diagnose it themselves.
-        console.print(
-            f"[yellow]Existing index at {db_path} looks corrupt or "
-            f"incomplete ({e}) -- rebuilding from scratch...[/yellow]"
-        )
-        for stale in db_path.parent.glob(db_path.name + "*"):
-            stale.unlink(missing_ok=True)
-        try:
-            graph = _build_index(needs_index=True)
-        except Exception as e2:
-            console.print(f"[red]Error:[/red] Failed to build search index: {e2}")
-            sys.exit(1)
+    graph = _open_and_sync(db_path, enable_vectors=semantic, force_reindex=reindex)
+
+    # Hybrid retrieval (Phase 6): only when the user asked for plain search
+    # (no explicit --fuzzy/--semantic -- those mean "I want exactly that
+    # mode") AND a vector index already exists on disk for this repo. Never
+    # build the vector index here -- that would silently charge an Ollama
+    # embedding bill to someone who never opted into --semantic. Once
+    # --semantic has been run here at least once, ordinary `search` calls
+    # get the BM25+vector fusion benefit for free from then on. See
+    # docs/explanation/latticedb-migration.md's Phase 6 status for the
+    # rejected alternative (always building both indexes).
+    vector_graph: Optional[DependencyGraph] = None
+    hybrid = not fuzzy and not semantic and vector_db_path.exists()
+    if hybrid:
+        vector_graph = _open_and_sync(vector_db_path, enable_vectors=True, force_reindex=False)
+
+    def _close_all() -> None:
+        graph.backend.close()
+        if vector_graph is not None:
+            vector_graph.backend.close()
 
     # Minimal "try exact match, fall back to BM25" heuristic (see
     # docs/explanation/latticedb-migration.md's Implementation Status
@@ -864,18 +896,31 @@ def search(
                         console.print(ctx.to_markdown())
                     except (ValueError, FileNotFoundError) as e:
                         console.print(f"[yellow]Could not assemble context:[/yellow] {e}")
-                graph.backend.close()
+                _close_all()
                 return
             # QUERY looked target-shaped but didn't resolve -- fall through
             # to BM25 below rather than erroring; it might just be a phrase
             # that happens to contain a single colon.
 
-    mode = "semantic (vector)" if semantic else ("fuzzy BM25" if fuzzy else "BM25")
+    if semantic:
+        mode = "semantic (vector)"
+    elif fuzzy:
+        mode = "fuzzy BM25"
+    elif hybrid:
+        mode = "hybrid BM25+vector"
+    else:
+        mode = "BM25"
     console.print(f"[dim]Running {mode} search for {query!r}...[/dim]")
     t2 = time.time()
     try:
         if semantic:
             hits = graph.backend.search_vector(query, limit=limit)
+        elif hybrid:
+            bm25_hits = graph.backend.search_text(query, limit=limit)
+            vector_hits = vector_graph.backend.search_vector(query, limit=limit)
+            # RRF, not raw score blending -- BM25's score and vector's
+            # distance aren't on comparable scales. See hybrid_search.py.
+            hits = reciprocal_rank_fusion([bm25_hits, vector_hits], limit=limit)
         else:
             hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
     except Exception as e:
@@ -885,16 +930,21 @@ def search(
 
     if not hits:
         console.print(f"[yellow]No results for[/yellow] {query!r}")
-        if not fuzzy and not semantic:
+        if not fuzzy and not semantic and not hybrid:
             console.print(
                 "[dim]Try --fuzzy for typo tolerance, or --semantic for "
                 "conceptual search (needs local Ollama).[/dim]"
             )
-        graph.backend.close()
+        _close_all()
         return
 
     console.print()
-    score_label = "Distance (lower=closer)" if semantic else "Score"
+    if semantic:
+        score_label = "Distance (lower=closer)"
+    elif hybrid:
+        score_label = "Fused rank score"
+    else:
+        score_label = "Score"
     table = Table(title=f"Search results for {query!r}")
     table.add_column("Type")
     table.add_column("Name")
@@ -919,6 +969,10 @@ def search(
         else:
             console.print(f"[dim]Assembling context for {top.file}::{top.name}...[/dim]")
             try:
+                # Always via `graph` (the BM25/primary index), even in
+                # hybrid mode: both indexes cover the same source and are
+                # kept in sync (see _open_and_sync above), and only `graph`
+                # is guaranteed non-None here.
                 ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
                 console.print()
                 console.print(
@@ -930,7 +984,7 @@ def search(
             except (ValueError, FileNotFoundError) as e:
                 console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 
-    graph.backend.close()
+    _close_all()
 
 
 @cli.command()

@@ -143,17 +143,38 @@ repeatedly, while anything that's naturally one bulk operation doesn't.
 | This repo (small) | fast (Parquet/COPY-FROM path, not measured head-to-head here) | 0.44s (generic path) | 0.32s |
 | gemseo (338K edges) | not measured at this scale | 62.78s | **34.77s (1.81x)** |
 
-LatticeDB's generic node/edge write path (the only one available — there is no
-bulk-insert-with-properties primitive, confirmed from the library's own README,
-only a vector-only `batch_insert_vectors(label, vectors)` that can't hold arbitrary
-properties) starts out slow because every edge resolves its endpoints via a DB
-lookup. The fix that actually mattered: build a `{canonical_id: internal_id}` map
-once while writing nodes, and have edge creation use that map from memory instead
-of a lookup per endpoint (`graph/backends/lattice_backend.py`'s `upsert_nodes`
-return value / `upsert_edges`' `node_id_map` parameter). A separate optimization
-(`assume_new`, skipping the *node* existence-check) gave only ~1.01x at this same
-scale — it targeted the wrong side of the problem: edges outnumber nodes ~22:1 on
-a real codebase, so node-side savings barely register against edge-side cost.
+LatticeDB has a JSON/CSV CLI importer, but it is transaction batching rather than
+a native bulk graph primitive: its inputs are read into memory and generic nodes
+and edges are still created record-by-record. The Python `batch_insert` name is a
+deprecated alias for vector-only `batch_insert_vectors`, so it cannot ingest this
+property graph.
+
+Search indexing therefore uses an application-level bounded pipeline. Parser
+workers keep at most twice the configured worker count in flight. Completed files
+are converted into batches capped by both record count and estimated bytes; while
+the single Lattice writer commits batch A, workers fill batch B. Only the current
+batch's canonical-to-internal node map remains in Python memory.
+
+The record target is calibrated inside that same pipeline rather than by a
+preliminary scan. Initial commits interleave doubled targets from 1,000 through
+8,000 operations (three samples per target by default), measure real end-to-end
+writer throughput, and then hold the smallest target whose median throughput is
+within 5% of the measured peak. The 8 MiB estimated-payload ceiling remains in
+force throughout calibration and steady state, so exploration cannot turn into a
+repository-sized intermediate buffer. All limits and calibration parameters are
+Pydantic settings documented in `configuration.md`.
+
+Resolved calls become normal `Function -[:CALLS]-> Function` edges immediately.
+Calls whose target has not arrived are published as compact records to a native
+Lattice durable stream. At end-of-input that stream is read and resolved in
+1,000-record windows; still-unresolved or ambiguous records move to a durable
+unresolved stream for later incremental reconsideration. The CLI replaces the
+completed parser line with progress and ETA for this final streamed pass, so a
+large pending-call set is not presented as an apparently stale completed scan.
+This was materially
+faster than representing every call as a property-heavy staging node: on this
+repository's 46-file `src` tree, that first design took 52.0s; the durable-stream
+version took 3.0s with about 178 MiB peak RSS and no swap.
 
 ### Query latency (reading data back)
 
@@ -1197,7 +1218,9 @@ support.
 
 **Risk: Single-writer ingestion.** LatticeDB uses an embedded single-writer model.
 Therefore: many parser workers → one ingestion coordinator → LatticeDB. Do not allow
-parser workers to write directly to the database.
+parser workers to write directly to the database. The coordinator uses bounded
+record/byte batches, and unresolved calls use Lattice durable streams rather than a
+repository-sized Python list.
 
 **Risk: Vector memory.** Vectors and HNSW indexing have memory and storage costs.
 Mitigation: embed fewer entities, separate vector phase, benchmark dimensions,

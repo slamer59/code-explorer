@@ -66,15 +66,25 @@ class FunctionExtractor(BaseExtractor):
             source_lines: Source code lines for extracting source code
         """
         # Extract function name using child_by_field_name
-        name_node = node.child_by_field_name("name") if hasattr(node, "child_by_field_name") else None
+        name_node = (
+            node.child_by_field_name("name")
+            if hasattr(node, "child_by_field_name")
+            else None
+        )
 
         if name_node is None:
-            logger.warning(f"Function definition without name at line {node.start_point[0] + 1}")
+            logger.warning(
+                f"Function definition without name at line {node.start_point[0] + 1}"
+            )
             return
 
         # Get function name from the identifier node
         try:
-            func_name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
+            func_name = (
+                name_node.text.decode("utf-8")
+                if isinstance(name_node.text, bytes)
+                else name_node.text
+            )
         except Exception as e:
             logger.warning(f"Could not extract function name: {e}")
             return
@@ -93,7 +103,11 @@ class FunctionExtractor(BaseExtractor):
             except Exception as e:
                 logger.warning(f"Could not extract source for {func_name}: {e}")
 
-        body_node = node.child_by_field_name("body") if hasattr(node, "child_by_field_name") else None
+        body_node = (
+            node.child_by_field_name("body")
+            if hasattr(node, "child_by_field_name")
+            else None
+        )
 
         func_info = FunctionInfo(
             name=func_name,
@@ -142,19 +156,32 @@ class FunctionExtractor(BaseExtractor):
             tree: Tree-sitter root node
             result: FileAnalysis to populate
         """
-        # Build a map of current function context during traversal
-        current_function_stack: List[str] = []
-
         # First pass: collect all function definitions and their positions
         func_positions: dict[Tuple[int, int], str] = {}
         for node in walk_tree(tree):
             if hasattr(node, "type") and node.type == "function_definition":
-                name_node = node.child_by_field_name("name") if hasattr(node, "child_by_field_name") else None
+                name_node = (
+                    node.child_by_field_name("name")
+                    if hasattr(node, "child_by_field_name")
+                    else None
+                )
                 if name_node:
                     try:
-                        func_name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
-                        start_line = node.start_point[0] + 1 if hasattr(node, "start_point") else 0
-                        end_line = node.end_point[0] + 1 if hasattr(node, "end_point") else start_line
+                        func_name = (
+                            name_node.text.decode("utf-8")
+                            if isinstance(name_node.text, bytes)
+                            else name_node.text
+                        )
+                        start_line = (
+                            node.start_point[0] + 1
+                            if hasattr(node, "start_point")
+                            else 0
+                        )
+                        end_line = (
+                            node.end_point[0] + 1
+                            if hasattr(node, "end_point")
+                            else start_line
+                        )
                         func_positions[(start_line, end_line)] = func_name
                     except Exception:
                         pass
@@ -162,7 +189,9 @@ class FunctionExtractor(BaseExtractor):
         # Second pass: find function calls and determine their context
         for node in walk_tree(tree):
             if hasattr(node, "type") and node.type == "call":
-                call_line = node.start_point[0] + 1 if hasattr(node, "start_point") else 0
+                call_line = (
+                    node.start_point[0] + 1 if hasattr(node, "start_point") else 0
+                )
 
                 # Find which function contains this call
                 caller_name = self._find_containing_function(call_line, func_positions)
@@ -170,12 +199,13 @@ class FunctionExtractor(BaseExtractor):
                     continue
 
                 # Extract the called function name
-                called_name = self._extract_call_name(node)
+                called_name, qualifier = self._extract_call_target(node)
                 if called_name:
                     call_info = FunctionCall(
                         caller_function=caller_name,
                         called_name=called_name,
                         call_line=call_line,
+                        qualifier=qualifier,
                     )
                     result.function_calls.append(call_info)
 
@@ -205,8 +235,14 @@ class FunctionExtractor(BaseExtractor):
         Returns:
             Function name or None
         """
+        return self._extract_call_target(call_node)[0]
+
+    def _extract_call_target(
+        self, call_node: Any
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """Return the final called name and its optional receiver text."""
         if not hasattr(call_node, "children") or len(call_node.children) == 0:
-            return None
+            return None, None
 
         # The first child of a call node is typically the function being called
         func_node = call_node.children[0]
@@ -215,23 +251,54 @@ class FunctionExtractor(BaseExtractor):
             if hasattr(func_node, "type"):
                 if func_node.type == "identifier":
                     # Simple function call: func()
-                    text = func_node.text.decode("utf-8") if isinstance(func_node.text, bytes) else func_node.text
-                    return text
+                    text = (
+                        func_node.text.decode("utf-8")
+                        if isinstance(func_node.text, bytes)
+                        else func_node.text
+                    )
+                    return text, None
                 elif func_node.type == "attribute":
+                    object_node = (
+                        func_node.child_by_field_name("object")
+                        if hasattr(func_node, "child_by_field_name")
+                        else None
+                    )
+                    qualifier = None
+                    if object_node is not None:
+                        qualifier = (
+                            object_node.text.decode("utf-8")
+                            if isinstance(object_node.text, bytes)
+                            else object_node.text
+                        )
                     # Method call: obj.method()
                     # Get the attribute name (last child is usually the attribute)
                     if hasattr(func_node, "children") and len(func_node.children) > 0:
                         # For attribute access, the last child is typically the attribute name
                         attr_node = func_node.children[-1]
-                        if hasattr(attr_node, "type") and attr_node.type == "identifier":
-                            text = attr_node.text.decode("utf-8") if isinstance(attr_node.text, bytes) else attr_node.text
-                            return text
+                        if (
+                            hasattr(attr_node, "type")
+                            and attr_node.type == "identifier"
+                        ):
+                            text = (
+                                attr_node.text.decode("utf-8")
+                                if isinstance(attr_node.text, bytes)
+                                else attr_node.text
+                            )
+                            return text, qualifier
                     # Fallback: try field_name access
-                    attr_node = func_node.child_by_field_name("attribute") if hasattr(func_node, "child_by_field_name") else None
+                    attr_node = (
+                        func_node.child_by_field_name("attribute")
+                        if hasattr(func_node, "child_by_field_name")
+                        else None
+                    )
                     if attr_node:
-                        text = attr_node.text.decode("utf-8") if isinstance(attr_node.text, bytes) else attr_node.text
-                        return text
+                        text = (
+                            attr_node.text.decode("utf-8")
+                            if isinstance(attr_node.text, bytes)
+                            else attr_node.text
+                        )
+                        return text, qualifier
         except Exception as e:
             logger.debug(f"Could not extract call name: {e}")
 
-        return None
+        return None, None

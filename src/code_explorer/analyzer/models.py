@@ -5,7 +5,7 @@ Extracted from analyzer.py lines 32-170.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import List, Optional
 
 
 @dataclass
@@ -45,6 +45,12 @@ class FunctionCall:
     caller_function: str
     called_name: str
     call_line: int
+    # Text to the left of an attribute call (``service`` in
+    # ``service.save()`` or ``self`` in ``self.save()``).  Keeping this at
+    # extraction time is essential for import/class-aware resolution; reducing
+    # every call to the final identifier makes common Django method names
+    # indistinguishable.
+    qualifier: Optional[str] = None
 
 
 @dataclass

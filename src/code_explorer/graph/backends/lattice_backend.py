@@ -24,7 +24,7 @@ Key differences from KuzuBackend that shape this implementation:
 
 import heapq
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import latticedb
 
@@ -72,6 +72,9 @@ _UPSERT_BATCH_SIZE = settings.upsert_batch_size
 # monkeypatch-friendliness as _UPSERT_BATCH_SIZE above.
 _EMBED_BATCH_SIZE = settings.embed_batch_size
 
+PENDING_CALL_STREAM = "__code_explorer_pending_calls"
+UNRESOLVED_CALL_STREAM = "code_explorer_unresolved_calls"
+
 
 def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:
     for i in range(0, len(items), size):
@@ -112,6 +115,7 @@ class LatticeBackend:
             self.db_path,
             create=not self.read_only,
             read_only=self.read_only,
+            cache_size_mb=settings.lattice_cache_size_mb,
             enable_vectors=self.enable_vectors,
             vector_dimensions=self.vector_dimensions,
         )
@@ -128,6 +132,12 @@ class LatticeBackend:
         except latticedb.LatticeAlreadyExistsError:
             pass
 
+    def _ensure_edge_property_index(self, edge_type: str, prop: str) -> None:
+        try:
+            self.db.create_edge_property_index(edge_type, prop)
+        except latticedb.LatticeAlreadyExistsError:
+            pass
+
     def initialize_schema(self) -> None:
         if self.read_only:
             return
@@ -140,6 +150,10 @@ class LatticeBackend:
         # 'file' property, which also needs an index.
         for label in FILE_SCOPED_NODE_TYPES:
             self._ensure_node_property_index(label, "file")
+        self._ensure_node_property_index("Function", "name")
+        self._ensure_node_property_index("Function", "module")
+        self._ensure_node_property_index("Function", "parent_class")
+        self._ensure_edge_property_index("CALLS", "call_reference_id")
         for label, prop in SEARCHABLE_TEXT_FIELDS.items():
             if not self.db.has_node_fts_index(label, prop):
                 self.db.create_node_fts_index(label, prop)
@@ -260,6 +274,22 @@ class LatticeBackend:
             file_id = self._find_node_id(txn, "File", file_key)
             if file_id is not None:
                 node_ids.append(file_id)
+            # A target-file update deletes incoming CALLS edges. Their compact
+            # extraction facts ride on the edge and are republished atomically
+            # so a replacement definition can resolve them later.
+            for node_id in node_ids:
+                for edge in (
+                    *txn.get_outgoing_edges(node_id),
+                    *txn.get_incoming_edges(node_id),
+                ):
+                    if edge.edge_type != "CALLS":
+                        continue
+                    reference = txn.get_edge_property(edge.id, "call_reference")
+                    if not reference or reference.get("caller_file") == file_key:
+                        continue
+                    txn.publish_stream(
+                        PENDING_CALL_STREAM, reference, kind="call.pending"
+                    )
 
             for node_id in node_ids:
                 for edge in txn.get_outgoing_edges(node_id):
@@ -270,9 +300,161 @@ class LatticeBackend:
                 txn.delete_node(node_id)
             txn.commit()
 
+    def get_search_node_ids_for_files(self, files: Iterable[str]) -> List[int]:
+        """Return Function/Class internal IDs for incremental embedding."""
+        ids: List[int] = []
+        with self.db.read() as txn:
+            for file_key in files:
+                for node_type in ("Function", "Class"):
+                    ids.extend(
+                        txn.find_nodes_by_label_property(
+                            node_type, "file", file_key, limit=100_000
+                        )
+                    )
+        return ids
+
+    def get_file_content_hashes(
+        self, file_keys: Iterable[str]
+    ) -> Dict[str, Optional[str]]:
+        """Read bounded caller generations in one read transaction."""
+        hashes: Dict[str, Optional[str]] = {}
+        with self.db.read() as txn:
+            for file_key in set(file_keys):
+                node_id = self._find_node_id(txn, "File", file_key)
+                hashes[file_key] = (
+                    txn.get_property(node_id, "content_hash")
+                    if node_id is not None
+                    else None
+                )
+        return hashes
+
     def clear_all(self) -> None:
         for node_type in NODE_PRIMARY_KEY:
             self.query(f"MATCH (n:{node_type}) DETACH DELETE n")
+
+    def _node_dict(
+        self,
+        txn: "latticedb.Transaction",
+        node_id: int,
+        properties: Iterable[str],
+    ) -> Dict[str, Any]:
+        return {key: txn.get_property(node_id, key) for key in properties}
+
+    def find_functions_by_property(
+        self, property_key: str, value: Any, *, limit: int = 10_000
+    ) -> List[Dict[str, Any]]:
+        """Return functions through a declared Lattice equality index."""
+        return self.find_functions_by_properties({(property_key, value): limit})[
+            (property_key, value)
+        ]
+
+    def find_functions_by_properties(
+        self, requests: Mapping[Tuple[str, Any], int]
+    ) -> Dict[Tuple[str, Any], List[Dict[str, Any]]]:
+        """Resolve a bounded group of index lookups in one read transaction."""
+        properties = (
+            "id",
+            "name",
+            "file",
+            "module",
+            "parent_class",
+            "start_line",
+            "end_line",
+        )
+        results: Dict[Tuple[str, Any], List[Dict[str, Any]]] = {}
+        with self.db.read() as txn:
+            for (property_key, value), limit in requests.items():
+                ids = txn.find_nodes_by_label_property(
+                    "Function", property_key, value, limit=limit
+                )
+                results[(property_key, value)] = [
+                    self._node_dict(txn, node_id, properties) for node_id in ids
+                ]
+        return results
+
+    def apply_call_outcomes(
+        self,
+        resolutions: Iterable[Mapping[str, Any]],
+        deferred: Iterable[Mapping[str, Any]],
+        *,
+        deferred_stream: str = PENDING_CALL_STREAM,
+        trim_stream: Optional[str] = None,
+        trim_through: Optional[int] = None,
+    ) -> int:
+        """Write resolved edges and deferred facts in bounded transactions."""
+        outcomes = [
+            *(("resolved", resolution) for resolution in resolutions),
+            *(("deferred", reference) for reference in deferred),
+        ]
+        count = 0
+        batches = list(_chunked(outcomes, _UPSERT_BATCH_SIZE)) or [[]]
+        for batch_index, batch in enumerate(batches):
+            with self.db.write() as txn:
+                for outcome, item in batch:
+                    if outcome == "resolved":
+                        resolution = item
+                        reference = resolution["reference"]
+                        caller_id = self._find_node_id(
+                            txn, "Function", reference["caller_id"]
+                        )
+                        target_id = self._find_node_id(
+                            txn, "Function", resolution["target_id"]
+                        )
+                        if caller_id is None or target_id is None:
+                            continue
+                        if txn.find_edges_by_type_property(
+                            "CALLS",
+                            "call_reference_id",
+                            reference["id"],
+                            limit=1,
+                        ):
+                            continue
+                        txn.create_edge(
+                            caller_id,
+                            target_id,
+                            "CALLS",
+                            properties={
+                                "call_line": reference["call_line"],
+                                "call_reference_id": reference["id"],
+                                "call_reference": reference,
+                                "resolution_method": resolution["resolution_method"],
+                                "confidence": resolution["confidence"],
+                            },
+                        )
+                        count += 1
+                    else:
+                        reference = item
+                        txn.publish_stream(
+                            deferred_stream,
+                            reference,
+                            kind=reference.get("status", "call.pending"),
+                        )
+                is_last_chunk = batch_index == len(batches) - 1
+                if is_last_chunk and trim_stream and trim_through is not None:
+                    txn.trim_stream(trim_stream, trim_through)
+                txn.commit()
+        return count
+
+    def requeue_unresolved_calls(self, limit: int = 1000) -> int:
+        """Move durable unresolved facts back to the pending stream."""
+        after = 0
+        moved = 0
+        while records := self.db.read_stream(
+            UNRESOLVED_CALL_STREAM, after_sequence=after, limit=limit
+        ):
+            through = records[-1].sequence
+            with self.db.write() as txn:
+                for record in records:
+                    reference = dict(record.payload)
+                    reference.pop("status", None)
+                    txn.publish_stream(
+                        PENDING_CALL_STREAM, reference, kind="call.pending"
+                    )
+                    moved += 1
+                txn.trim_stream(UNRESOLVED_CALL_STREAM, through)
+                txn.commit()
+            after = through
+        return moved
 
     def query(
         self, statement: str, params: Optional[Dict[str, Any]] = None
@@ -317,9 +499,7 @@ class LatticeBackend:
             callees = _resolve(txn.get_outgoing_edges(internal_id), "target_id")
             return callers, callees
 
-    def get_most_called_functions(
-        self, limit: int = 20
-    ) -> List[Tuple[str, str, int]]:
+    def get_most_called_functions(self, limit: int = 20) -> List[Tuple[str, str, int]]:
         """Imperative-API implementation -- see CodeGraphBackend's docstring
         for why (measured ~19x faster than the equivalent Cypher aggregation
         on gemseo's real 338K-edge graph: 1.25s vs 23.9s). Iterates every
@@ -442,7 +622,9 @@ class LatticeBackend:
             # single write transaction sits open waiting on the network.
             for batch in _chunked(list(node_ids), _UPSERT_BATCH_SIZE):
                 with self.db.write() as txn:
-                    count += self._embed_batch(txn, batch, "search_text", model, on_progress)
+                    count += self._embed_batch(
+                        txn, batch, "search_text", model, on_progress
+                    )
                     txn.commit()
             return count
 

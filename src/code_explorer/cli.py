@@ -147,6 +147,46 @@ def cli() -> None:
     pass
 
 
+
+def _report_unresolved(graph, db_path: Path, total: int) -> None:
+    """Summarise unresolved call targets on screen, full list to a file.
+
+    The finalize pass only reports a count, which says something is missing
+    without saying what. Failures here are swallowed: knowing what did not
+    resolve is a diagnostic, and must never break indexing or search.
+    """
+    from .graph.backends.lattice_backend import UNRESOLVED_CALL_STREAM
+    from .unresolved_report import (
+        project_modules_from_files,
+        summarize_unresolved,
+        write_report,
+    )
+
+    try:
+        rows = graph.backend.query("MATCH (f:File) RETURN f.path AS path")
+        project_modules = project_modules_from_files(
+            r["path"] for r in rows if r.get("path")
+        )
+        buckets, targets = summarize_unresolved(
+            graph.backend, UNRESOLVED_CALL_STREAM, project_modules
+        )
+        if not targets:
+            return
+        report_path = db_path.parent / "unresolved-calls.txt"
+        write_report(report_path, buckets, targets, project_modules)
+    except Exception as e:  # noqa: BLE001 - diagnostics must not break the build
+        console.print(f"[dim]Could not summarise unresolved calls: {e}[/dim]")
+        return
+
+    parts = [
+        f"{count:,} {label}" for label, count in sorted(buckets.items(), key=lambda kv: -kv[1])
+    ]
+    console.print(f"[dim]Unresolved: {'; '.join(parts)}.[/dim]")
+    top = ", ".join(f"{name} ({count:,})" for name, count in targets.most_common(5))
+    console.print(f"[dim]Most common: {top}[/dim]")
+    console.print(f"[dim]Full list: {report_path}[/dim]")
+
+
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option(
@@ -856,6 +896,8 @@ def search(
                         "unattributable calls skipped (builtins, attribute "
                         "calls on locals).[/dim]"
                     )
+                if stats["calls_unresolved"]:
+                    _report_unresolved(graph, db_path, stats["calls_unresolved"])
                 if stats["adaptive_batching"]:
                     console.print(
                         "[dim]Adaptive batching selected "

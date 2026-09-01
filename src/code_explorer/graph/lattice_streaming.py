@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from statistics import median
@@ -566,6 +567,13 @@ class LatticeStreamingIngestor:
         # cache is small and turns "look numpy.array up 2,247 times" into one
         # lookup.
         self._external_symbol_ids: Dict[str, int] = {}
+        # How many CALLS edges each resolution rule produced, for the whole
+        # run. Kept because the only way to tell a real improvement from a
+        # reshuffle is the per-method split: a change can leave
+        # `calls_resolved` flat while moving thousands of edges from a fuzzy
+        # rule to an exact one (or the reverse). Surfaced in ingest()'s stats
+        # as `resolution_method_<name>`.
+        self._resolution_methods: Counter = Counter()
 
     def _write_external_calls(
         self,
@@ -793,6 +801,7 @@ class LatticeStreamingIngestor:
                 reference, list(candidates_by_id.values()), finalize=finalize
             )
             if target is not None and method is not None:
+                self._resolution_methods[method] += 1
                 resolutions.append(
                     {
                         "reference": reference,
@@ -980,6 +989,8 @@ class LatticeStreamingIngestor:
         )
         stats["calls_resolved"] += resolved
         stats["calls_unresolved"] = unresolved
+        for method, count in self._resolution_methods.items():
+            stats[f"resolution_method_{method}"] = count
         stats["calls_pending"] = unresolved
         stats["total_edges"] += resolved
         # Build the BM25 indexes here, after the last write transaction has

@@ -364,6 +364,46 @@ proportional to how many references it re-examines, which is why cutting the
 external 86% matters. (An earlier probe that appeared to hang for minutes was
 doing a full label scan, not stream paging.)
 
+## Resolution quality: classes were never searched
+
+Call resolution looked up candidates via `find_functions_by_properties`, which
+queries `Function` nodes only — but `file_analyses_to_records` also creates
+`Class` nodes, so **every call to a project class constructor was unresolvable**.
+Extending the lookup to both labels (`find_symbols_by_properties`) plus an
+approximate re-export rule took resolved CALLS edges from **8,237 to 15,071
+(+83%)** on this corpus, of which **5,379 target a Class node**.
+
+Resolution-method split after the change: `global_unique` 6,250,
+`package_reexport` 6,121, `same_class` 1,277, `same_file` 1,187,
+`direct_base` 181.
+
+Cost: wall clock rose 32.1s → 34.2s (finalize 11.7s → 13.7s) because each lookup
+now materialises candidates for two labels instead of one.
+
+### Root cause worth fixing: module names are derived from the wrong root
+
+`explicit_import` — the highest-confidence rule — fired **zero times** on this
+corpus. `_module_name()` derives a module from the file path relative to the
+*indexed root* rather than the *package root*, so a src-layout project yields:
+
+```
+file:    gemseo/src/gemseo/algos/design_space.py
+derived: gemseo.src.gemseo.algos.design_space
+import:  gemseo.algos.design_space          -> no match
+```
+
+The current workaround accepts a candidate whose derived module contains the
+imported module as a whole dotted segment run, in either direction, when that
+match is unique (`package_reexport`, confidence `low`). That recovered 6,121
+resolutions which should properly have been high-confidence `explicit_import`
+matches.
+
+The real fix is standard: walk up from each file while `__init__.py` exists, take
+the first directory without one as the package root, and derive the module
+relative to that. It handles src-layout, flat layout, and multi-project
+monorepos — precisely the case this project targets — and would let the fuzzy
+matcher be tightened rather than relied upon.
+
 ## Open questions (measurements in flight)
 
 - **Of the 45,320 unresolved references, how many name a function that actually exists

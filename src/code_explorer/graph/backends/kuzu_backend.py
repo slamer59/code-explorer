@@ -92,7 +92,10 @@ class KuzuBackend:
         self.db = None
         self.schema_manager = None
 
-    def initialize_schema(self) -> None:
+    def initialize_schema(self, *, create_fts_indexes: bool = True) -> None:
+        # create_fts_indexes is accepted for backend-protocol parity and
+        # ignored: Kuzu search here is Cypher/regex over stored columns, so
+        # there is no separate full-text index to defer past a bulk load.
         if self.read_only:
             return
         self.schema_manager.create_schema()

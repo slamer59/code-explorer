@@ -65,7 +65,11 @@ def main() -> None:
     console.print(f"[cyan]Indexing[/cyan] {target} (workers={settings.analysis_workers}) ...")
 
     backend = LatticeBackend(db_path)
-    graph = DependencyGraph(db_path=db_path, project_root=target, backend=backend)
+    # Matches the CLI's from-scratch build path (the db is wiped just above):
+    # BM25 indexes are built once after ingestion, not maintained per write.
+    graph = DependencyGraph(
+        db_path=db_path, project_root=target, backend=backend, defer_fts_indexes=True
+    )
 
     wait_times: List[float] = []
     commit_times: List[float] = []

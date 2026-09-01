@@ -29,8 +29,15 @@ class CodeGraphBackend(Protocol):
         """Close the underlying database connection."""
         ...
 
-    def initialize_schema(self) -> None:
-        """Create node/edge tables if they don't already exist."""
+    def initialize_schema(self, *, create_fts_indexes: bool = True) -> None:
+        """Create node/edge tables if they don't already exist.
+
+        create_fts_indexes=False asks a backend that maintains full-text
+        indexes to skip creating them here, so a bulk load isn't paying
+        index maintenance per write; the caller is then responsible for
+        building them afterwards (LatticeBackend.ensure_fts_indexes).
+        Backends without such indexes ignore it.
+        """
         ...
 
     def upsert_nodes(

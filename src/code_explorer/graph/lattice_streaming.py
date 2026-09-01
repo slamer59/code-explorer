@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from statistics import median
 from time import perf_counter
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -16,6 +18,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
 )
@@ -194,18 +197,59 @@ def _module_name(relative_file: str) -> str:
     return ".".join(parts)
 
 
-def _module_contains(module: str, imported_module: str) -> bool:
-    """True when `imported_module` appears in `module` as whole segments.
+def _package_root_depth(parts: Sequence[str], package_dirs: AbstractSet[str]) -> int:
+    """How many leading path segments of a file are *above* its package root.
 
-    Segment-aligned on purpose: a plain substring test would make
-    `pkg.algos` match `pkg.algorithms`, and a plain prefix test would miss
-    the src-layout case entirely. Both directions count -- see the caller
-    for the two layouts this approximates.
+    Standard rule: walk up from the file's directory while `__init__.py`
+    exists; the first directory without one is the package root, and the
+    module name is the path relative to that. Handles src layout, flat
+    layout, and a parent directory holding several projects.
+
+    HYPOTHESIS: a directory holding an `__init__.py` is a package, and one
+    holding none is not. Namespace packages (PEP 420) carry no
+    `__init__.py`, so the walk cannot see them. Two consequences, both
+    deliberate:
+
+     - If the file's own directory is not a package, no walk happens at all
+       and the module stays project-root-relative -- the pre-existing
+       behaviour, which is the right answer for a flat repository and for
+       `models/space.py` imported as `models.space` with the repository
+       root on sys.path.
+     - A package nested inside a namespace package (`src/ns/pkg/mod.py`
+       where only `pkg` has an `__init__.py`) is named from `pkg`, i.e. one
+       segment too short. Rarer than the src-layout case this fixes, and
+       ProjectScope still registers both spellings as internal modules, so
+       the cost is a missed `explicit_import`, not a wrong edge.
+    """
+    directories = list(parts[:-1])
+    root_depth = len(directories)
+    if root_depth and "/".join(directories) not in package_dirs:
+        return 0
+    while root_depth > 0 and "/".join(directories[:root_depth]) in package_dirs:
+        root_depth -= 1
+    return root_depth
+
+
+def _reexporting_package(module: str, imported_module: str) -> bool:
+    """True when `imported_module` is an ancestor package of `module`.
+
+    Prefix-only, and segment-aligned so `pkg.algos` does not match
+    `pkg.algorithms`. This is the shape of a genuine re-export: `from pkg
+    import create_thing` names the package, while the definition lives in
+    `pkg.factory` below it.
+
+    This used to accept the *suffix* direction too, which was the only way
+    to match a src-layout file whose module was mis-derived as
+    `pkg.src.pkg.algos.space`. With modules now derived from the package
+    root that direction is dead: dropping it moved zero resolutions on the
+    2,103-file reference corpus (package_reexport 25 either way, calls
+    resolved 15,435 either way), so what it can no longer do is match a
+    vendored copy of a package sitting below the real one -- which it should
+    not have been doing.
     """
     if not module or not imported_module:
         return False
-    padded = f".{module}."
-    return f".{imported_module}." in padded
+    return module == imported_module or module.startswith(f"{imported_module}.")
 
 # Top-level-or-indented `def` / `async def` / `class` headers. A regex, not an
 # AST walk, on purpose: measured at 72ms over the 2,107-file reference corpus
@@ -234,6 +278,20 @@ class ProjectScope:
 
     modules: FrozenSet[str]
     defined_names: FrozenSet[str]
+    # Project-root-relative posix path -> the module name an import
+    # statement would use for that file, derived from its package root.
+    # Only files that live under a package root differ from _module_name();
+    # the map is kept whole anyway (2,103 short strings on the reference
+    # corpus, well under a megabyte) so the lookup has no fallback branch.
+    modules_by_file: Mapping[str, str] = field(default_factory=dict)
+
+    def module_for(self, relative_file: str) -> str:
+        """The module name imports use for this file, or the flat fallback.
+
+        The fallback covers a file the scope never saw -- an analysis fed in
+        from outside the discovered set, which the tests do.
+        """
+        return self.modules_by_file.get(relative_file) or _module_name(relative_file)
 
     @classmethod
     def from_project_root(
@@ -258,13 +316,11 @@ class ProjectScope:
         }
 
         modules: set[str] = set()
+        modules_by_file: Dict[str, str] = {}
         defined_names: set[str] = set()
         for path, relative in zip(paths, relative_paths):
             parts = relative.split("/")
-            directories = parts[:-1]
-            root_depth = len(directories)
-            while root_depth > 0 and "/".join(directories[:root_depth]) in package_dirs:
-                root_depth -= 1
+            root_depth = _package_root_depth(parts, package_dirs)
             # Both spellings are registered: the package-relative one (what
             # imports actually say) and the project-root-relative one (right
             # for a flat repository, and for loose scripts outside any
@@ -275,13 +331,21 @@ class ProjectScope:
                 module_parts = _module_name("/".join(parts[start:])).split(".")
                 for depth in range(1, len(module_parts) + 1):
                     modules.add(".".join(module_parts[:depth]))
+            # The package-relative spelling is the one a node's `module`
+            # property gets: it is what `from x.y import z` writes, so it is
+            # the only one the explicit-import rule can match against.
+            modules_by_file[relative] = _module_name("/".join(parts[root_depth:]))
             try:
                 source = path.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
             defined_names.update(_DEFINITION_HEADER.findall(source))
         modules.discard("")
-        return cls(modules=frozenset(modules), defined_names=frozenset(defined_names))
+        return cls(
+            modules=frozenset(modules),
+            defined_names=frozenset(defined_names),
+            modules_by_file=modules_by_file,
+        )
 
 
 # How a call site is classified before it ever reaches the resolver.
@@ -401,7 +465,15 @@ def _records_for_file(
         [analysis], project_root, include_source=include_source
     )
     relative_file = to_relative_path(analysis.file_path, project_root)
-    module = _module_name(relative_file)
+    # Package-root-relative when a scope is available. Deriving the module
+    # from the *indexed* root instead is what made `explicit_import` fire
+    # zero times on the reference corpus: `gemseo/src/gemseo/algos/
+    # design_space.py` yielded `gemseo.src.gemseo.algos.design_space` while
+    # every import of it says `gemseo.algos.design_space`.
+    module = (
+        scope.module_for(relative_file) if scope is not None
+        else _module_name(relative_file)
+    )
     functions_by_key = {
         (function.name, function.start_line): function
         for function in analysis.functions
@@ -566,6 +638,13 @@ class LatticeStreamingIngestor:
         # cache is small and turns "look numpy.array up 2,247 times" into one
         # lookup.
         self._external_symbol_ids: Dict[str, int] = {}
+        # How many CALLS edges each resolution rule produced, for the whole
+        # run. Kept because the only way to tell a real improvement from a
+        # reshuffle is the per-method split: a change can leave
+        # `calls_resolved` flat while moving thousands of edges from a fuzzy
+        # rule to an exact one (or the reverse). Surfaced in ingest()'s stats
+        # as `resolution_method_<name>`.
+        self._resolution_methods: Counter = Counter()
 
     def _write_external_calls(
         self,
@@ -653,42 +732,34 @@ class LatticeStreamingIngestor:
             if len(imported) > 1:
                 return None, "ambiguous" if finalize else None
 
-            # Approximation, deliberately not real import-following. A
-            # candidate's `module` is derived purely from its path relative
-            # to the indexed root, so it agrees with the module an import
-            # statement names only in the simplest layout. Two very common
-            # cases where it does not, both measured on the 2,107-file
-            # gemseo corpus (a parent directory holding three projects):
+            # One approximation remains, for re-exports only. `from gemseo
+            # import create_discipline` names a package whose __init__.py
+            # re-exports a symbol defined in a submodule, so the definition
+            # node's module (`gemseo.disciplines.factory`) is never equal to
+            # the imported one (`gemseo`) -- following that would mean
+            # parsing every __init__.py's own imports and chaining them.
+            # Instead: accept a candidate defined anywhere *below* the
+            # imported package, when it is the only such candidate.
             #
-            #  - src layout / multi-project root. `from gemseo.algos.
-            #    design_space import DesignSpace` resolves to a file whose
-            #    derived module is `gemseo.src.gemseo.algos.design_space`.
-            #    The imported module is a dotted *suffix* of it.
-            #  - package re-export. `from gemseo import create_discipline`
-            #    (119 unresolved references on its own) names a symbol
-            #    re-exported by an __init__.py but defined in a submodule,
-            #    so the imported module is a *prefix* of the definition's.
+            # What this can get wrong: two same-named module-level symbols
+            # under one package, only one of which is really re-exported at
+            # the top. Uniqueness among fetched candidates bounds that but
+            # does not eliminate it, so the result stays low-confidence. It
+            # is self-limiting to project code -- a stdlib or third-party
+            # `from x import y` has no candidate node whose module starts
+            # with `x`.
             #
-            # So: accept a candidate whose derived module contains the
-            # imported module as a whole dotted segment run, in either
-            # direction. What this can get wrong is picking the wrong
-            # definition when two same-named module-level symbols sit under
-            # (or above) one package path and only one is really the import
-            # target -- e.g. a vendored copy alongside the original. We take
-            # the match only when it is unique among fetched candidates,
-            # which bounds that but does not eliminate it, and mark the
-            # result low-confidence. It is self-limiting to project code: a
-            # stdlib or third-party `from x import y` has no candidate nodes
-            # whose module mentions `x` at all, so nothing matches.
-            #
-            # Worth the imprecision at scale: 4,728 of 45,320 unresolved
-            # references on that corpus target an internal project module,
-            # and essentially none of them can match the exact rule above.
+            # Scale, measured on the 2,103-file gemseo corpus: this rule
+            # carried 6,062 resolutions while modules were derived from the
+            # indexed root and it was papering over that bug. With modules
+            # derived from the package root it fires 25 times, against 6,525
+            # exact `explicit_import` matches. It is now what it was meant
+            # to be -- a narrow fallback, not the main resolution path.
             target_module = reference["target_module"]
             related = [
                 candidate
                 for candidate in named
-                if _module_contains(candidate["module"] or "", target_module)
+                if _reexporting_package(candidate["module"] or "", target_module)
                 and not candidate["parent_class"]
             ]
             if len(related) == 1:
@@ -793,6 +864,7 @@ class LatticeStreamingIngestor:
                 reference, list(candidates_by_id.values()), finalize=finalize
             )
             if target is not None and method is not None:
+                self._resolution_methods[method] += 1
                 resolutions.append(
                     {
                         "reference": reference,
@@ -980,6 +1052,8 @@ class LatticeStreamingIngestor:
         )
         stats["calls_resolved"] += resolved
         stats["calls_unresolved"] = unresolved
+        for method, count in self._resolution_methods.items():
+            stats[f"resolution_method_{method}"] = count
         stats["calls_pending"] = unresolved
         stats["total_edges"] += resolved
         # Build the BM25 indexes here, after the last write transaction has

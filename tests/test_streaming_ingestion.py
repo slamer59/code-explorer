@@ -468,6 +468,48 @@ def test_package_reexported_function_resolves_to_its_defining_module(temp_dir):
     ]
 
 
+def test_src_layout_import_resolves_by_module_not_by_name(temp_dir):
+    """A file's module must be its *import* name, not its path from the root.
+
+    `pkg/src/pkg/algos/space.py` is imported as `pkg.algos.space`; deriving
+    the module from the indexed root would call it `pkg.src.pkg.algos.space`
+    and no import could ever match it. The decoy makes the point measurable:
+    with a wrong module the only surviving rule is a name-level guess, which
+    two same-named classes defeat.
+    """
+    caller = _analyze(
+        temp_dir,
+        "caller.py",
+        "from pkg.algos.space import DesignSpace\n\ndef run():\n    DesignSpace()\n",
+    )
+    package_init = _analyze(temp_dir, "pkg/src/pkg/__init__.py", "")
+    algos_init = _analyze(temp_dir, "pkg/src/pkg/algos/__init__.py", "")
+    definition = _analyze(
+        temp_dir, "pkg/src/pkg/algos/space.py", "class DesignSpace:\n    pass\n"
+    )
+    decoy = _analyze(temp_dir, "vendor/space.py", "class DesignSpace:\n    pass\n")
+    graph = _graph(temp_dir)
+
+    graph.ingest_analysis_stream(
+        iter([caller, package_init, algos_init, definition, decoy]),
+        batch_size=4,
+        assume_new=True,
+    )
+
+    assert graph.backend.query(
+        "MATCH (a:Function)-[c:CALLS]->(b:Class) "
+        "RETURN b.file AS target_file, b.module AS module, "
+        "c.resolution_method AS method, c.confidence AS confidence"
+    ) == [
+        {
+            "target_file": "pkg/src/pkg/algos/space.py",
+            "module": "pkg.algos.space",
+            "method": "explicit_import",
+            "confidence": "high",
+        }
+    ]
+
+
 def test_two_calls_to_same_target_on_one_line_remain_distinct_references(temp_dir):
     analysis = _analyze(
         temp_dir,

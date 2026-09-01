@@ -68,7 +68,7 @@ def main() -> None:
     # Matches the CLI's from-scratch build path (the db is wiped just above):
     # BM25 indexes are built once after ingestion, not maintained per write.
     graph = DependencyGraph(
-        db_path=db_path, project_root=target, backend=backend, defer_fts_indexes=True
+        db_path=db_path, project_root=target, backend=backend
     )
 
     wait_times: List[float] = []
@@ -98,10 +98,6 @@ def main() -> None:
         batch_size=settings.upsert_batch_size,
         batch_bytes=settings.ingest_batch_bytes,
         assume_new=True,
-        adaptive=settings.adaptive_ingest_batching,
-        max_batch_size=settings.ingest_batch_max_size,
-        calibration_batches=settings.ingest_calibration_batches,
-        throughput_tolerance=settings.ingest_throughput_tolerance,
         on_batch_committed=on_batch_committed,
         on_finalize_progress=on_finalize_progress,
     )
@@ -130,7 +126,6 @@ def main() -> None:
         f"{stats.get('calls_skipped_unattributable', 0):,}",
     )
     table.add_row("Batches", f"{stats['batches']:,}")
-    table.add_row("Selected batch size", f"{stats['selected_batch_size']:,}")
     table.add_row("", "")
     table.add_row("Wall clock", f"{wall:.1f}s")
     table.add_row("Consumer starved (waiting on parse)", f"{starvation:.1f}s  ({starvation / wall * 100:.0f}%)")

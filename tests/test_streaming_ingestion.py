@@ -10,7 +10,6 @@ from code_explorer.graph.backends.lattice_backend import (
 )
 from code_explorer.graph.graph import DependencyGraph
 from code_explorer.graph.lattice_streaming import (
-    AdaptiveBatchController,
     iter_lattice_ingest_batches,
 )
 
@@ -232,74 +231,6 @@ def test_stream_flushes_on_byte_budget_even_below_record_limit(temp_dir):
 
     assert stats["batches"] == 2
 
-
-def test_batch_iterator_reads_the_next_limit_after_each_committed_batch(temp_dir):
-    analyses = [_analyze(temp_dir, f"file_{index}.py", "") for index in range(3)]
-    current_limit = {"operations": 1}
-    batches = iter_lattice_ingest_batches(
-        iter(analyses),
-        temp_dir,
-        batch_size=1,
-        batch_bytes=1024 * 1024,
-        batch_size_provider=lambda: current_limit["operations"],
-    )
-
-    first = next(batches)
-    current_limit["operations"] = 2
-    second = next(batches)
-
-    assert first.operation_count == 1
-    assert first.target_operations == 1
-    assert second.operation_count == 2
-    assert second.target_operations == 2
-
-
-def test_adaptive_batch_controller_selects_smallest_size_near_peak_throughput():
-    controller = AdaptiveBatchController(
-        initial_size=100,
-        max_size=400,
-        samples_per_size=2,
-        throughput_tolerance=0.05,
-    )
-    throughput_by_size = {100: 950.0, 200: 1000.0, 400: 1020.0}
-
-    observed_targets = []
-    for _ in range(6):
-        target = controller.current_size
-        observed_targets.append(target)
-        controller.observe(
-            target_size=target,
-            operation_count=target,
-            estimated_bytes=target * 100,
-            duration_seconds=target / throughput_by_size[target],
-        )
-
-    assert observed_targets == [100, 200, 400, 100, 200, 400]
-    assert controller.selected_size == 200
-    assert controller.current_size == 200
-
-
-def test_streaming_ingest_feeds_commit_measurements_into_next_batch(temp_dir):
-    analyses = [_analyze(temp_dir, f"adaptive_{index}.py", "") for index in range(5)]
-    observed_targets = []
-    graph = _graph(temp_dir)
-
-    stats = graph.ingest_analysis_stream(
-        iter(analyses),
-        batch_size=1,
-        batch_bytes=1024 * 1024,
-        adaptive=True,
-        max_batch_size=2,
-        calibration_batches=1,
-        assume_new=True,
-        on_batch_committed=lambda batch_stats: observed_targets.append(
-            batch_stats["batch_target_size"]
-        ),
-    )
-
-    assert observed_targets[:2] == [1, 2]
-    assert stats["adaptive_samples"] == 2
-    assert stats["selected_batch_size"] in {1, 2}
 
 
 def test_search_reindex_uses_streaming_analysis_not_full_repository_list(

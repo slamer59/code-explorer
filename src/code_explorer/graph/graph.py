@@ -574,10 +574,6 @@ class DependencyGraph:
         batch_bytes: int = 8 * 1024 * 1024,
         include_source: bool = False,
         assume_new: bool = False,
-        adaptive: bool = False,
-        max_batch_size: Optional[int] = None,
-        calibration_batches: int = 3,
-        throughput_tolerance: float = 0.05,
         on_batch_committed: Optional[Callable[[Dict[str, int]], None]] = None,
         on_finalize_progress: Optional[Callable[[Dict[str, int]], None]] = None,
     ) -> Dict[str, int]:
@@ -600,10 +596,6 @@ class DependencyGraph:
             batch_bytes=batch_bytes,
             include_source=include_source,
             assume_new=assume_new,
-            adaptive=adaptive,
-            max_batch_size=max_batch_size,
-            calibration_batches=calibration_batches,
-            throughput_tolerance=throughput_tolerance,
             on_batch_committed=on_batch_committed,
             on_finalize_progress=on_finalize_progress,
         )

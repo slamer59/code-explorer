@@ -69,10 +69,6 @@ class Settings(BaseSettings):
     # chose from partial data. A fixed constant beats every size it can pick.
     # Left in place (not deleted) only because lattice_streaming.py is owned
     # by another change in flight; the flag makes it inert meanwhile.
-    adaptive_ingest_batching: bool = False
-    ingest_batch_max_size: int = 8000
-    ingest_calibration_batches: int = 3
-    ingest_throughput_tolerance: float = 0.05
     lattice_cache_size_mb: int = 100
 
     # Search indexing uses CPU-bound parser processes. Saturate all logical CPUs

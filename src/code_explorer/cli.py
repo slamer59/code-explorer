@@ -796,16 +796,6 @@ def search(
                     nonlocal graph_task
                     batches = batch_stats["batches"]
                     tuning = ""
-                    if batch_stats.get("adaptive_batching"):
-                        selected = batch_stats.get("selected_batch_size", 0)
-                        if selected:
-                            tuning = f" · batch {selected:,} ops"
-                        else:
-                            tuning = (
-                                f" · tune {batch_stats['adaptive_samples']}/"
-                                f"{batch_stats['adaptive_required_samples']} "
-                                f"@ {batch_stats['batch_target_size']:,}"
-                            )
                     description = (
                         f"  ↳ Graph: {batches:,} "
                         f"{'batch' if batches == 1 else 'batches'} · "
@@ -865,10 +855,6 @@ def search(
                         include_source=include_source,
                         # This branch only runs after creating or deleting db_path.
                         assume_new=True,
-                        adaptive=settings.adaptive_ingest_batching,
-                        max_batch_size=settings.ingest_batch_max_size,
-                        calibration_batches=settings.ingest_calibration_batches,
-                        throughput_tolerance=settings.ingest_throughput_tolerance,
                         on_batch_committed=show_graph_progress,
                         on_finalize_progress=show_finalize_progress,
                     )
@@ -898,12 +884,6 @@ def search(
                     )
                 if stats["calls_unresolved"]:
                     _report_unresolved(graph, db_path, stats["calls_unresolved"])
-                if stats["adaptive_batching"]:
-                    console.print(
-                        "[dim]Adaptive batching selected "
-                        f"{stats['selected_batch_size']:,} operations/batch from "
-                        f"{stats['adaptive_samples']:,} measured batches.[/dim]"
-                    )
                 if enable_vectors:
                     console.print(
                         "[cyan]Generating embeddings via local Ollama[/cyan] "

@@ -1,15 +1,17 @@
 """Tests for DependencyGraph.ingest_incremental (Phase 3, incremental
 re-indexing -- see docs/explanation/latticedb-migration.md).
 
-Kept small (3 tests): re-running on an unchanged directory skips
+Kept small (4 tests): re-running on an unchanged directory skips
 everything, modifying one file only reprocesses that file, deleting a
-file cleans it up.
+file cleans it up, and the parallel parse path produces the same graph
+as the sequential one.
 """
 
 from pathlib import Path
 
 from code_explorer.graph.backends.lattice_backend import LatticeBackend
 from code_explorer.graph.graph import DependencyGraph
+from code_explorer.graph import graph as graph_module
 
 
 def _graph(temp_dir: Path) -> DependencyGraph:
@@ -78,3 +80,45 @@ def test_incremental_ingest_cleans_up_deleted_file(temp_dir):
     assert {r["name"] for r in rows} == {"foo"}
     file_rows = graph.backend.query("MATCH (f:File) RETURN f.path AS path")
     assert {r["path"] for r in file_rows} == {"a.py"}
+
+
+def test_incremental_ingest_parallel_parse_matches_sequential(temp_dir, monkeypatch):
+    """The process-pool parse path must produce the same graph as the
+    in-process one -- it changes HOW files are parsed, not WHAT comes out.
+
+    _PARALLEL_PARSE_THRESHOLD is 64 in production (measured, see graph.py);
+    forced to 0 here so a handful of files exercises the pool without the
+    test having to write 64 modules.
+    """
+    for index in range(6):
+        (temp_dir / f"m{index}.py").write_text(
+            f"def fn_{index}():\n    return {index}\n"
+        )
+
+    sequential = _graph(temp_dir)
+    monkeypatch.setattr(graph_module, "_PARALLEL_PARSE_THRESHOLD", 10**9)
+    seq_stats = sequential.ingest_incremental(temp_dir)
+    seq_functions = {
+        (r["file"], r["name"])
+        for r in sequential.backend.query(
+            "MATCH (f:Function) RETURN f.file AS file, f.name AS name"
+        )
+    }
+    sequential.backend.close()
+
+    for stale in temp_dir.glob("graph.lattice*"):
+        stale.unlink()
+
+    parallel = _graph(temp_dir)
+    monkeypatch.setattr(graph_module, "_PARALLEL_PARSE_THRESHOLD", 0)
+    par_stats = parallel.ingest_incremental(temp_dir)
+    par_functions = {
+        (r["file"], r["name"])
+        for r in parallel.backend.query(
+            "MATCH (f:Function) RETURN f.file AS file, f.name AS name"
+        )
+    }
+
+    assert par_stats["reprocessed"] == seq_stats["reprocessed"] == 6
+    assert len(par_stats["changed_node_ids"]) == len(seq_stats["changed_node_ids"])
+    assert par_functions == seq_functions

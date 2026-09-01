@@ -230,18 +230,26 @@ def _package_root_depth(parts: Sequence[str], package_dirs: AbstractSet[str]) ->
     return root_depth
 
 
-def _module_contains(module: str, imported_module: str) -> bool:
-    """True when `imported_module` appears in `module` as whole segments.
+def _reexporting_package(module: str, imported_module: str) -> bool:
+    """True when `imported_module` is an ancestor package of `module`.
 
-    Segment-aligned on purpose: a plain substring test would make
-    `pkg.algos` match `pkg.algorithms`, and a plain prefix test would miss
-    the src-layout case entirely. Both directions count -- see the caller
-    for the two layouts this approximates.
+    Prefix-only, and segment-aligned so `pkg.algos` does not match
+    `pkg.algorithms`. This is the shape of a genuine re-export: `from pkg
+    import create_thing` names the package, while the definition lives in
+    `pkg.factory` below it.
+
+    This used to accept the *suffix* direction too, which was the only way
+    to match a src-layout file whose module was mis-derived as
+    `pkg.src.pkg.algos.space`. With modules now derived from the package
+    root that direction is dead: dropping it moved zero resolutions on the
+    2,103-file reference corpus (package_reexport 25 either way, calls
+    resolved 15,435 either way), so what it can no longer do is match a
+    vendored copy of a package sitting below the real one -- which it should
+    not have been doing.
     """
     if not module or not imported_module:
         return False
-    padded = f".{module}."
-    return f".{imported_module}." in padded
+    return module == imported_module or module.startswith(f"{imported_module}.")
 
 # Top-level-or-indented `def` / `async def` / `class` headers. A regex, not an
 # AST walk, on purpose: measured at 72ms over the 2,107-file reference corpus
@@ -724,42 +732,34 @@ class LatticeStreamingIngestor:
             if len(imported) > 1:
                 return None, "ambiguous" if finalize else None
 
-            # Approximation, deliberately not real import-following. A
-            # candidate's `module` is derived purely from its path relative
-            # to the indexed root, so it agrees with the module an import
-            # statement names only in the simplest layout. Two very common
-            # cases where it does not, both measured on the 2,107-file
-            # gemseo corpus (a parent directory holding three projects):
+            # One approximation remains, for re-exports only. `from gemseo
+            # import create_discipline` names a package whose __init__.py
+            # re-exports a symbol defined in a submodule, so the definition
+            # node's module (`gemseo.disciplines.factory`) is never equal to
+            # the imported one (`gemseo`) -- following that would mean
+            # parsing every __init__.py's own imports and chaining them.
+            # Instead: accept a candidate defined anywhere *below* the
+            # imported package, when it is the only such candidate.
             #
-            #  - src layout / multi-project root. `from gemseo.algos.
-            #    design_space import DesignSpace` resolves to a file whose
-            #    derived module is `gemseo.src.gemseo.algos.design_space`.
-            #    The imported module is a dotted *suffix* of it.
-            #  - package re-export. `from gemseo import create_discipline`
-            #    (119 unresolved references on its own) names a symbol
-            #    re-exported by an __init__.py but defined in a submodule,
-            #    so the imported module is a *prefix* of the definition's.
+            # What this can get wrong: two same-named module-level symbols
+            # under one package, only one of which is really re-exported at
+            # the top. Uniqueness among fetched candidates bounds that but
+            # does not eliminate it, so the result stays low-confidence. It
+            # is self-limiting to project code -- a stdlib or third-party
+            # `from x import y` has no candidate node whose module starts
+            # with `x`.
             #
-            # So: accept a candidate whose derived module contains the
-            # imported module as a whole dotted segment run, in either
-            # direction. What this can get wrong is picking the wrong
-            # definition when two same-named module-level symbols sit under
-            # (or above) one package path and only one is really the import
-            # target -- e.g. a vendored copy alongside the original. We take
-            # the match only when it is unique among fetched candidates,
-            # which bounds that but does not eliminate it, and mark the
-            # result low-confidence. It is self-limiting to project code: a
-            # stdlib or third-party `from x import y` has no candidate nodes
-            # whose module mentions `x` at all, so nothing matches.
-            #
-            # Worth the imprecision at scale: 4,728 of 45,320 unresolved
-            # references on that corpus target an internal project module,
-            # and essentially none of them can match the exact rule above.
+            # Scale, measured on the 2,103-file gemseo corpus: this rule
+            # carried 6,062 resolutions while modules were derived from the
+            # indexed root and it was papering over that bug. With modules
+            # derived from the package root it fires 25 times, against 6,525
+            # exact `explicit_import` matches. It is now what it was meant
+            # to be -- a narrow fallback, not the main resolution path.
             target_module = reference["target_module"]
             related = [
                 candidate
                 for candidate in named
-                if _module_contains(candidate["module"] or "", target_module)
+                if _reexporting_package(candidate["module"] or "", target_module)
                 and not candidate["parent_class"]
             ]
             if len(related) == 1:

@@ -119,6 +119,12 @@ def main() -> None:
     table.add_row("Edges", f"{stats['total_edges']:,}")
     table.add_row("Calls resolved", f"{stats['calls_resolved']:,}")
     table.add_row("Calls unresolved", f"{stats['calls_unresolved']:,}")
+    table.add_row("External symbols", f"{stats.get('external_symbols', 0):,}")
+    table.add_row("External call edges", f"{stats.get('external_edges', 0):,}")
+    table.add_row(
+        "Calls skipped (unattributable)",
+        f"{stats.get('calls_skipped_unattributable', 0):,}",
+    )
     table.add_row("Batches", f"{stats['batches']:,}")
     table.add_row("Selected batch size", f"{stats['selected_batch_size']:,}")
     table.add_row("", "")

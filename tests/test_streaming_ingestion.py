@@ -114,12 +114,18 @@ def test_stream_keeps_an_ambiguous_plugin_call_as_a_reference(temp_dir):
 
 
 def test_final_call_resolution_reports_streamed_progress(temp_dir):
-    caller = _analyze(temp_dir, "caller.py", "def run():\n    missing()\n")
+    # The called name must be defined somewhere in the corpus: a call to a
+    # name no `def`/`class` header declares is now dropped at extraction time
+    # rather than deferred (see ProjectScope), so it would never reach the
+    # finalize pass this test is about. Two definitions keep it ambiguous.
+    caller = _analyze(temp_dir, "caller.py", "def run():\n    save()\n")
+    plugin_a = _analyze(temp_dir, "plugin_a.py", "def save():\n    pass\n")
+    plugin_b = _analyze(temp_dir, "plugin_b.py", "def save():\n    pass\n")
     graph = _graph(temp_dir)
     updates = []
 
     graph.ingest_analysis_stream(
-        iter([caller]),
+        iter([caller, plugin_a, plugin_b]),
         batch_size=1000,
         assume_new=True,
         on_finalize_progress=lambda progress: updates.append(progress),
@@ -334,8 +340,16 @@ def test_search_reindex_displays_committed_graph_batches(temp_dir):
 
 
 def test_search_reindex_displays_final_call_resolution_progress(temp_dir):
+    # `save` is defined twice, as methods -- so the call is kept as a
+    # reference (the name exists in the corpus) but stays ambiguous through
+    # the finalize pass. A call to an undefined name would now be dropped at
+    # extraction time and never reach that pass.
     (temp_dir / "service.py").write_text(
-        "def rebuild_helper():\n    missing()\n", encoding="utf-8"
+        "def rebuild_helper():\n"
+        "    save()\n\n"
+        "class A:\n    def save(self):\n        pass\n\n"
+        "class B:\n    def save(self):\n        pass\n",
+        encoding="utf-8",
     )
 
     result = CliRunner().invoke(
@@ -414,6 +428,63 @@ def test_two_calls_to_same_target_on_one_line_remain_distinct_references(temp_di
     assert [edge["line"] for edge in edges] == [5, 5]
     assert _unresolved(graph) == []
     assert stats["calls_resolved"] == 2
+
+
+def test_call_to_an_imported_library_becomes_an_external_boundary_edge(temp_dir):
+    caller = _analyze(
+        temp_dir,
+        "service.py",
+        "import numpy as np\n\ndef run():\n    np.array([1])\n    np.array([2])\n",
+    )
+    graph = _graph(temp_dir)
+
+    stats = graph.ingest_analysis_stream(
+        iter([caller]), batch_size=1000, assume_new=True
+    )
+
+    assert graph.backend.query(
+        "MATCH (f:Function)-[c:CALLS_EXTERNAL]->(s:ExternalSymbol) "
+        "RETURN f.name AS caller, s.qualified_name AS symbol, c.count AS count"
+    ) == [{"caller": "run", "symbol": "numpy.array", "count": 2}]
+    assert stats["external_symbols"] == 1
+    assert stats["external_edges"] == 1
+    assert _unresolved(graph) == []
+
+
+def test_builtin_call_is_dropped_rather_than_deferred(temp_dir):
+    caller = _analyze(temp_dir, "service.py", "def run():\n    print(len([1]))\n")
+    graph = _graph(temp_dir)
+
+    stats = graph.ingest_analysis_stream(
+        iter([caller]), batch_size=1000, assume_new=True
+    )
+
+    assert graph.backend.query("MATCH (s:ExternalSymbol) RETURN s.id AS id") == []
+    assert _unresolved(graph) == []
+    assert stats["calls_skipped_unattributable"] == 2
+    assert stats["external_edges"] == 0
+
+
+def test_project_internal_call_is_unaffected_by_external_classification(temp_dir):
+    caller = _analyze(
+        temp_dir,
+        "caller.py",
+        "from target import save\n\ndef run():\n    save()\n",
+    )
+    target = _analyze(temp_dir, "target.py", "def save():\n    pass\n")
+    graph = _graph(temp_dir)
+
+    stats = graph.ingest_analysis_stream(
+        iter([caller, target]), batch_size=4, assume_new=True
+    )
+
+    assert graph.backend.query(
+        "MATCH (a:Function)-[c:CALLS]->(b:Function) "
+        "RETURN a.name AS caller, b.file AS target_file, "
+        "c.resolution_method AS method"
+    ) == [{"caller": "run", "target_file": "target.py", "method": "explicit_import"}]
+    assert stats["calls_resolved"] == 1
+    assert stats["external_edges"] == 0
 
 
 def test_incremental_target_change_requeues_and_later_resolves_call_reference(

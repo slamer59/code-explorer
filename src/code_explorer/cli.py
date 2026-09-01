@@ -845,6 +845,17 @@ def search(
                     f"{stats['calls_unresolved']:,} retained unresolved "
                     f"({time.time() - t0:.1f}s)."
                 )
+                if stats.get("external_edges") or stats.get(
+                    "calls_skipped_unattributable"
+                ):
+                    console.print(
+                        "[dim]Library boundary: "
+                        f"{stats['external_edges']:,} calls into "
+                        f"{stats['external_symbols']:,} external symbols "
+                        f"recorded; {stats['calls_skipped_unattributable']:,} "
+                        "unattributable calls skipped (builtins, attribute "
+                        "calls on locals).[/dim]"
+                    )
                 if stats["adaptive_batching"]:
                     console.print(
                         "[dim]Adaptive batching selected "

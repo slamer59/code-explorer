@@ -220,6 +220,28 @@ class SchemaManager:
                 )
             """)
 
+            # Create ExternalSymbol node table: a called third-party/stdlib
+            # symbol we record but never index the definition of (see
+            # NODE_PRIMARY_KEY in backends/kuzu_backend.py). Always a leaf.
+            self.conn.execute("""
+                CREATE NODE TABLE IF NOT EXISTS ExternalSymbol(
+                    id STRING,
+                    module STRING,
+                    name STRING,
+                    qualified_name STRING,
+                    PRIMARY KEY(id)
+                )
+            """)
+
+            # Create CALLS_EXTERNAL edge: Function calls an external symbol.
+            # One edge per (caller, symbol), with `count` call sites.
+            self.conn.execute("""
+                CREATE REL TABLE IF NOT EXISTS CALLS_EXTERNAL(
+                    FROM Function TO ExternalSymbol,
+                    count INT64
+                )
+            """)
+
             # Create HAS_IMPORT edge: File has Import
             self.conn.execute("""
                 CREATE REL TABLE IF NOT EXISTS HAS_IMPORT(

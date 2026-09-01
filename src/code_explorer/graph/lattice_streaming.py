@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 from statistics import median
 from time import perf_counter
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -17,6 +18,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
 )
@@ -195,6 +197,39 @@ def _module_name(relative_file: str) -> str:
     return ".".join(parts)
 
 
+def _package_root_depth(parts: Sequence[str], package_dirs: AbstractSet[str]) -> int:
+    """How many leading path segments of a file are *above* its package root.
+
+    Standard rule: walk up from the file's directory while `__init__.py`
+    exists; the first directory without one is the package root, and the
+    module name is the path relative to that. Handles src layout, flat
+    layout, and a parent directory holding several projects.
+
+    HYPOTHESIS: a directory holding an `__init__.py` is a package, and one
+    holding none is not. Namespace packages (PEP 420) carry no
+    `__init__.py`, so the walk cannot see them. Two consequences, both
+    deliberate:
+
+     - If the file's own directory is not a package, no walk happens at all
+       and the module stays project-root-relative -- the pre-existing
+       behaviour, which is the right answer for a flat repository and for
+       `models/space.py` imported as `models.space` with the repository
+       root on sys.path.
+     - A package nested inside a namespace package (`src/ns/pkg/mod.py`
+       where only `pkg` has an `__init__.py`) is named from `pkg`, i.e. one
+       segment too short. Rarer than the src-layout case this fixes, and
+       ProjectScope still registers both spellings as internal modules, so
+       the cost is a missed `explicit_import`, not a wrong edge.
+    """
+    directories = list(parts[:-1])
+    root_depth = len(directories)
+    if root_depth and "/".join(directories) not in package_dirs:
+        return 0
+    while root_depth > 0 and "/".join(directories[:root_depth]) in package_dirs:
+        root_depth -= 1
+    return root_depth
+
+
 def _module_contains(module: str, imported_module: str) -> bool:
     """True when `imported_module` appears in `module` as whole segments.
 
@@ -235,6 +270,20 @@ class ProjectScope:
 
     modules: FrozenSet[str]
     defined_names: FrozenSet[str]
+    # Project-root-relative posix path -> the module name an import
+    # statement would use for that file, derived from its package root.
+    # Only files that live under a package root differ from _module_name();
+    # the map is kept whole anyway (2,103 short strings on the reference
+    # corpus, well under a megabyte) so the lookup has no fallback branch.
+    modules_by_file: Mapping[str, str] = field(default_factory=dict)
+
+    def module_for(self, relative_file: str) -> str:
+        """The module name imports use for this file, or the flat fallback.
+
+        The fallback covers a file the scope never saw -- an analysis fed in
+        from outside the discovered set, which the tests do.
+        """
+        return self.modules_by_file.get(relative_file) or _module_name(relative_file)
 
     @classmethod
     def from_project_root(
@@ -259,13 +308,11 @@ class ProjectScope:
         }
 
         modules: set[str] = set()
+        modules_by_file: Dict[str, str] = {}
         defined_names: set[str] = set()
         for path, relative in zip(paths, relative_paths):
             parts = relative.split("/")
-            directories = parts[:-1]
-            root_depth = len(directories)
-            while root_depth > 0 and "/".join(directories[:root_depth]) in package_dirs:
-                root_depth -= 1
+            root_depth = _package_root_depth(parts, package_dirs)
             # Both spellings are registered: the package-relative one (what
             # imports actually say) and the project-root-relative one (right
             # for a flat repository, and for loose scripts outside any
@@ -276,13 +323,21 @@ class ProjectScope:
                 module_parts = _module_name("/".join(parts[start:])).split(".")
                 for depth in range(1, len(module_parts) + 1):
                     modules.add(".".join(module_parts[:depth]))
+            # The package-relative spelling is the one a node's `module`
+            # property gets: it is what `from x.y import z` writes, so it is
+            # the only one the explicit-import rule can match against.
+            modules_by_file[relative] = _module_name("/".join(parts[root_depth:]))
             try:
                 source = path.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
             defined_names.update(_DEFINITION_HEADER.findall(source))
         modules.discard("")
-        return cls(modules=frozenset(modules), defined_names=frozenset(defined_names))
+        return cls(
+            modules=frozenset(modules),
+            defined_names=frozenset(defined_names),
+            modules_by_file=modules_by_file,
+        )
 
 
 # How a call site is classified before it ever reaches the resolver.
@@ -402,7 +457,15 @@ def _records_for_file(
         [analysis], project_root, include_source=include_source
     )
     relative_file = to_relative_path(analysis.file_path, project_root)
-    module = _module_name(relative_file)
+    # Package-root-relative when a scope is available. Deriving the module
+    # from the *indexed* root instead is what made `explicit_import` fire
+    # zero times on the reference corpus: `gemseo/src/gemseo/algos/
+    # design_space.py` yielded `gemseo.src.gemseo.algos.design_space` while
+    # every import of it says `gemseo.algos.design_space`.
+    module = (
+        scope.module_for(relative_file) if scope is not None
+        else _module_name(relative_file)
+    )
     functions_by_key = {
         (function.name, function.start_line): function
         for function in analysis.functions

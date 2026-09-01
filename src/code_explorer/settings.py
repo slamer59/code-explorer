@@ -29,6 +29,14 @@ class Settings(BaseSettings):
 
     # LatticeDB write-transaction chunking (see graph/backends/lattice_backend.py).
     upsert_batch_size: int = 1000
+    # Rows per db.write() transaction inside upsert_nodes/upsert_edges. This
+    # used to be upsert_batch_size itself, which silently coupled two
+    # independent knobs: raising the streaming ingest target from 1,000 to
+    # 8,000 also widened every write transaction, so neither effect could be
+    # attributed. Split out so perfo/benchmark_batch_size_sweep.py can vary one
+    # axis at a time. 0 means "no chunking" -- commit the whole batch in one
+    # transaction.
+    ingest_write_chunk_size: int = 1000
     ingest_batch_bytes: int = 8 * 1024 * 1024
     adaptive_ingest_batching: bool = True
     ingest_batch_max_size: int = 8000

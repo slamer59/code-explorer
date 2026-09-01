@@ -60,7 +60,13 @@ SEARCHABLE_TEXT_FIELDS: Dict[str, str] = {
 # chunks) -- confirmed via context7 before picking this number, not guessed.
 # Sourced from Settings (see settings.py) -- module-level for tests that
 # monkeypatch it directly (see tests/test_lattice_batching.py).
-_UPSERT_BATCH_SIZE = settings.upsert_batch_size
+#
+# This now comes from `ingest_write_chunk_size`, not `upsert_batch_size`.
+# They used to be the same setting, which meant the streaming ingest batch
+# target and the write-transaction width moved together and neither effect
+# could be measured on its own. See perfo/benchmark_batch_size_sweep.py.
+# 0 disables chunking (one transaction for the whole call).
+_UPSERT_BATCH_SIZE = settings.ingest_write_chunk_size
 
 # One Ollama /api/embed HTTP call per this many texts, not one call per node.
 # Measured (perfo/benchmark_embed_batching.py, local nomic-embed-text): cost
@@ -83,6 +89,12 @@ UNRESOLVED_CALL_STREAM = "code_explorer_unresolved_calls"
 
 
 def _chunked(items: List[Any], size: int) -> Iterable[List[Any]]:
+    # size <= 0 means "one chunk", i.e. commit everything in a single
+    # transaction. Used by the sweep benchmark to measure the "one giant
+    # transaction" end of the curve that LatticeDB's tuning guide warns about.
+    if size <= 0:
+        yield list(items)
+        return
     for i in range(0, len(items), size):
         yield items[i : i + size]
 

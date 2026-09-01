@@ -30,14 +30,23 @@ console = Console()
 
 # Below this many changed files, parse in-process instead of paying for a
 # process pool. Spawn-based workers are not free: each one re-imports
-# code_explorer.analyzer (tree-sitter grammars included), which measured at
-# ~0.9s of pool startup on this machine regardless of how few files follow.
-# Measured on gemseo (2,103 files, 16 cores) with
-# perfo/benchmark_incremental_parse.py -- sequential vs. parallel wall time
-# for N changed files:
-#   PLACEHOLDER_TABLE
-# so the crossover sits at PLACEHOLDER_N files; below it sequential wins.
-_PARALLEL_PARSE_THRESHOLD = 8
+# code_explorer.analyzer (tree-sitter grammars included), and the parent
+# pickles a bound method per task -- ~0.05s per worker, so a full 16-worker
+# pool costs ~0.9s before it parses anything.
+# Measured on gemseo (2,103 files, 16 cores, perfo/benchmark_incremental_parse.py),
+# changed files -> sequential / parallel wall time:
+#     1 -> 0.03s / 0.33s      64 -> 0.86s / 0.88s
+#     8 -> 0.08s / 0.46s      80 -> 1.17s / 0.97s
+#    16 -> 0.33s / 0.86s     100 -> 1.58s / 1.02s
+#    32 -> 0.50s / 0.87s     200 -> 2.24s / 1.09s
+# The two curves cross at ~64 files (a tie there, parallel clearly ahead by
+# 80 and 2x ahead by 200), so that is the threshold. Note the cost of being
+# wrong is asymmetric: below the crossover the pool is up to 10x SLOWER
+# (n=1: 0.33s vs 0.03s), while above it sequential is at worst ~2x slower --
+# hence erring on the high side rather than parallelising eagerly. A typical
+# edit-then-search cycle changes 1-3 files and stays sequential; a branch
+# switch or rebase is what crosses into the pool.
+_PARALLEL_PARSE_THRESHOLD = 64
 
 
 class DependencyGraph:

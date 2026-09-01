@@ -5,6 +5,8 @@ Delegates to specialized operation classes while maintaining backward compatibil
 """
 
 import hashlib
+import multiprocessing
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -25,6 +27,26 @@ from code_explorer.graph.edge_operations import EdgeOperations
 from code_explorer.graph.queries import QueryOperations
 
 console = Console()
+
+# Below this many changed files, parse in-process instead of paying for a
+# process pool. Spawn-based workers are not free: each one re-imports
+# code_explorer.analyzer (tree-sitter grammars included), and the parent
+# pickles a bound method per task -- ~0.05s per worker, so a full 16-worker
+# pool costs ~0.9s before it parses anything.
+# Measured on gemseo (2,103 files, 16 cores, perfo/benchmark_incremental_parse.py),
+# changed files -> sequential / parallel wall time:
+#     1 -> 0.03s / 0.33s      64 -> 0.86s / 0.88s
+#     8 -> 0.08s / 0.46s      80 -> 1.17s / 0.97s
+#    16 -> 0.33s / 0.86s     100 -> 1.58s / 1.02s
+#    32 -> 0.50s / 0.87s     200 -> 2.24s / 1.09s
+# The two curves cross at ~64 files (a tie there, parallel clearly ahead by
+# 80 and 2x ahead by 200), so that is the threshold. Note the cost of being
+# wrong is asymmetric: below the crossover the pool is up to 10x SLOWER
+# (n=1: 0.33s vs 0.03s), while above it sequential is at worst ~2x slower --
+# hence erring on the high side rather than parallelising eagerly. A typical
+# edit-then-search cycle changes 1-3 files and stays sequential; a branch
+# switch or rebase is what crosses into the pool.
+_PARALLEL_PARSE_THRESHOLD = 64
 
 
 class DependencyGraph:
@@ -586,6 +608,85 @@ class DependencyGraph:
             on_finalize_progress=on_finalize_progress,
         )
 
+    def _parse_changed_files(self, changed_paths: List[Path]) -> list:
+        """Parse the changed files of an incremental re-index, in parallel
+        when there are enough of them to pay for a process pool.
+
+        Split out of ingest_incremental so the parse step can use the same
+        bounded ProcessPoolExecutor pattern as a full build
+        (CodeAnalyzer.iter_analyze_directory): tree-sitter parsing is
+        CPU-bound, so threads would just queue behind the GIL. The pool is
+        sized to the work actually available -- spinning up
+        settings.analysis_workers spawn processes to parse 3 files costs
+        more than it saves (see _PARALLEL_PARSE_THRESHOLD above).
+
+        Exceptions propagate in both the sequential and the parallel path,
+        deliberately: this is not iter_analyze_directory's best-effort
+        whole-directory scan, and silently dropping a file here would leave
+        its old nodes deleted (delete_file already ran) with nothing
+        upserted back -- i.e. a silently truncated index.
+
+        Args:
+            changed_paths: Absolute paths of files needing a re-parse.
+
+        Returns:
+            List[FileAnalysis] in the same order as changed_paths.
+        """
+        from code_explorer.analyzer.base_analyzer import CodeAnalyzer
+        from code_explorer.settings import settings
+
+        if not changed_paths:
+            return []
+
+        # One analyzer for the whole batch. Building a CodeAnalyzer
+        # constructs seven extractor objects; the old code did that once per
+        # changed file for no benefit (analyze_file keeps no per-file state).
+        analyzer = CodeAnalyzer()
+
+        if len(changed_paths) < _PARALLEL_PARSE_THRESHOLD:
+            return [analyzer.analyze_file(path) for path in changed_paths]
+
+        worker_count = max(1, min(len(changed_paths), settings.analysis_workers))
+        # Bounded in-flight window, as in iter_analyze_directory. There is no
+        # streaming consumer to starve here (results are collected into a
+        # list), so 2x workers is enough to keep every worker fed while
+        # capping peak memory in the parent.
+        max_pending = max(worker_count * 2, 1)
+
+        results: list = [None] * len(changed_paths)
+        index_iter = iter(range(len(changed_paths)))
+
+        with ProcessPoolExecutor(
+            max_workers=worker_count,
+            mp_context=multiprocessing.get_context("spawn"),
+        ) as executor:
+            future_to_index: Dict[object, int] = {}
+
+            def submit_next() -> bool:
+                try:
+                    index = next(index_iter)
+                except StopIteration:
+                    return False
+                # analyzer.analyze_file is a bound method, pickled across the
+                # spawn boundary exactly as iter_analyze_directory does it --
+                # CodeAnalyzer is picklable, so no worker-side global is needed.
+                future_to_index[
+                    executor.submit(analyzer.analyze_file, changed_paths[index])
+                ] = index
+                return True
+
+            for _ in range(min(max_pending, len(changed_paths))):
+                submit_next()
+
+            while future_to_index:
+                completed, _ = wait(future_to_index, return_when=FIRST_COMPLETED)
+                for future in completed:
+                    index = future_to_index.pop(future)
+                    results[index] = future.result()
+                    submit_next()
+
+        return results
+
     def ingest_incremental(self, target: Path) -> dict:
         """Re-index `target` incrementally: hash every current .py file,
         skip ones whose content is unchanged, and for changed/new/deleted
@@ -657,7 +758,7 @@ class DependencyGraph:
             deleted += 1
 
         unchanged = 0
-        changed_results = []
+        changed_paths: List[Path] = []
         for rel_path, abs_path in current_files.items():
             current_hash = self.compute_file_hash(abs_path)
             if existing_files.get(rel_path) == current_hash:
@@ -665,7 +766,9 @@ class DependencyGraph:
                 continue
             if rel_path in existing_files:
                 self.backend.delete_file(rel_path)
-            changed_results.append(CodeAnalyzer().analyze_file(abs_path))
+            changed_paths.append(abs_path)
+
+        changed_results = self._parse_changed_files(changed_paths)
 
         changed_node_ids: List[int] = []
         if changed_results:

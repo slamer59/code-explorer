@@ -144,6 +144,24 @@ class LatticeBackend:
             self.db.close()
         self.db = None
 
+    def __enter__(self):
+        """Context-manager support so callers cannot forget close().
+
+        Not cosmetic: leaving a database open leaves an un-checkpointed WAL,
+        and the next process to open it pays a recovery pass -- measured at
+        >400s on the 2,103-file corpus (256MB, 3.2MB WAL) versus 0.03s after
+        a clean close. It also left the FTS indexes unreadable, so search
+        raised LatticeUnsupportedError. A missing close() in one benchmark
+        script produced all of that, so the fix is to make closing automatic
+        rather than remembered.
+        """
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+        return None
+
     def _ensure_node_property_index(self, label: str, prop: str) -> None:
         try:
             self.db.create_node_property_index(label, prop)

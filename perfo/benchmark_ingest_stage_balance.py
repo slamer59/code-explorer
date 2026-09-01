@@ -103,6 +103,12 @@ def main() -> None:
     )
     wall = time.perf_counter() - wall_start
 
+    # Close the backend before reporting. Without this the database is left
+    # with an un-checkpointed WAL, and the next process to open it pays a
+    # recovery pass -- measured at >400s on this corpus, which looked for a
+    # while like a LatticeDB open-time bug. It was this missing close.
+    backend.close()
+
     starvation = sum(wait_times)
     committing = sum(commit_times)
     finalizing = (

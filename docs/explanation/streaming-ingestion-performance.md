@@ -456,6 +456,37 @@ vendored directories, so the two runs are not perfectly like-for-like.
 - 8,217 references remain unresolved and internal -- the genuine ambiguity
   backlog (same-named symbols the resolver declines to guess between).
 
+## Correction: the "FTS makes open pathological" finding was wrong
+
+An earlier revision of this document reported that building an index with a
+BM25 FTS index made the database take >400s to reopen, that deferring FTS
+creation left no index at all, and that search was therefore unusable at
+scale. **All of that was an artifact of a missing `backend.close()` in
+`perfo/benchmark_ingest_stage_balance.py`.**
+
+Leaving the database open leaves an un-checkpointed WAL; the next process to
+open it pays a recovery pass. Measured on the 2,103-file corpus:
+
+| | Benchmark without `close()` | With `close()` |
+|---|---|---|
+| WAL left behind | 3.2 MB | 0.00 MB |
+| Reopen | **>400s** | **0.03s** |
+| FTS indexes present | no | yes (both labels) |
+| BM25 query | `LatticeUnsupportedError` | 1 ms, 10 hits |
+
+Nine separate reproductions were run against synthetic databases before the
+cause was found -- node count, FTS itself, vocabulary size (60k distinct
+words, 268MB), term repetition, property indexes, edges, an 8k-record
+durable stream, real `search_text` content, and transaction count (1 vs 269)
+all reopen in 0.01s. Every one of them was fast because every one of them
+closed the database. The bisect that finally isolated it varied the real
+pipeline instead, and the giveaway was the `wal=0.0MB` column.
+
+No LatticeDB bug exists here, and no upstream issue was filed. Deferring FTS
+index creation works correctly. `LatticeBackend` and `KuzuBackend` now
+implement `__enter__`/`__exit__` so closing is automatic rather than
+remembered, with a regression test in `tests/test_lattice_batching.py`.
+
 ## Open questions (measurements in flight)
 
 - **Of the 45,320 unresolved references, how many name a function that actually exists

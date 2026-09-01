@@ -121,3 +121,23 @@ def test_upsert_edges_uses_node_id_map_without_db_lookup(temp_dir, monkeypatch):
     )
     assert rows == [{"name": "a", "l": 5}]
     backend.close()
+
+
+def test_backend_context_manager_closes_and_checkpoints(temp_dir):
+    """`with LatticeBackend(...)` must open and then close.
+
+    Regression guard for a real incident: a benchmark script that never
+    called close() left an un-checkpointed WAL, and reopening that database
+    took >400s (versus 0.03s clean) with its FTS indexes unreadable. The
+    fix is that closing is automatic, so this asserts the contract rather
+    than the symptom.
+    """
+    db_path = temp_dir / "ctx.lattice"
+    with LatticeBackend(db_path) as backend:
+        backend.initialize_schema()
+        assert backend.db is not None
+    assert backend.db is None  # closed on exit
+
+    # Reopening a cleanly-closed database works and sees the same schema.
+    with LatticeBackend(db_path) as reopened:
+        assert reopened.db is not None

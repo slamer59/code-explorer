@@ -105,6 +105,24 @@ class KuzuBackend:
         self.db = None
         self.schema_manager = None
 
+    def __enter__(self):
+        """Context-manager support so callers cannot forget close().
+
+        Not cosmetic: leaving a database open leaves an un-checkpointed WAL,
+        and the next process to open it pays a recovery pass -- measured at
+        >400s on the 2,103-file corpus (256MB, 3.2MB WAL) versus 0.03s after
+        a clean close. It also left the FTS indexes unreadable, so search
+        raised LatticeUnsupportedError. A missing close() in one benchmark
+        script produced all of that, so the fix is to make closing automatic
+        rather than remembered.
+        """
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+        return None
+
     def initialize_schema(self, *, create_fts_indexes: bool = True) -> None:
         # create_fts_indexes is accepted for backend-protocol parity and
         # ignored: Kuzu search here is Cypher/regex over stored columns, so

@@ -418,6 +418,44 @@ relative to that. It handles src-layout, flat layout, and multi-project
 monorepos — precisely the case this project targets — and would let the fuzzy
 matcher be tightened rather than relied upon.
 
+## Combined result
+
+All three changes merged (Class-aware resolution, call classification with
+external boundary nodes, deferred FTS + trimmed candidate fields), measured on
+the same corpus:
+
+| Metric | Baseline | After | Change |
+|---|---|---|---|
+| Calls resolved | 8,237 | **14,951** | **+82%** |
+| Calls unresolved | 45,320 | **8,217** | **-82%** |
+| Total edges | 21,551 | **35,632** | **+65%** |
+| External symbols (new) | -- | 742 | leaf boundary nodes |
+| External call edges (new) | -- | 7,381 | "this function calls numpy/fastapi/..." |
+| Skipped as unattributable | -- | 18,529 | never written to any stream |
+| Wall clock | 31.1s | 27.9s | -10% |
+| Committing batches | 18.5s | **14.0s** | **-24%** |
+| Finalize drain | 10.7s | **8.2s** | **-23%** |
+
+The graph gained 65% more edges while the build got faster -- the pipeline is
+doing substantially more useful work in less time. Read the wall-clock figure
+conservatively: runs on this corpus have ranged 29.7-33.0s at baseline, so -10%
+sits near the edge of run-to-run variance. The robust signals are the commit and
+finalize reductions, and the structural drop in wasted references. The file count
+also shifted 2,107 -> 2,103 because the hardened exclude patterns now skip a few
+vendored directories, so the two runs are not perfectly like-for-like.
+
+### Still open
+
+- **`_module_name` still derives modules from the indexed root**, not the package
+  root, so `explicit_import` remains dead and the low-confidence
+  `package_reexport` fallback carries 6,000+ resolutions. Package-root detection
+  now exists in `ProjectScope` but is used only for internal/external
+  classification -- wiring the node `module` property to it is the remaining fix.
+- **Adaptive batch sizing is still unstable**: 1,000, 2,000 and 8,000 selected on
+  three runs over the same corpus.
+- 8,217 references remain unresolved and internal -- the genuine ambiguity
+  backlog (same-named symbols the resolver declines to guess between).
+
 ## Open questions (measurements in flight)
 
 - **Of the 45,320 unresolved references, how many name a function that actually exists

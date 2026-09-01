@@ -38,6 +38,56 @@ sweep varies each axis independently:
 Each configuration runs in a fresh subprocess, because _UPSERT_BATCH_SIZE is
 read from Settings at import time. Repeats default to 2 -- this corpus has real
 run-to-run variance (baselines have ranged 27.9-33.0s), so a 5% gap is noise.
+
+Measured results (2,103-file gemseo corpus, 2 runs per point, adaptive off)
+--------------------------------------------------------------------------
+Axis = write (ingest target pinned at 2,000; "0" = one transaction per batch):
+
+    chunk    250   1,000   4,000  16,000       0
+    commit  12.6s   13.5s   14.3s   14.1s   13.0s
+    wall    25.4s   27.9s   29.0s   29.0s   26.2s
+
+FLAT. A 64x change in transaction width, up to and including the "one giant
+transaction" pattern LatticeDB's tuning guide warns about, moves commit time
+less than the run-to-run spread. So commit cost here is NOT per-transaction:
+the log fsync is not what we are paying for. It is per-item -- index
+maintenance on each row -- which is exactly what the py-spy asymmetry
+(upsert_nodes 64.6% vs upsert_edges 2.2%; 5 property indexes vs 1) predicted.
+Conclusion: there is nothing to win on this axis. Leave it at 1,000.
+
+Axis = ingest (write chunk pinned at 1,000). This one was very reproducible --
+the two repeats agreed to within 0.3s at every point:
+
+    target    50    100    200    350    500  1,000  2,000  4,000  8,000  16,000
+    batches  999    635    338    191    131     63     31     16      8       4
+    commit  12.3s  11.2s  10.7s  11.1s  11.2s  12.2s  12.7s  13.7s  13.3s  13.0s
+    wall    25.6s  24.4s  23.9s  24.1s  24.4s  25.2s  25.8s  26.9s  27.0s   27.2s
+
+A real but SHALLOW bowl, and it points DOWN: the optimum is ~200-350
+operations per batch, and everything above 1,000 is worse. Small batches lose
+below ~100 (per-batch fixed overhead starts to dominate: 999 batches) and
+large batches lose above ~1,000 (starvation creeps in -- 0.44s at 500 vs 1.4s
+at 16,000 -- and the resolve step works over larger reference lists).
+
+Why this kills AdaptiveBatchController
+--------------------------------------
+Its candidates are initial_size doubling up to max_size, i.e. 1,000 / 2,000 /
+4,000 / 8,000. The entire candidate set sits on the WRONG SIDE of the knee;
+the optimum is unreachable by construction. And across 1,000-8,000 the wall
+range is 25.2-27.2s, so at a 5% tolerance the "smallest size within tolerance
+of peak" rule is choosing between points that are barely distinguishable --
+which is precisely why it selected 1,000, then 2,000, then 8,000 on three
+consecutive runs of the same corpus. It was reading noise. A fixed 250 beats
+every size it can pick, with no calibration tax.
+
+Caveat on invariants
+--------------------
+``calls_resolved`` is not deterministic and never was: across the 22 runs here
+it ranged 14,874-14,988 (edges 35,555-35,669) with no correlation to batch
+size -- repeats of the SAME size differ by as much as 39. ``nodes`` was
+15,403 in every single run. So treat 14,951 as one sample of a noisy
+quantity, not as a fixed invariant; the nondeterminism lives in resolution
+order (lattice_streaming.py), not in how writes are batched.
 """
 
 import argparse

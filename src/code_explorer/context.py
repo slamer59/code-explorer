@@ -255,43 +255,17 @@ class ContextAssembler:
         it (verified on a fixture: `Widget(label)` in app.py produces
         app.py::build_widget -CALLS-> models.py::Widget).
 
-        KNOWN WART, deliberate: this duplicates
-        LatticeBackend.get_call_edges_with_lines' body because that method
-        hardcodes `_find_node_id(txn, "Function", ...)` and so returns
-        ([], []) for a Class canonical id (measured -- all three fixture
-        classes came back empty through it while the raw traversal found
-        their call sites). The clean fix is a `label` parameter on that
-        backend method; that file is off-limits in this change, so the
-        traversal is inlined here behind a capability check instead. It
-        yields nothing on KuzuBackend, which has no `db` attribute and whose
-        CALLS table is Function->Function anyway, so a Class there can have
-        no instantiation edges to find.
+        Uses the backend's own traversal with label="Class". Backends that
+        predate that parameter, or that cannot host Class call targets at
+        all (KuzuBackend declares CALLS as Function->Function), simply yield
+        nothing rather than erroring.
         """
         backend = self.graph.backend
-        db = getattr(backend, "db", None)
-        if db is None:
+        try:
+            callers, _ = backend.get_call_edges_with_lines(class_id, label="Class")
+        except TypeError:
             return []
-        rows = []
-        with db.read() as txn:
-            matches = txn.find_nodes_by_label_property("Class", "id", class_id, limit=1)
-            if not matches:
-                return []
-            for edge in txn.get_incoming_edges(matches[0]):
-                if edge.edge_type != "CALLS":
-                    continue
-                src = edge.source_id
-                rows.append(
-                    (
-                        txn.get_property(src, "file"),
-                        txn.get_property(src, "name"),
-                        # edge.properties is unreliably empty (lazy-load
-                        # quirk noted in lattice_backend.py); read it directly.
-                        txn.get_edge_property(edge.id, "call_line"),
-                        txn.get_property(src, "start_line"),
-                        txn.get_property(src, "end_line"),
-                    )
-                )
-        return rows
+        return callers
 
     def _method_rows(self, rel_file: str, class_name: str):
         """Methods of the class, via the indexed Function.parent_class property.

@@ -558,7 +558,7 @@ class LatticeBackend:
         return self.db.query(statement, params or {}).fetchall()
 
     def get_call_edges_with_lines(
-        self, function_canonical_id: str
+        self, function_canonical_id: str, label: str = "Function"
     ) -> Tuple[
         List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
     ]:
@@ -568,9 +568,17 @@ class LatticeBackend:
         get_outgoing_edges use LatticeDB's storage-layer edge-ID index
         directly; get_property likewise looks up by internal id directly --
         neither goes through the Cypher query planner.
+
+        label: which node label the canonical id belongs to. Defaults to
+        "Function", but call resolution now also lands CALLS edges on Class
+        nodes (constructing a project class is a call whose definition is a
+        Class node -- 5,379 such edges on the reference corpus), and a Class
+        id looked up under the "Function" label silently resolves to nothing
+        and returns ([], []). Pass label="Class" to get a class's
+        instantiation sites.
         """
         with self.db.read() as txn:
-            internal_id = self._find_node_id(txn, "Function", function_canonical_id)
+            internal_id = self._find_node_id(txn, label, function_canonical_id)
             if internal_id is None:
                 return [], []
 

@@ -1074,34 +1074,32 @@ def search(
     console.print(table)
 
     if not no_context:
-        # ContextAssembler only knows how to look up Function seeds today
-        # (its call-graph traversal is Function-to-Function only) -- Class
-        # hits from search_text() have no callers/callees to assemble, so
-        # pick the top-ranked *Function* hit rather than assuming hits[0].
-        top = next((h for h in hits if h.node_type == "Function"), None)
-        if top is None:
+        # Whichever type ranks first: ContextAssembler.assemble dispatches on
+        # the seed's node type. A Class seed used to be skipped here ("no
+        # Function among the top results") because a Class had no traversable
+        # neighbourhood; it does now -- constructor calls resolve to the Class
+        # node, so incoming CALLS edges are its instantiation sites (see
+        # context.py's Class section).
+        top = hits[0]
+        console.print(
+            f"[dim]Assembling context for {top.node_type.lower()} "
+            f"{top.file}::{top.name}...[/dim]"
+        )
+        try:
+            # Always via `graph` (the BM25/primary index), even in
+            # hybrid mode: both indexes cover the same source and are
+            # kept in sync (see _open_and_sync above), and only `graph`
+            # is guaranteed non-None here.
+            ctx = ContextAssembler(graph).assemble(top.file, top.name, top.node_type)
+            console.print()
             console.print(
-                "\n[yellow]No Function among the top results to build a "
-                "context for (only Class hits) -- context assembly is "
-                "Function-only for now.[/yellow]"
-            )
-        else:
-            console.print(f"[dim]Assembling context for {top.file}::{top.name}...[/dim]")
-            try:
-                # Always via `graph` (the BM25/primary index), even in
-                # hybrid mode: both indexes cover the same source and are
-                # kept in sync (see _open_and_sync above), and only `graph`
-                # is guaranteed non-None here.
-                ctx = ContextAssembler(graph).assemble_context(top.file, top.name)
-                console.print()
-                console.print(
-                    create_header_panel(
-                        "Context", f"Top hit: {top.file}::{top.name}"
-                    )
+                create_header_panel(
+                    "Context", f"Top hit: {top.file}::{top.name} ({top.node_type})"
                 )
-                console.print(ctx.to_markdown())
-            except (ValueError, FileNotFoundError) as e:
-                console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
+            )
+            console.print(ctx.to_markdown())
+        except (ValueError, FileNotFoundError) as e:
+            console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 
     _close_all()
 

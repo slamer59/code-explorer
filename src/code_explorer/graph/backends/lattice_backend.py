@@ -127,6 +127,19 @@ class LatticeBackend:
         self.db: Optional[latticedb.Database] = None
 
     def open(self) -> None:
+        # Idempotent on purpose. LatticeDB is embedded single-writer, so a
+        # second latticedb.Database(...).open() on the same path collides with
+        # the first one *from this same process* and raises
+        # LatticeDatabaseLockedError("Database is open in another process") --
+        # a misleading message, since the other "process" is us. Measured with
+        # the natural-looking pattern
+        #     with LatticeBackend(db) as backend:
+        #         DependencyGraph(db_path=db, backend=backend)
+        # which fails at HEAD~ because DependencyGraph.__init__ opens the
+        # backend it was handed. Returning early here makes the double open a
+        # no-op instead of a self-lock.
+        if self.db is not None:
+            return
         if not self.read_only:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db = latticedb.Database(
@@ -140,6 +153,9 @@ class LatticeBackend:
         self.db.open()
 
     def close(self) -> None:
+        # Idempotent too: `with backend:` followed by an explicit close() (or
+        # two close() calls) is just as natural as the double open above, and
+        # must not raise.
         if self.db is not None:
             self.db.close()
         self.db = None

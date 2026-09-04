@@ -94,6 +94,15 @@ class KuzuBackend:
         self.schema_manager: Optional[SchemaManager] = None
 
     def open(self) -> None:
+        # Idempotent, for the same reason as LatticeBackend.open(): callers
+        # that use `with backend:` and then hand the backend to
+        # DependencyGraph would otherwise open it twice. Kuzu tolerates this
+        # less loudly than LatticeDB (it does not raise here, but a second
+        # kuzu.Database on the same directory is still a second lock holder
+        # and leaks the first Connection), so both backends behave the same
+        # way rather than only the one where the bug was observed.
+        if self.db is not None:
+            return
         if not self.read_only:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db = kuzu.Database(str(self.db_path), read_only=self.read_only)

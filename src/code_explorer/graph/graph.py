@@ -103,7 +103,18 @@ class DependencyGraph:
             if backend is not None
             else KuzuBackend(db_path, read_only=read_only)
         )
-        self.backend.open()
+        # Only open a backend that isn't open yet. Both bundled backends make
+        # open() idempotent (see LatticeBackend.open), so this guard is belt
+        # and braces for them; it matters for any other CodeGraphBackend
+        # implementation, where a second open() on an embedded single-writer
+        # store self-locks. Hypothesis, not measured for third-party backends:
+        # a backend is "already open" iff its `db` attribute is set. That
+        # holds for KuzuBackend and LatticeBackend; a backend with no `db`
+        # attribute reads as closed and still gets opened, which is what every
+        # existing caller (cli.py, perfo/*.py, tests) relies on -- they pass a
+        # freshly constructed, closed backend.
+        if getattr(self.backend, "db", None) is None:
+            self.backend.open()
 
         # Backward-compat attributes: NodeOperations/EdgeOperations (and a
         # handful of raw Cypher calls in this facade) still take a

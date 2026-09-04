@@ -1,7 +1,7 @@
 """Tests for LatticeBackend's chunked-transaction writes, assume_new, and
 the node_id_map fast path for edge creation.
 
-Kept small (4 tests): chunking across a batch boundary doesn't drop data,
+Kept small (6 tests): chunking across a batch boundary doesn't drop data,
 assume_new's documented tradeoff (faster, but duplicates instead of updates
 against pre-existing data) actually behaves as documented, upsert_nodes
 returns a usable canonical-id -> internal-id map, and upsert_edges actually
@@ -13,6 +13,7 @@ import pytest
 
 from code_explorer.graph.backends import lattice_backend as lb_module
 from code_explorer.graph.backends.lattice_backend import LatticeBackend
+from code_explorer.graph.graph import DependencyGraph
 from code_explorer.graph.records import EdgeRecord, NodeRecord
 
 
@@ -141,3 +142,24 @@ def test_backend_context_manager_closes_and_checkpoints(temp_dir):
     # Reopening a cleanly-closed database works and sees the same schema.
     with LatticeBackend(db_path) as reopened:
         assert reopened.db is not None
+
+
+def test_open_backend_handed_to_dependency_graph_does_not_self_lock(temp_dir):
+    """Passing an already-open backend to DependencyGraph must not self-lock.
+
+    Before this guard, `DependencyGraph.__init__` unconditionally called
+    `backend.open()`, so the natural pairing of the context manager above
+    with a graph raised
+    LatticeDatabaseLockedError("Database is open in another process") --
+    from the same process, LatticeDB being embedded single-writer. open()
+    and close() are now both idempotent.
+    """
+    db_path = temp_dir / "double_open.lattice"
+    with LatticeBackend(db_path) as backend:
+        graph = DependencyGraph(
+            db_path=db_path, project_root=temp_dir, backend=backend
+        )
+        assert graph.backend is backend
+        assert backend.db is not None
+        backend.close()  # explicit close on top of __exit__ must not raise
+    assert backend.db is None

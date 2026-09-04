@@ -699,6 +699,17 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     help="Force a fresh index instead of reusing an existing one",
 )
 @click.option(
+    "--backend",
+    type=click.Choice(["lattice", "sqlite"]),
+    default="lattice",
+    help=(
+        "Storage backend for the search index (default: lattice). "
+        "'sqlite' is the measured-faster alternative under evaluation -- "
+        "stdlib sqlite3 with FTS5/BM25; it keeps its own index file, so "
+        "switching backends does not reuse or clobber the other's."
+    ),
+)
+@click.option(
     "--include-source",
     is_flag=True,
     help=(
@@ -716,6 +727,7 @@ def search(
     semantic: bool,
     no_context: bool,
     reindex: bool,
+    backend: str,
     include_source: bool,
 ) -> None:
     """Search code by keyword and show a ready-to-use context bundle.
@@ -748,11 +760,20 @@ def search(
     from .context import ContextAssembler
     from .graph import DependencyGraph
     from .graph.backends.lattice_backend import LatticeBackend
+    from .graph.backends.sqlite_backend import SqliteBackend
     from .hybrid_search import reciprocal_rank_fusion
 
     target = Path(path).resolve()
-    bm25_db_path = target / ".code-explorer" / "graph.lattice"
-    vector_db_path = target / ".code-explorer" / "graph_vectors.lattice"
+    # Each backend keeps its own index file so the two can coexist and be
+    # compared on the same repo without one clobbering the other.
+    if backend == "sqlite":
+        bm25_db_path = target / ".code-explorer" / "graph.sqlite"
+        vector_db_path = target / ".code-explorer" / "graph_vectors.sqlite"
+        _make_backend = lambda p, vectors: SqliteBackend(p, enable_vectors=vectors)
+    else:
+        bm25_db_path = target / ".code-explorer" / "graph.lattice"
+        vector_db_path = target / ".code-explorer" / "graph_vectors.lattice"
+        _make_backend = lambda p, vectors: LatticeBackend(p, enable_vectors=vectors)
     db_path = vector_db_path if semantic else bm25_db_path
 
     def _open_and_sync(db_path: Path, enable_vectors: bool, force_reindex: bool) -> DependencyGraph:
@@ -769,7 +790,7 @@ def search(
                 stale.unlink(missing_ok=True)
 
         def _build_index(needs_index: bool) -> DependencyGraph:
-            backend = LatticeBackend(db_path, enable_vectors=enable_vectors)
+            backend = _make_backend(db_path, enable_vectors)
             # On a from-scratch build, let ingest_analysis_stream create the
             # BM25 indexes in one pass at the end instead of maintaining them
             # across ~15K node writes (-26% commit time on gemseo -- see
@@ -848,16 +869,56 @@ def search(
                         max_workers=settings.analysis_workers,
                         progress=analysis_progress,
                     )
-                    stats = graph.ingest_analysis_stream(
-                        analyses,
-                        batch_size=settings.upsert_batch_size,
-                        batch_bytes=settings.ingest_batch_bytes,
-                        include_source=include_source,
-                        # This branch only runs after creating or deleting db_path.
-                        assume_new=True,
-                        on_batch_committed=show_graph_progress,
-                        on_finalize_progress=show_finalize_progress,
-                    )
+                    # Capability check, not a class-name check: the streaming
+                    # path needs the backend's durable pending-call streams.
+                    # requeue_unresolved_calls is the entry point ingest() calls
+                    # first, so its presence is the honest test. (An earlier
+                    # version probed publish_pending_call, which exists on
+                    # neither backend -- so LatticeDB silently took the generic
+                    # path and lost its FTS indexes.)
+                    if hasattr(graph.backend, "requeue_unresolved_calls"):
+                        stats = graph.ingest_analysis_stream(
+                            analyses,
+                            batch_size=settings.upsert_batch_size,
+                            batch_bytes=settings.ingest_batch_bytes,
+                            include_source=include_source,
+                            # This branch only runs after creating or deleting db_path.
+                            assume_new=True,
+                            on_batch_committed=show_graph_progress,
+                            on_finalize_progress=show_finalize_progress,
+                        )
+                    else:
+                        # Generic path for backends without LatticeDB's durable
+                        # call streams (SqliteBackend). Materialises the parsed
+                        # files, resolves calls with CallResolver, then does one
+                        # bulk upsert -- so it trades the streaming pipeline's
+                        # bounded memory for a simpler, and measurably faster,
+                        # build. Stats keys are a subset, hence the .get() reads
+                        # in the summary line below.
+                        from .analyzer.call_resolver import CallResolver
+
+                        results = list(analyses)
+                        resolved = CallResolver(results).resolve_all_calls()
+                        stats = graph.ingest_results(
+                            results,
+                            resolved_calls=resolved,
+                            include_source=include_source,
+                            assume_new=True,
+                        )
+                        stats = {
+                            "files": len(results),
+                            "batches": 1,
+                            "total_nodes": stats.get("total_nodes", 0),
+                            "total_edges": stats.get("total_edges", 0),
+                            "functions": sum(len(r.functions) for r in results),
+                            "classes": sum(len(r.classes) for r in results),
+                            "calls_resolved": len(resolved),
+                            "calls_unresolved": 0,
+                            **{k: 0 for k in (
+                                "external_symbols", "external_edges",
+                                "calls_skipped_unattributable",
+                            )},
+                        }
                     # Include calls resolved during the final durable-stream pass.
                     show_graph_progress(stats)
                     if graph_task is not None:

@@ -126,7 +126,12 @@ deprioritized for this ranking).
 > machine, on either this repo's own `src/code_explorer` (small: ~450-480 nodes) or
 > [gemseo](https://gitlab.com/gemseo/dev/gemseo) (large, real, external:
 > 2,107 files, 15,421 nodes, 338,128 resolved calls) — see `perfo/benchmark_backends.py`
-> and `perfo/benchmark_ingest_speed.py` to reproduce. Where a claim from LatticeDB's own
+> and, for what those numbers look like today, `streaming-ingestion-performance.md`.
+> (The 338,128 figure is the *old* name-matching resolver's output and was largely
+> spurious: the current import-aware resolver produces ~15,435 CALLS edges, and that
+> count varies by up to ~120 between runs at identical settings — see that document's
+> header before quoting any resolved-call number as exact.) Reproduce with
+> `perfo/benchmark_backends.py` and `perfo/benchmark_ingest_speed.py`. Where a claim from LatticeDB's own
 > docs/marketing contradicted what we measured, we kept our own number and said so —
 > see the note at the end of this section.
 
@@ -155,14 +160,17 @@ are converted into batches capped by both record count and estimated bytes; whil
 the single Lattice writer commits batch A, workers fill batch B. Only the current
 batch's canonical-to-internal node map remains in Python memory.
 
-The record target is calibrated inside that same pipeline rather than by a
-preliminary scan. Initial commits interleave doubled targets from 1,000 through
-8,000 operations (three samples per target by default), measure real end-to-end
-writer throughput, and then hold the smallest target whose median throughput is
-within 5% of the measured peak. The 8 MiB estimated-payload ceiling remains in
-force throughout calibration and steady state, so exploration cannot turn into a
-repository-sized intermediate buffer. All limits and calibration parameters are
-Pydantic settings documented in `configuration.md`.
+The record target is a measured constant, not a runtime calibration. An earlier
+design calibrated it inside the pipeline — interleaving doubled targets from 1,000
+to 8,000 operations and holding the smallest within 5% of peak median throughput —
+but a direct sweep (`perfo/benchmark_batch_size_sweep.py`) put the optimum at
+**200-350 operations per batch**, i.e. below that controller's entire candidate
+set, so it could only ever pick worse than its own default. It was deleted; the
+target is now the fixed setting `upsert_batch_size = 250`. The 8 MiB
+estimated-payload ceiling remains in force, so a batch cannot turn into a
+repository-sized intermediate buffer. All limits are Pydantic settings documented
+in `configuration.md`, with the sweep itself in `configuration.md` and
+`streaming-ingestion-performance.md`.
 
 Resolved calls become normal `Function -[:CALLS]-> Function` edges immediately.
 Calls whose target has not arrived are published as compact records to a native

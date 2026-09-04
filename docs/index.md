@@ -35,7 +35,8 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/), orga
 - [Polyglot Analyzer Restructuring](explanation/polyglot-analyzer-restructuring.md) - Plan to restructure the tree-sitter parser/extractors behind a language registry, Python-only for now (not yet implemented)
 - [Source of Truth & Search Representations](explanation/source-of-truth-and-search-representations.md) - Why full source doesn't live in LatticeDB at monorepo scale, and the SourceProvider design that implements it (implemented)
 - [Indexing Docs for Search Context](explanation/indexing-docs-for-search-context.md) - Idea to index Markdown headings/sections (README, docs/) alongside code for BM25/vector search, using tree-sitter-markdown (not yet implemented)
-- [Configuration](explanation/configuration.md) - Centralized pydantic-settings config for Ollama endpoint/model, embedding/upsert batch sizes, and incremental-reindex exclude patterns, overridable via CODE_EXPLORER_ env vars or a .env file (implemented)
+- [Configuration](explanation/configuration.md) - Centralized pydantic-settings config for Ollama endpoint/model, embedding/ingest batch sizes, and incremental-reindex exclude patterns, overridable via CODE_EXPLORER_ env vars or a .env file (implemented)
+- [Streaming Ingestion: Measured Performance](explanation/streaming-ingestion-performance.md) - Evidence log for the streaming ingest pipeline: stage balance, CPU profile, call-resolution quality, and the levers that were ruled out by measurement (including two retracted findings)
 - [Scoped Monorepo Indexing](explanation/scoped-monorepo-indexing.md) - Design for a `--only PATH` include-scope so `analyze`/`search` can index just part of a large monorepo instead of walking the whole tree (not yet implemented)
 
 ## Quick Links

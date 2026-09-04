@@ -127,6 +127,19 @@ class LatticeBackend:
         self.db: Optional[latticedb.Database] = None
 
     def open(self) -> None:
+        # Idempotent on purpose. LatticeDB is embedded single-writer, so a
+        # second latticedb.Database(...).open() on the same path collides with
+        # the first one *from this same process* and raises
+        # LatticeDatabaseLockedError("Database is open in another process") --
+        # a misleading message, since the other "process" is us. Measured with
+        # the natural-looking pattern
+        #     with LatticeBackend(db) as backend:
+        #         DependencyGraph(db_path=db, backend=backend)
+        # which fails at HEAD~ because DependencyGraph.__init__ opens the
+        # backend it was handed. Returning early here makes the double open a
+        # no-op instead of a self-lock.
+        if self.db is not None:
+            return
         if not self.read_only:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db = latticedb.Database(
@@ -137,9 +150,63 @@ class LatticeBackend:
             enable_vectors=self.enable_vectors,
             vector_dimensions=self.vector_dimensions,
         )
-        self.db.open()
+        # Translate latticedb's opaque LatticeIOError("I/O error") into
+        # something actionable. Measured on latticedb 0.15.0 (scratchpad
+        # exitmodes.py / matrix2.py, this session):
+        #
+        #   how the writing process ended     reopen
+        #   close() then exit                 OK (0.005s)
+        #   fell off the end of main(), no    LatticeIOError
+        #     close() -- latticedb.Database
+        #     has no __del__
+        #   os._exit(0)                       LatticeIOError
+        #   SIGKILL                           LatticeIOError
+        #
+        # It takes only one *committed write transaction* before the exit:
+        # a database that was opened (and even had indexes created) but never
+        # written reopens fine after SIGKILL. On disk the only difference
+        # between a clean and a dirty database of the same content is inside
+        # the 64KB header -- byte 0x80 is 2 after close() and 0 otherwise,
+        # plus ~16 bytes at 0x88 that look like a checksum over it.
+        #
+        # Nothing recovers it, and all of these were tried and still raise
+        # LatticeIOError: deleting the '-wal' sidecar, opening read_only,
+        # opening repeatedly. latticedb 0.15.0 exports no repair/recover/
+        # checkpoint symbol (checked the whole native symbol table). So the
+        # honest advice is "delete and re-index", not a fake recovery path.
+        #
+        # This looks like a latticedb bug rather than a documented limit:
+        # liblattice.so does contain storage.wal.WalManager,
+        # storage.recovery.RecoveryManager/RedoEntry/TxnRecoveryState and
+        # storage.checkpoint.Checkpointer, i.e. crash recovery is implemented
+        # and simply does not run (or fails) here. The minimal repro needs
+        # none of this project: latticedb.Database(p, create=True), one
+        # write() transaction, os._exit(0), reopen. Worth reporting upstream;
+        # until then this backend can only report it clearly.
+        #
+        # NOTE: this is emphatically NOT the "stale lock" that was reported
+        # earlier. A stale lock would raise LatticeDatabaseLockedError; this
+        # raises LatticeIOError, and `fuser` shows no process holding the
+        # file. The LatticeDatabaseLockedError sightings were the double-open
+        # bug fixed just above, from a single process.
+        try:
+            self.db.open()
+        except latticedb.LatticeIOError as exc:
+            self.db = None
+            raise latticedb.LatticeIOError(
+                f"{exc} -- {self.db_path} could not be opened. The usual cause "
+                "is that the process that last wrote it ended without "
+                "close(): a database left in that state is unopenable, not "
+                "merely slow to open. No repair is known (see the comment "
+                "above this raise); delete the database file and its '-wal' "
+                "sidecar and re-index.",
+                getattr(exc, "code", 0),
+            ) from exc
 
     def close(self) -> None:
+        # Idempotent too: `with backend:` followed by an explicit close() (or
+        # two close() calls) is just as natural as the double open above, and
+        # must not raise.
         if self.db is not None:
             self.db.close()
         self.db = None
@@ -147,13 +214,14 @@ class LatticeBackend:
     def __enter__(self):
         """Context-manager support so callers cannot forget close().
 
-        Not cosmetic: leaving a database open leaves an un-checkpointed WAL,
-        and the next process to open it pays a recovery pass -- measured at
-        >400s on the 2,103-file corpus (256MB, 3.2MB WAL) versus 0.03s after
-        a clean close. It also left the FTS indexes unreadable, so search
-        raised LatticeUnsupportedError. A missing close() in one benchmark
-        script produced all of that, so the fix is to make closing automatic
-        rather than remembered.
+        Not cosmetic, and worse than first reported: a database whose writer
+        exited without close() does not merely reopen slowly (the earlier
+        ">400s recovery pass" reading), it does not reopen at all --
+        latticedb 0.15.0 raises LatticeIOError and offers no repair. See the
+        measurement table in open(). One committed write transaction plus a
+        missing close() is enough to lose the database, which is exactly what
+        a benchmark script did, so closing has to be automatic rather than
+        remembered.
         """
         self.open()
         return self

@@ -24,3 +24,4 @@ USAGE_EXAMPLES.md
 perfo/bench_kuzu.db*
 perfo/bench_lattice.*
 perfo/bench_context.db*
+perfo/bench_sqlite.db*

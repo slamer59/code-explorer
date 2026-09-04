@@ -53,22 +53,15 @@ class Settings(BaseSettings):
     # transaction.
     ingest_write_chunk_size: int = 1000
     ingest_batch_bytes: int = 8 * 1024 * 1024
-    # AdaptiveBatchController (graph/lattice_streaming.py) is off by default,
-    # and should be deleted -- the measurement says it cannot help and does
-    # harm. Its candidate sizes are upsert_batch_size doubling up to
-    # ingest_batch_max_size, so with the measured optimum at 200-350 its
-    # ENTIRE candidate set now sits on the wrong side of the knee: it can only
-    # pick a size worse than the default it started from. Even before the
-    # default moved, the 1,000-8,000 stretch it explored spans a wall range of
-    # 25.2-27.2s, so at a 5% tolerance it was choosing between points it
-    # cannot distinguish -- which is why it selected 1,000, then 2,000, then
-    # 8,000 on three consecutive runs of the identical corpus. It was reading
-    # noise, and paying 12 calibration batches (4 candidates x 3 samples) to
-    # do it, on a run that at this batch size is ~338 batches but at the old
-    # 8,000 was only 8 -- so calibration never even completed and finish()
-    # chose from partial data. A fixed constant beats every size it can pick.
-    # Left in place (not deleted) only because lattice_streaming.py is owned
-    # by another change in flight; the flag makes it inert meanwhile.
+    # Batch-size sweep (perfo/benchmark_batch_size_sweep.py) put the wall-clock
+    # floor at 200-350 operations per batch: below ~100 per-batch overhead takes
+    # over, above ~1,000 the consumer starves. AdaptiveBatchController used to
+    # search for this value at runtime and was deleted (see 1ccd459) -- its
+    # candidate set started at upsert_batch_size and doubled, so it sat entirely
+    # above the knee and could only pick something worse than its own default,
+    # while paying 12 calibration batches to read noise (it chose 1,000, then
+    # 2,000, then 8,000 on three runs of the identical corpus). A fixed constant
+    # beats every size it could reach.
     lattice_cache_size_mb: int = 100
 
     # Search indexing uses CPU-bound parser processes. Saturate all logical CPUs

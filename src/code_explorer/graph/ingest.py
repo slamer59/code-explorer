@@ -20,6 +20,7 @@ export_parquet.py's own copy.
 """
 
 from pathlib import Path
+import re
 from typing import List, Optional, Tuple
 
 from code_explorer.analyzer.export_parquet import (
@@ -59,6 +60,30 @@ def _signature_text(source_code: str) -> str:
     return " ".join(lines)
 
 
+def _identifier_words(name: str) -> List[str]:
+    """Split an identifier into the words an LLM would plausibly type.
+
+    `compute_gradient` -> ["compute", "gradient"]; `computeGradient` and
+    `HTTPServerError` likewise. The retrieval model this serves is: the LLM
+    guesses a plausible *name*, BM25 finds it, the graph expands from there.
+    A guess is rarely character-exact -- "compute gradient" for
+    `compute_gradient` is the common case -- and neither backend's tokenizer
+    splits identifiers for us (measured: LatticeDB indexes `compute_gradient`
+    as a single token, so the spaced query matched only docstring prose and
+    returned `pow2_jac`; SQLite's FTS5 unicode61 splits on `_` but not on
+    camelCase).
+    """
+    words = re.split(r"[_\W]+", name)
+    out: List[str] = []
+    for word in words:
+        if not word:
+            continue
+        # camelCase / PascalCase / HTTPServer -> boundaries before a capital
+        # that starts a new word.
+        out.extend(re.findall(r"[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+|\d+", word))
+    return [w.lower() for w in out if w]
+
+
 def _derive_search_text(
     rel_file: str,
     name: str,
@@ -83,7 +108,19 @@ def _derive_search_text(
     vocabulary that lives only in the body (e.g. a helper referenced by
     name) without storing the body text itself.
     """
-    parts = [f"{rel_file}::{name}"]
+    # The name carries far more retrieval signal than the docstring, but a
+    # single flat field lets prose outscore it: BM25 rewards term density, and
+    # a wordy docstring beats a one-token name. Measured on gemseo, the query
+    # "compute gradient" returned `pow2_jac` (whose docstring reads "Compute
+    # the gradient of the objective") above `compute_gradient` itself.
+    # Emitting the identifier, then its split words, then both again weights
+    # name matches above body/docstring matches without needing per-field
+    # boosting -- which neither backend's FTS exposes.
+    identifier_words = _identifier_words(name)
+    parts = [f"{rel_file}::{name}", name]
+    if identifier_words:
+        parts.append(" ".join(identifier_words))
+        parts.append(" ".join(identifier_words))
     if source_code:
         parts.append(_signature_text(source_code))
     if docstring:

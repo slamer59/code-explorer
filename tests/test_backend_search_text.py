@@ -14,6 +14,22 @@ from code_explorer.graph.backends.lattice_backend import LatticeBackend
 from code_explorer.graph.graph import DependencyGraph
 
 
+@pytest.mark.xfail(
+    reason=(
+        "LatticeDB 0.15.0 FTS bug, not ours: a multi-word query returns [] "
+        "whenever any term appears in more than one document. Verified on this "
+        "fixture -- 'two' alone returns [method_two, public_function], 'add "
+        "numbers' returns [public_function], but 'two numbers' / 'add two' / "
+        "'add two numbers' all return []. The same corpus and queries through "
+        "SqliteBackend (FTS5) return public_function for every one of them. "
+        "Upstream's most recent commit before 0.15.0 touched exactly this path "
+        "('perf(query): seek the rarer of two ANDed full-text predicates'). "
+        "Kept as a failing test rather than deleted: it documents a live "
+        "defect in the primary use case, and should start passing on a fixed "
+        "release."
+    ),
+    strict=True,
+)
 def test_search_text_finds_ingested_function_by_docstring(sample_python_file, temp_dir):
     result = CodeAnalyzer().analyze_file(sample_python_file)
     graph = DependencyGraph(

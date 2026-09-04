@@ -347,3 +347,71 @@ def test_dangling_edges_are_storable_but_invisible_to_reads(backend):
     assert callees == [("foo.py", "callee", 3, 10, 15)]
     # ...but the raw count does see it -- the honest shape of the gap.
     assert backend.query("MATCH ()-[r:CALLS]->() RETURN COUNT(r) AS count")[0]["count"] == 2
+
+
+# ------------------------------------------------- Class seed (context.py)
+
+
+def test_class_seed_path_is_reachable_by_column_not_extra_json(backend):
+    """context.py's Class path matches `Function {file, parent_class}` and
+    calls get_call_edges_with_lines(class_id, label="Class"). Both were
+    missing from the spike: parent_class had no declared column (so the
+    pattern silently matched nothing -- the one failure mode a storage
+    backend must not have) and the label keyword raised TypeError. Asserted
+    here because neither surfaces as a test failure anywhere else; it
+    surfaces as a silently empty context bundle.
+    """
+    backend.upsert_nodes(
+        [
+            NodeRecord(
+                id="cls_widget",
+                type="Class",
+                properties={
+                    "id": "cls_widget",
+                    "name": "Widget",
+                    "file": "foo.py",
+                    "start_line": 20,
+                    "end_line": 40,
+                    "bases": "",
+                    "is_public": True,
+                    "source_code": "",
+                    "search_text": "foo.py::Widget",
+                },
+            ),
+            NodeRecord(
+                id="fn_method",
+                type="Function",
+                properties={
+                    "id": "fn_method",
+                    "name": "render",
+                    "file": "foo.py",
+                    "start_line": 21,
+                    "end_line": 25,
+                    "is_public": True,
+                    "source_code": "",
+                    "search_text": "foo.py::Widget.render",
+                    "parent_class": "Widget",
+                },
+            ),
+        ]
+    )
+    backend.upsert_edges(
+        [
+            EdgeRecord(
+                src_id="fn_caller",
+                dst_id="cls_widget",
+                type="CALLS",
+                properties={"call_line": 3},
+            )
+        ]
+    )
+
+    methods = backend.query(
+        "MATCH (f:Function {file: $file, parent_class: $name}) RETURN f.name AS name",
+        {"file": "foo.py", "name": "Widget"},
+    )
+    assert [r["name"] for r in methods] == ["render"]
+
+    callers, callees = backend.get_call_edges_with_lines("cls_widget", label="Class")
+    assert [(c[1], c[2]) for c in callers] == [("caller", 3)]
+    assert callees == []

@@ -69,6 +69,18 @@ NODE_COLUMNS: Dict[str, Dict[str, str]] = {
         "is_public": "INTEGER",
         "source_code": "TEXT",
         "search_text": "TEXT",
+        # Not in the Kuzu DDL: `module` and `parent_class` are properties the
+        # LatticeDB streaming path writes (graph/lattice_streaming.py) and
+        # that context.py's Class path matches on
+        # (`MATCH (f:Function {file, parent_class})`). Declared as real
+        # columns because a property with no column lands in extra_json,
+        # where a Cypher pattern silently matches nothing -- the one failure
+        # mode this backend must not have. NOTE: the generic
+        # DependencyGraph.ingest_results path does not populate them (only
+        # the streaming path does), so they are empty on a generic build --
+        # a gap in graph/ingest.py, not in this backend.
+        "module": "TEXT",
+        "parent_class": "TEXT",
     },
     "Variable": {
         "id": "TEXT",
@@ -161,7 +173,7 @@ _BOOL_COLUMNS: Dict[Tuple[str, str], bool] = {
 # one (delete_file, get_functions_in_file, and most (file, name) lookups);
 # `name` backs the search/resolve paths.
 _NODE_INDEXES: Dict[str, Tuple[str, ...]] = {
-    "Function": ("file", "name"),
+    "Function": ("file", "name", "parent_class"),
     "Class": ("file", "name"),
     "Variable": ("file", "name"),
     "Import": ("file", "imported_name"),
@@ -897,14 +909,22 @@ class SqliteBackend:
     # -- typed graph reads -------------------------------------------------
 
     def get_call_edges_with_lines(
-        self, function_canonical_id: str
+        self, function_canonical_id: str, label: str = "Function"
     ) -> Tuple[
         List[Tuple[str, str, int, int, int]], List[Tuple[str, str, int, int, int]]
     ]:
         """Two index-backed joins. Unlike LatticeDB there is no
         planner-vs-imperative gap to work around: `CALLS.dst`/`CALLS.src` are
         indexed, so this is a b-tree probe plus a PK lookup per hit.
+
+        label: the node label `function_canonical_id` belongs to. Only the
+        SEED's label varies (a Class seed's callers are the functions that
+        construct it); the callers and callees on the other end of a CALLS
+        edge are always Functions, which is why only the WHERE side changes
+        and both joins stay on the Function table.
         """
+        if label not in ("Function", "Class"):
+            raise ValueError(f"Unsupported seed label {label!r}")
         cur = self.conn.cursor()
         callers = [
             (r["file"], r["name"], r["call_line"], r["start_line"], r["end_line"])

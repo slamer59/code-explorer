@@ -15,13 +15,15 @@
 > is skewed toward web-framework and test-mock calls, which matters when
 > reading the call-resolution numbers below.
 >
-> **Read the call-resolution counts as ranges, not constants.** Repeat runs at
-> identical settings do not produce identical graphs: over 22 runs, resolved
-> calls ranged **14,874–14,988** and total edges **35,555–35,669**, with two
-> repeats of the *same* configuration differing by as much as 39 resolved
-> calls. Node count was stable at 15,403 in all 22. Any single resolved-call
-> figure quoted below is one sample of a noisy quantity — do not wire one into
-> a regression gate.
+> **Read the call-resolution counts as ranges, not constants.** Repeat runs do
+> not produce identical graphs. Over one 22-run block, resolved calls ranged
+> **14,874–14,988** and total edges **35,555–35,669** — and two repeats of the
+> *same* configuration differed by as much as **39 resolved calls**, so the
+> spread is not explained by the settings being varied. Node count was stable
+> at 15,403 in all 22. That block predates the module-root fix, so its absolute
+> band is not today's; what carries over is the **magnitude** of the noise,
+> roughly ±60 resolved calls. Any single resolved-call figure quoted below is
+> one sample of a noisy quantity — do not wire one into a regression gate.
 
 ## Why this document exists
 
@@ -509,11 +511,13 @@ fields, fixed 250-op batches), measured on the same corpus:
 | Committing batches | 18.5s | **14.0s** | **-24%** |
 | Finalize drain | 10.7s | **8.2s** | **-23%** |
 
-**The `~` on the call counts is not decoration.** Across 22 runs at fixed
-settings, resolved calls ranged 14,874-14,988 and total edges 35,555-35,669, and
-two repeats of the *same* configuration differed by up to 39 resolved calls. Node
-count was stable at 15,403 every time. Treat the call figures as "about this
-much"; only the node count is safe to assert exactly.
+**The `~` on the call counts is not decoration.** The "Now" column is a single
+sample. The 22-run block described in the header — measured just before the
+module-root fix, so at slightly lower absolute totals — saw resolved calls range
+over a ~114-wide band and edges over a ~114-wide band, with repeats of one
+configuration differing by up to 39. Nodes were stable at 15,403 every time.
+Treat the call and edge figures as "about this much"; only the node count is safe
+to assert exactly.
 
 Read-back latency on the finished index, same corpus:
 
@@ -535,8 +539,8 @@ like-for-like.
 
 ### Still open
 
-- **Resolved-call count is not deterministic.** 14,874-14,988 over 22 runs at
-  identical settings, including repeats of the same configuration. Nodes are
+- **Resolved-call count is not deterministic.** A ~114-wide band over 22 runs,
+  including repeats of one configuration that differed by 39. Nodes are
   stable, so the non-determinism lives in the *resolution* path, not in parsing or
   node writing -- most likely in which candidates a given batch can see when a
   reference is first examined, i.e. arrival order. Not yet root-caused, and it is

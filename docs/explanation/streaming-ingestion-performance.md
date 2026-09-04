@@ -8,11 +8,20 @@
 > **What the corpus actually is:** that path is not the `gemseo` library alone —
 > it is a parent directory holding three projects (`gemseo`, the MDO library;
 > `gemseo-scenario-configurable`, a FastAPI/SQLAlchemy/Kubernetes service; and
-> `gemseo_as_a_service`), 2,107 Python files in total. So it is a small
-> multi-project monorepo, which makes it a more representative target than a
-> single library — but it also means the call mix is skewed toward web-framework
-> and test-mock calls, which matters when reading the call-resolution numbers
-> below.
+> `gemseo_as_a_service`), 2,103 Python files after the hardened exclude
+> patterns (2,107 before them — early tables below still carry the older
+> count). So it is a small multi-project monorepo, which makes it a more
+> representative target than a single library — but it also means the call mix
+> is skewed toward web-framework and test-mock calls, which matters when
+> reading the call-resolution numbers below.
+>
+> **Read the call-resolution counts as ranges, not constants.** Repeat runs at
+> identical settings do not produce identical graphs: over 22 runs, resolved
+> calls ranged **14,874–14,988** and total edges **35,555–35,669**, with two
+> repeats of the *same* configuration differing by as much as 39 resolved
+> calls. Node count was stable at 15,403 in all 22. Any single resolved-call
+> figure quoted below is one sample of a noisy quantity — do not wire one into
+> a regression gate.
 
 ## Why this document exists
 
@@ -24,14 +33,18 @@ critical path rather than at the parts that were easiest to reason about.
 
 ## The corpus
 
-| Quantity | Value |
-|---|---|
-| Python files | 2,107 |
-| Nodes written | 15,421 |
-| Edges written | 21,551 |
-| Call references produced | 53,557 |
-| — resolved to a CALLS edge | **8,237** |
-| — left unresolved | **45,320** |
+The left column is the original baseline this document opens against; the
+right column is where the pipeline stands after every change recorded below.
+Both were measured the same way; see "Combined result" for the detail.
+
+| Quantity | Baseline (first measurement) | Current |
+|---|---|---|
+| Python files | 2,107 | 2,103 |
+| Nodes written | 15,421 | 15,403 |
+| Edges written | 21,551 | ~36,116 |
+| Call references produced | 53,557 | — (18,529 now skipped before any stream) |
+| — resolved to a CALLS edge | **8,237** | **~15,435** (sample; see spread above) |
+| — left unresolved | **45,320** | **~7,733** |
 
 For contrast, the previous `CallResolver` (plain cross-file name matching) produced
 roughly **320,000** CALLS edges on the same repo. The import-aware resolver produces
@@ -199,34 +212,62 @@ producing identical graph contents each time.
 
 Note also that the vendor's own example (`paper_graph_rag.py`) builds its entire
 dataset — nodes, edges, vectors, and FTS indexing — inside **one** `db.write()`
-with a single `txn.commit()`. Our pipeline commits every 1,000 items in
-`upsert_nodes`, again in `upsert_edges`, and again in `apply_call_outcomes`.
+with a single `txn.commit()`. Our pipeline commits every `ingest_write_chunk_size`
+(1,000) rows in `upsert_nodes`, again in `upsert_edges`, and again in
+`apply_call_outcomes`. Widening that transaction turned out not to matter — see the
+write-transaction-width note below.
 
 ## What the profile implies
 
-### 1. Adaptive batch sizing is biased against the dominant cost
+### 1. Adaptive batch sizing was biased against the dominant cost — and has been deleted
 
-`AdaptiveBatchController` picks *the smallest* candidate size whose median throughput
-is within 5% of peak. But `commit` is 53.6% of CPU, and commit cost is largely
+**Outcome: `AdaptiveBatchController` was removed** (commit `1ccd459`). Batch size is
+now the fixed setting `upsert_batch_size = 250`. What follows is why, kept because the
+reasoning is the useful part.
+
+`AdaptiveBatchController` picked *the smallest* candidate size whose median throughput
+was within 5% of peak. But `commit` is 53.6% of CPU, and commit cost is largely
 per-transaction — so preferring smaller batches maximises the number of commits, which
-is the most expensive thing in the profile. The tie-break optimises for memory at the
+is the most expensive thing in the profile. The tie-break optimised for memory at the
 expense of the measured bottleneck.
 
-It is also **not reproducible**: on identical input, on the same machine, it selected
-2,000 ops/batch on one run (32 batches) and 1,000 on the next (54 batches). Two
-causes, both plausible:
+It was also **not reproducible**: on identical input, on the same machine, it selected
+1,000, then 2,000, then 8,000 ops/batch on three consecutive runs. Two causes, both
+plausible:
 
-- **The metric is confounded.** `operations_per_second` counts
+- **The metric is confounded.** `operations_per_second` counted
   `nodes + structural_edges + call_references` as interchangeable "operations", but a
   node write (which also updates the FTS index), an edge write, and a call-reference
   lookup cost very different amounts. Batch composition drifts between samples, so the
-  throughput numbers being compared do not measure the same work.
+  throughput numbers being compared did not measure the same work.
 - **The environment is non-stationary.** The database grows during ingestion, so later
   batches are slower regardless of size. Interleaving candidate sizes mitigates the
   bias but three samples per size is thin against that drift.
 
-Calibration also costs 4 candidates × 3 samples = **12 batches** — on gemseo that is
-12 of ~54, and the answer it buys does not reproduce.
+The measurement that settled it is the batch-size sweep
+(`perfo/benchmark_batch_size_sweep.py`, 2 runs per point on the 2,103-file corpus,
+agreeing to within 0.3s):
+
+| Target ops/batch | 50 | 100 | 200 | 350 | 500 | 1,000 | 2,000 | 4,000 | 8,000 |
+|---|---|---|---|---|---|---|---|---|---|
+| Commit | 12.3s | 11.2s | **10.7s** | 11.1s | 11.2s | 12.2s | 12.7s | 13.7s | 13.3s |
+| Wall | 25.6s | 24.4s | **23.9s** | 24.1s | 24.4s | 25.2s | 25.8s | 26.9s | 27.0s |
+
+It is a shallow bowl with its floor at **200–350**. The controller's candidate set was
+`upsert_batch_size` doubling up to `ingest_batch_max_size` — 1,000/2,000/4,000/8,000 —
+so its *entire* search space sat on the wrong side of the knee: it could only ever pick
+something worse than the default it started from. Across that stretch the wall range is
+25.2–27.2s, so at a 5% tolerance it was choosing between points it cannot distinguish.
+It was reading noise, and paying 4 candidates × 3 samples = **12 calibration batches**
+to do it.
+
+That is also why no metric fix or bandit was warranted: a fixed constant beats every
+size the controller could reach. The prediction in the profile — that fewer, larger
+commits would win because `commit` dominates — turned out to be wrong past ~350, which
+is itself the interesting result. The likely reason: commit cost is dominated by
+per-row index maintenance, which grouping cannot amortise, so batch size buys pipeline
+overlap and nothing else. The write-transaction-width sweep in the same script is flat
+across a 64× range, which is consistent with that.
 
 ### 2. Unresolvable calls are paid for six times
 
@@ -326,6 +367,10 @@ need lexical search.
 
 ## The dominant cost: unresolved call references
 
+*All figures in this section are from the baseline run (8,237 resolved / 45,320
+unresolved). They are what motivated the fixes recorded further down, and are kept
+as the "before" picture; see "Combined result" for where the pipeline stands now.*
+
 Sampling 4,000 records from `UNRESOLVED_CALL_STREAM`:
 
 | | Share |
@@ -365,9 +410,11 @@ FTS, buffer-pool, batching, and parallelism put together.
 
 It is also the *quality* story, and it is better than the raw ratio suggests:
 only ~6,160 references (13.6% of 45,320) name a function that genuinely exists
-and were not linked. Against 8,237 resolved, the import-aware resolver captures
+and were not linked. Against 8,237 resolved, the import-aware resolver captured
 roughly **57% of resolvable internal calls** — not 15%. The old name-matching
-resolver's ~320,000 edges were largely spurious by comparison.
+resolver's ~320,000 edges were largely spurious by comparison. (Class-aware
+lookup and the module-root fix have since taken resolved calls to ~15,435, so
+this 57% is the *baseline* capture rate, not the current one.)
 
 ### `read_stream` is not quadratic
 
@@ -387,18 +434,23 @@ Extending the lookup to both labels (`find_symbols_by_properties`) plus an
 approximate re-export rule took resolved CALLS edges from **8,237 to 15,071
 (+83%)** on this corpus, of which **5,379 target a Class node**.
 
-Resolution-method split after the change: `global_unique` 6,250,
-`package_reexport` 6,121, `same_class` 1,277, `same_file` 1,187,
-`direct_base` 181.
+Resolution-method split immediately after that change (before the module-root fix
+below): `global_unique` 6,250, `package_reexport` 6,121, `same_class` 1,277,
+`same_file` 1,187, `direct_base` 181 — and `explicit_import` **zero**, which is
+what the next section is about.
 
 Cost: wall clock rose 32.1s → 34.2s (finalize 11.7s → 13.7s) because each lookup
 now materialises candidates for two labels instead of one.
 
-### Root cause worth fixing: module names are derived from the wrong root
+### Fixed: module names were derived from the wrong root
+
+**Resolved.** Node `module` properties are now derived from the *package* root
+rather than the indexed root. This is the single highest-value correctness fix in
+this document, so the broken mechanism is worth keeping on the record.
 
 `explicit_import` — the highest-confidence rule — fired **zero times** on this
-corpus. `_module_name()` derives a module from the file path relative to the
-*indexed root* rather than the *package root*, so a src-layout project yields:
+corpus. `_module_name()` derived a module from the file path relative to the
+*indexed root* rather than the *package root*, so a src-layout project yielded:
 
 ```
 file:    gemseo/src/gemseo/algos/design_space.py
@@ -406,54 +458,91 @@ derived: gemseo.src.gemseo.algos.design_space
 import:  gemseo.algos.design_space          -> no match
 ```
 
-The current workaround accepts a candidate whose derived module contains the
-imported module as a whole dotted segment run, in either direction, when that
-match is unique (`package_reexport`, confidence `low`). That recovered 6,121
-resolutions which should properly have been high-confidence `explicit_import`
-matches.
+Every import-based match therefore fell through to the workaround: accept a
+candidate whose derived module contains the imported module as a whole dotted
+segment run, in either direction, when that match is unique
+(`package_reexport`, confidence `low`). It recovered 6,121 resolutions that should
+have been high-confidence `explicit_import` matches — the right answers arrived by
+the wrong route, and with the wrong confidence attached.
 
-The real fix is standard: walk up from each file while `__init__.py` exists, take
-the first directory without one as the package root, and derive the module
-relative to that. It handles src-layout, flat layout, and multi-project
-monorepos — precisely the case this project targets — and would let the fuzzy
-matcher be tightened rather than relied upon.
+The fix is the standard one: walk up from each file while `__init__.py` exists,
+take the first directory without one as the package root, and derive the module
+relative to that. It handles src-layout, flat layout, and multi-project monorepos
+— precisely the case this project targets. Package-root detection already existed
+in `ProjectScope` for internal/external classification; wiring the node `module`
+property to it was the whole change.
+
+Effect on the reference corpus:
+
+| Resolution method | Before | After |
+|---|---|---|
+| `explicit_import` (high confidence) | **0** | **6,525** |
+| `package_reexport` (low confidence) | **6,062** | **25** |
+| `global_unique` | 6,244 | 6,244 |
+| `same_class` | 1,277 | 1,277 |
+| `same_file` | 1,183 | 1,183 |
+| `direct_base` | 181 | 181 |
+| **Total resolved** | 14,947 | **15,435** |
+
+So the low-confidence fallback all but disappears (6,062 → 25), the high-confidence
+rule takes over the work it should always have done, and total resolved rises by
+~488 on top of that. Read the totals as samples: at fixed settings this quantity
+varies run to run (see the header), so the meaningful result is the *method shift*,
+not the last three digits of the total.
 
 ## Combined result
 
-All three changes merged (Class-aware resolution, call classification with
-external boundary nodes, deferred FTS + trimmed candidate fields), measured on
-the same corpus:
+All changes merged (Class-aware resolution, package-root module derivation, call
+classification with external boundary nodes, deferred FTS + trimmed candidate
+fields, fixed 250-op batches), measured on the same corpus:
 
-| Metric | Baseline | After | Change |
+| Metric | Baseline | Now | Change |
 |---|---|---|---|
-| Calls resolved | 8,237 | **14,951** | **+82%** |
-| Calls unresolved | 45,320 | **8,217** | **-82%** |
-| Total edges | 21,551 | **35,632** | **+65%** |
+| Calls resolved | 8,237 | **~15,435** | **+87%** |
+| Calls unresolved | 45,320 | **~7,733** | **-83%** |
+| Nodes | 15,421 | 15,403 | stable across all 22 runs |
+| Total edges | 21,551 | **~36,116** | **+68%** |
 | External symbols (new) | -- | 742 | leaf boundary nodes |
 | External call edges (new) | -- | 7,381 | "this function calls numpy/fastapi/..." |
 | Skipped as unattributable | -- | 18,529 | never written to any stream |
-| Wall clock | 31.1s | 27.9s | -10% |
+| Wall clock (full build) | 31.1s | **27.6s** | -11% |
 | Committing batches | 18.5s | **14.0s** | **-24%** |
 | Finalize drain | 10.7s | **8.2s** | **-23%** |
 
-The graph gained 65% more edges while the build got faster -- the pipeline is
+**The `~` on the call counts is not decoration.** Across 22 runs at fixed
+settings, resolved calls ranged 14,874-14,988 and total edges 35,555-35,669, and
+two repeats of the *same* configuration differed by up to 39 resolved calls. Node
+count was stable at 15,403 every time. Treat the call figures as "about this
+much"; only the node count is safe to assert exactly.
+
+Read-back latency on the finished index, same corpus:
+
+| Operation | Time |
+|---|---|
+| Reopen (after a clean `close()`) | 0.03s |
+| BM25 query | 1-46ms |
+| Context assembly | 4.5ms |
+| Full in-process open + search + context | 75ms |
+
+The graph gained ~68% more edges while the build got faster -- the pipeline is
 doing substantially more useful work in less time. Read the wall-clock figure
-conservatively: runs on this corpus have ranged 29.7-33.0s at baseline, so -10%
-sits near the edge of run-to-run variance. The robust signals are the commit and
-finalize reductions, and the structural drop in wasted references. The file count
-also shifted 2,107 -> 2,103 because the hardened exclude patterns now skip a few
-vendored directories, so the two runs are not perfectly like-for-like.
+conservatively: runs on this corpus have ranged 29.7-33.0s at baseline, so the
+improvement is only a little outside run-to-run variance. The robust signals are
+the commit and finalize reductions, and the structural drop in wasted references.
+The file count also shifted 2,107 -> 2,103 because the hardened exclude patterns
+now skip a few vendored directories, so the two runs are not perfectly
+like-for-like.
 
 ### Still open
 
-- **`_module_name` still derives modules from the indexed root**, not the package
-  root, so `explicit_import` remains dead and the low-confidence
-  `package_reexport` fallback carries 6,000+ resolutions. Package-root detection
-  now exists in `ProjectScope` but is used only for internal/external
-  classification -- wiring the node `module` property to it is the remaining fix.
-- **Adaptive batch sizing is still unstable**: 1,000, 2,000 and 8,000 selected on
-  three runs over the same corpus.
-- 8,217 references remain unresolved and internal -- the genuine ambiguity
+- **Resolved-call count is not deterministic.** 14,874-14,988 over 22 runs at
+  identical settings, including repeats of the same configuration. Nodes are
+  stable, so the non-determinism lives in the *resolution* path, not in parsing or
+  node writing -- most likely in which candidates a given batch can see when a
+  reference is first examined, i.e. arrival order. Not yet root-caused, and it is
+  the reason no resolved-call number in this document can be used as a regression
+  gate.
+- ~7,733 references remain unresolved and internal -- the genuine ambiguity
   backlog (same-named symbols the resolver declines to guess between).
 
 ## Correction: the "FTS makes open pathological" finding was wrong
@@ -487,18 +576,27 @@ index creation works correctly. `LatticeBackend` and `KuzuBackend` now
 implement `__enter__`/`__exit__` so closing is automatic rather than
 remembered, with a regression test in `tests/test_lattice_batching.py`.
 
-## Open questions (measurements in flight)
+## Open questions
 
-- **Of the 45,320 unresolved references, how many name a function that actually exists
-  in the graph?** Those are missed edges (a quality regression against the old
-  resolver); the rest are external/stdlib and correctly unresolved. This decides
-  whether call-resolution quality outranks the streaming work.
+All three questions this document opened with have since been answered. They are
+kept, with their answers, because two of them were answered *against* the
+hypothesis that motivated them.
+
+- **Of the 45,320 unresolved references, how many name a function that actually
+  exists in the graph?** *Answered:* 13.6% (~6,160). The rest are external, stdlib
+  or builtin and correctly unresolved. Call-resolution quality did outrank the
+  streaming work -- see "Resolution quality" and the module-root fix.
   (`perfo/benchmark_call_resolution_quality.py`)
-- **Is `read_stream` paging linear or quadratic in offset?** `_finalize_pending` drains
-  in 1,000-record windows using `after_sequence`. If per-page cost grows with offset,
-  finalize is quadratic in pending-call count, which would scale badly toward 100k
-  files. The same benchmark reports per-page timings for this reason. An early signal:
-  paging 4,000 records out of a 45,320-record stream took over four minutes.
-- **Does the commit cost scale with batch size or batch count?** This decides whether
-  fixing the adaptive controller's tie-break is worth anything. Testable directly by
-  pinning `CODE_EXPLORER_UPSERT_BATCH_SIZE` and comparing wall-clock.
+- **Is `read_stream` paging linear or quadratic in offset?** *Answered: linear.*
+  8ms for the first page, 7ms for the last, flat in offset. The early signal that
+  suggested otherwise (paging 4,000 records "took over four minutes") was a full
+  label scan, not stream paging. See "`read_stream` is not quadratic".
+- **Does the commit cost scale with batch size or batch count?** *Answered:
+  neither, past a point.* The sweep in `perfo/benchmark_batch_size_sweep.py` traces
+  a shallow bowl with its floor at 200-350 ops/batch; larger batches get *worse*,
+  not better, which is the opposite of what the "commit is 53.6% of CPU" reasoning
+  predicted. That result is what removed `AdaptiveBatchController` rather than
+  fixing its tie-break.
+
+Genuinely still open: the non-determinism of the resolved-call count, recorded
+under "Still open" above.

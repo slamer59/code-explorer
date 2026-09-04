@@ -296,6 +296,21 @@ class _CypherToSQL:
                 f"Only single-hop patterns are supported, got {len(nodes)} nodes / "
                 f"{len(rels)} relationships: {self.statement!r}"
             )
+        # Two nodes with no relationship _REL_RE could parse means the arrow
+        # between them uses syntax outside the subset -- a variable-length
+        # path (-[:CALLS*1..3]->), an undirected or right-to-left arrow.
+        # Without this guard the second node is silently dropped from the
+        # FROM list and SQLite reports "no such column: b.name", which is the
+        # right outcome by accident but the wrong error, and would become a
+        # silently-wrong result the moment both sides shared a column name.
+        if len(nodes) == 2 and not rels:
+            raise CypherSubsetError(
+                f"Unsupported relationship syntax between the two node patterns "
+                f"(variable-length paths, undirected and reversed arrows are not "
+                f"in the subset): {self.statement!r}"
+            )
+        if re.search(r"\bOPTIONAL\s+MATCH\b", self.statement, re.I):
+            raise CypherSubsetError(f"OPTIONAL MATCH is not supported: {self.statement!r}")
 
         froms: List[str] = []
         wheres: List[str] = []
@@ -744,6 +759,13 @@ class SqliteBackend:
         owned["File"] = [file_key]
 
         for etype, (src_type, dst_type) in EDGE_ENDPOINT_TYPES.items():
+            # EDGE_ENDPOINT_TYPES comes from graph/schema.py and covers edge
+            # types this backend does not create a table for (CALLS_EXTERNAL,
+            # whose dst is an external symbol, not a node we store). Skip
+            # them rather than issuing DELETEs against tables that
+            # initialize_schema() never made.
+            if etype not in EDGE_COLUMNS:
+                continue
             for endpoint, label in (("src", src_type), ("dst", dst_type)):
                 ids = owned.get(label)
                 if not ids:

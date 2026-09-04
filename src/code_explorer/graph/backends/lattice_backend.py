@@ -175,6 +175,15 @@ class LatticeBackend:
         # checkpoint symbol (checked the whole native symbol table). So the
         # honest advice is "delete and re-index", not a fake recovery path.
         #
+        # This looks like a latticedb bug rather than a documented limit:
+        # liblattice.so does contain storage.wal.WalManager,
+        # storage.recovery.RecoveryManager/RedoEntry/TxnRecoveryState and
+        # storage.checkpoint.Checkpointer, i.e. crash recovery is implemented
+        # and simply does not run (or fails) here. The minimal repro needs
+        # none of this project: latticedb.Database(p, create=True), one
+        # write() transaction, os._exit(0), reopen. Worth reporting upstream;
+        # until then this backend can only report it clearly.
+        #
         # NOTE: this is emphatically NOT the "stale lock" that was reported
         # earlier. A stale lock would raise LatticeDatabaseLockedError; this
         # raises LatticeIOError, and `fuser` shows no process holding the

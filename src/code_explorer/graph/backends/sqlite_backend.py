@@ -521,7 +521,15 @@ class SqliteBackend:
         self.conn = None
         self._vector_cache = None
 
-    def initialize_schema(self) -> None:
+    def initialize_schema(self, *, create_fts_indexes: bool = True) -> None:
+        """create_fts_indexes is accepted for Protocol compatibility and
+        deliberately ignored: SQLite's FTS5 tables are populated by the same
+        INSERT that writes the node (see _index_text), not by a separate
+        index build, so there is nothing to defer. LatticeDB's
+        ensure_fts_indexes has no SQLite equivalent -- which is precisely why
+        SQLite has no expensive index-build phase to pay for at the end of a
+        bulk load.
+        """
         if self.read_only:
             return
         cur = self.conn.cursor()

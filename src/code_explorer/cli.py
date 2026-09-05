@@ -138,23 +138,30 @@ def cli() -> None:
     --help` for full per-command options -- each command's help text is kept
     in sync with its actual flags, unlike a separate doc would be.
 
-    Examples:
-        code-explorer analyze /path/to/code
-        code-explorer search "how do we refresh an auth token" /path/to/code
-        code-explorer search "resolve_call" /path/to/code --fuzzy
-        code-explorer impact module.py:function_name
-        code-explorer trace module.py:42 --variable user_input
-        code-explorer stats
-        code-explorer visualize module.py --output graph.md
+    Typical use:
 
+    \b
+      code-explorer search "how do we refresh an auth token" /path/to/code
+      code-explorer search "resolve_call" /path/to/code --fuzzy
+      code-explorer impact module.py:function_name /path/to/code
+      code-explorer analyze /path/to/code
+      code-explorer trace module.py:42 --variable user_input
+      code-explorer stats
+      code-explorer visualize module.py --output graph.md
+
+    \b
+    Run `code-explorer COMMAND --help` for that command's flags, a usage
+    example, and a sample of its output.
+
+    \b
     New capabilities:
-        - Code search: BM25/fuzzy/semantic search with an LLM-ready context
-          bundle for the top hit (see `code-explorer search --help`)
-        - Import tracking: See what imports a function/class
-        - Decorator analysis: Track decorator usage and dependencies
-        - Attribute tracking: Find what modifies class attributes
-        - Exception analysis: Trace exception propagation
-        - Module hierarchy: Understand package structure
+      - Code search: BM25/fuzzy/semantic search with an LLM-ready context
+        bundle for the top hit (see `code-explorer search --help`)
+      - Import tracking: See what imports a function/class
+      - Decorator analysis: Track decorator usage and dependencies
+      - Attribute tracking: Find what modifies class attributes
+      - Exception analysis: Trace exception propagation
+      - Module hierarchy: Understand package structure
     """
     pass
 
@@ -258,13 +265,24 @@ def analyze(
     PATH: Directory containing Python code to analyze
 
 
-    Examples:
-        code-explorer analyze ./src
-        code-explorer analyze /path/to/project --exclude tests --exclude migrations
+    How to use it:
 
-    Output: a progress bar, then `Done N files in M bounded batches; X calls
-    resolved, Y retained unresolved`, then a summary table of counts (files,
-    functions, classes, edges, imports).
+    \b
+      code-explorer analyze ./src
+      code-explorer analyze /path/to/project --exclude tests --exclude migrations
+      code-explorer analyze ./src --refresh
+
+    Example output:
+
+    \b
+      Analyzing files... ---------------------------------------- 100% 2/2
+      Graph persisted to: /path/to/project/.code-explorer/graph.db
+      +------------------------- Performance Metrics -------------------------+
+      |  Total analysis time: 0.44s                                           |
+      |    - File analysis: 0.15s                                             |
+      |    - Graph load (COPY FROM): 0.20s                                    |
+      |    - Call resolution: 0.05s                                           |
+      +-----------------------------------------------------------------------+
     """
     try:
         from .analyzer import CodeAnalyzer
@@ -915,15 +933,33 @@ def impact(
     TARGET: "file.py:function_name" (a class name works too)
     PATH: repository to search (default: current directory)
 
-    Examples:
-        code-explorer impact module.py:process_data
-        code-explorer impact utils.py:calculate --downstream
-        code-explorer impact main.py:main --depth 2 --budget 4000
-        code-explorer impact core/api.py:Client --names-only
+    How to use it:
 
-    Output: `Seed: file::name` then one `### file::name (role[, N hops][,
-    signature only])` code block per neighbour in hop order -- full body
-    while under `--budget`, else signature + docstring. The same bundle
+    \b
+      code-explorer impact auth.py:issue_new_token PATH
+      code-explorer impact utils.py:calculate PATH --downstream
+      code-explorer impact main.py:main PATH --depth 2 --budget 4000
+      code-explorer impact core/api.py:Client PATH --names-only
+
+    Example output (--names-only):
+
+    \b
+      +----------------------------------------------------------------+
+      | Impact: expanded context                                       |
+      | Seed: auth.py::issue_new_token | Direction: both | Depth: 3    |
+      +----------------------------------------------------------------+
+    \b
+                      Ranked neighbourhood
+      +------+-----------+---------+---------------+------+
+      | Hops | Direction | File    | Name          | Line |
+      +------+-----------+---------+---------------+------+
+      |    1 | caller    | auth.py | refresh_token |    3 |
+      +------+-----------+---------+---------------+------+
+    \b
+      1 related node(s) in the bundle
+    \b
+    Without --names-only each row is followed by its source, as
+    `### file::name (role[, N hops][, signature only])` -- the same bundle
     `search` emits, minus the results table.
     """
     from .context import ContextAssembler
@@ -1170,16 +1206,49 @@ def search(
     QUERY: text to search for, e.g. "refresh token"
     PATH: directory to search (default: current directory)
 
-    Examples:
-        code-explorer search "parse file"
-        code-explorer search "refesh_token" --fuzzy
-        code-explorer search "how do we renew an expired credential" --semantic
-        code-explorer search "resolve call" --no-context --limit 10
+    How to use it:
 
-    Output: a ranked `Type | Name | File | Score` table; then `Seed:
-    file::name` and one `### file::name (role[, N hops][, signature only])`
-    code block per neighbour in hop order -- full body while under `--budget`,
-    else signature + docstring.
+    \b
+      code-explorer search "parse file" PATH
+      code-explorer search "refesh_token" PATH --fuzzy
+      code-explorer search "renew an expired credential" PATH --semantic
+      code-explorer search "resolve call" PATH --no-context --limit 10
+      code-explorer search "parse file" PATH --depth 2 --budget 8000
+
+    Example output:
+
+    \b
+      Search results for 'refresh token'
+      ┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓
+      ┃ Type     ┃ Name          ┃ File    ┃ Score ┃
+      ┡━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩
+      │ Function │ refresh_token │ auth.py │ 1.375 │
+      └──────────┴───────────────┴─────────┴───────┘
+    \b
+      Seed:
+          auth.py::refresh_token
+    \b
+      ### auth.py::refresh_token (seed)
+      ```python
+      def refresh_token(token):
+          '''Refresh an OAuth access token by calling the auth server.'''
+          return issue_new_token(token)
+      ```
+    \b
+      Upstream -- what calls this (<= 3 hops):
+          (none)
+    \b
+      Downstream -- what this calls (<= 3 hops):
+      ### auth.py::issue_new_token (callee)
+      ```python
+      def issue_new_token(token):
+          '''Issue a brand new token.'''
+          return token + "x"
+      ```
+    \b
+    Each neighbour block is headed `### file::name (role[, N hops][, signature
+    only])` in hop order -- full body while under --budget, signature +
+    docstring once it runs out.
     """
     from .context import ContextAssembler
     from .graph import DependencyGraph
@@ -1374,12 +1443,26 @@ def trace(
 
     TARGET: Location in format "file.py:line_number"
 
-    Examples:
-        code-explorer trace module.py:42 --variable user_input
-        code-explorer trace utils.py:15 --variable result
+    How to use it:
 
-    Output: a header naming the variable, then a table of data-flow steps
-    (where it's assigned and where it flows), or `No data flow found.`
+    \b
+      code-explorer trace module.py:42 --variable user_input
+      code-explorer trace utils.py:15 --variable result
+
+    Example output:
+
+    \b
+      Tracing 'user_input' from module.py:42
+    \b
+      +------------+---------------------+------+
+      | Direction  | Location            | Line |
+      +------------+---------------------+------+
+      | assigned   | module.py::handle   |   42 |
+      | flows into | module.py::validate |   47 |
+      +------------+---------------------+------+
+    \b
+    Prints `No data flow found.` when the variable has no tracked
+    assignments or uses. Reads analyze's graph -- run `analyze` first.
     """
     try:
         from .graph import DependencyGraph
@@ -1500,12 +1583,32 @@ def stats(db_path: Optional[str], top: int) -> None:
     the unification is deliberately partial -- do not assume the two
     commands see the same graph.
 
-    Examples:
-        code-explorer stats
-        code-explorer stats --top 20
+    How to use it:
 
-    Output: a `Codebase Statistics` panel of counts (files, functions,
-    classes, edges, calls, modules) plus a `Most-called functions` table.
+    \b
+      code-explorer stats
+      code-explorer stats --top 20
+      code-explorer stats --db-path ./other/.code-explorer/graph.db
+
+    Example output:
+
+    \b
+      +--------------- Codebase Statistics ---------------+
+      |  Files            2,103                           |
+      |  Functions       11,416                           |
+      |  Classes          1,884                           |
+      |  Call edges      15,435                           |
+      +---------------------------------------------------+
+    \b
+                   Most-called functions
+      +---------------------------+---------+-------+
+      | Name                      | File    | Calls |
+      +---------------------------+---------+-------+
+      | execute                   | base.py |   312 |
+      | compute_gradient          | func.py |   118 |
+      +---------------------------+---------+-------+
+    \b
+    Reads analyze's graph -- run `analyze` first.
     """
     try:
         from .graph import DependencyGraph
@@ -1720,12 +1823,25 @@ def visualize(
 
     TARGET: File to visualize (e.g., "module.py")
 
-    Examples:
-        code-explorer visualize module.py --output graph.md
-        code-explorer visualize utils.py --function process_data --max-depth 2
+    How to use it:
 
-    Output: a config table, then `✓ Diagram saved to: <path>` -- a Mermaid
-    `graph TD` diagram of caller/callee edges, renderable in GitHub/VS Code.
+    \b
+      code-explorer visualize module.py --output graph.md
+      code-explorer visualize utils.py --function process_data --max-depth 2
+
+    Example output:
+
+    \b
+      Diagram saved to: graph.md
+    \b
+    The file holds a Mermaid `graph TD` diagram of caller/callee edges,
+    which GitHub and VS Code render inline:
+    \b
+      graph TD
+          handle_request --> validate_token
+          validate_token --> refresh_token
+    \b
+    Reads analyze's graph -- run `analyze` first.
     """
     try:
         from .graph import DependencyGraph

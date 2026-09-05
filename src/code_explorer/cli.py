@@ -565,8 +565,11 @@ def _open_search_index(
     enable_vectors: bool,
     force_reindex: bool,
     include_source: bool = False,
-) -> "DependencyGraph":
+):
     """Open (building/updating as needed) one search index.
+
+    Returns a DependencyGraph -- unannotated because graph/ is imported
+    lazily inside the body (it pulls pandas in, +260ms per CLI start).
 
     Called for `search`'s primary index (BM25 or vector, per --semantic),
     again for the vector index when hybrid retrieval kicks in, and by

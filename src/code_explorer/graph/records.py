@@ -8,7 +8,7 @@ helpers below at the boundary instead of rewriting extractors/query call sites.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 @dataclass(slots=True, frozen=True)
@@ -32,12 +32,27 @@ class EdgeRecord:
     src_id / dst_id: NodeRecord.id of the endpoints.
     type: canonical edge type name (e.g. 'CALLS', 'CONTAINS_FUNCTION').
     properties: type-specific fields (e.g. call_line, confidence).
+    src_type / dst_type: endpoint node labels, when they are NOT the single
+        pair registered for this edge type in EDGE_ENDPOINT_TYPES.
+
+        Every edge type but one has fixed endpoint labels, so the backends
+        read them from that dict and an EdgeRecord carries only ids.
+        DEPENDS_ON is the exception: one relation with a `kind` property
+        covers inheritance (Class -> Class), decoration (Function|Class ->
+        Function|Class) and imports (File -> File), and any of those may
+        land on an ExternalSymbol when the target is outside the corpus.
+        Splitting it into four typed edges to keep endpoints fixed is
+        exactly what this schema decided against (see
+        file_analyses_to_records in graph/ingest.py), so the label travels
+        with the edge instead. Left None everywhere else.
     """
 
     src_id: str
     dst_id: str
     type: str
     properties: Dict[str, Any] = field(default_factory=dict)
+    src_type: Optional[str] = None
+    dst_type: Optional[str] = None
 
 
 @dataclass(slots=True, frozen=True)

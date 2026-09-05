@@ -6,11 +6,10 @@ import hashlib
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from statistics import median
 from time import perf_counter
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -28,10 +27,26 @@ from code_explorer.analyzer.export_parquet import make_function_id, to_relative_
 from code_explorer.analyzer.models import FileAnalysis, FunctionCall, FunctionInfo
 from code_explorer.graph.backends.lattice_backend import (
     PENDING_CALL_STREAM,
+    PENDING_DEPENDENCY_STREAM,
     UNRESOLVED_CALL_STREAM,
     LatticeBackend,
+    _chunked,
 )
-from code_explorer.graph.ingest import file_analyses_to_records
+from code_explorer.graph.ingest import (
+    KIND_DECORATES,
+    KIND_IMPORTS,
+    KIND_INHERITS,
+    dependency_edge,
+    external_symbol_id,
+    file_analyses_to_records,
+    file_dependency_references,
+    import_target as _import_target,
+    module_name_for_file as _module_name,
+    package_root_depth as _package_root_depth,
+    reexporting_package as _reexporting_package,
+    resolve_dependency_reference,
+    resolve_import_reference,
+)
 from code_explorer.graph.records import EdgeRecord, NodeRecord
 
 
@@ -41,6 +56,14 @@ class LatticeIngestBatch:
     structural_edges: List[EdgeRecord] = field(default_factory=list)
     call_references: List[Dict[str, Any]] = field(default_factory=list)
     external_calls: List[Dict[str, Any]] = field(default_factory=list)
+    # Unresolved inheritance/decoration facts (graph/ingest.py's
+    # file_dependency_references). Unlike calls these are not resolved per
+    # batch: a base class is almost never defined in the same batch as the
+    # class extending it, so a per-batch attempt would fail for nearly every
+    # one and push it onto the pending stream anyway. They are accumulated
+    # for the whole run and resolved once, after every node exists -- see
+    # LatticeStreamingIngestor.ingest.
+    dependency_refs: List[Dict[str, Any]] = field(default_factory=list)
     skipped_calls: int = 0
     operation_count: int = 0
     estimated_bytes: int = 0
@@ -73,71 +96,6 @@ def _value_bytes(value: Any) -> int:
         )
     return 8
 
-
-def _module_name(relative_file: str) -> str:
-    parts = list(PurePosixPath(relative_file).parts)
-    if not parts:
-        return ""
-    if parts[-1] == "__init__.py":
-        parts.pop()
-    elif parts[-1].endswith(".py"):
-        parts[-1] = parts[-1][:-3]
-    return ".".join(parts)
-
-
-def _package_root_depth(parts: Sequence[str], package_dirs: AbstractSet[str]) -> int:
-    """How many leading path segments of a file are *above* its package root.
-
-    Standard rule: walk up from the file's directory while `__init__.py`
-    exists; the first directory without one is the package root, and the
-    module name is the path relative to that. Handles src layout, flat
-    layout, and a parent directory holding several projects.
-
-    HYPOTHESIS: a directory holding an `__init__.py` is a package, and one
-    holding none is not. Namespace packages (PEP 420) carry no
-    `__init__.py`, so the walk cannot see them. Two consequences, both
-    deliberate:
-
-     - If the file's own directory is not a package, no walk happens at all
-       and the module stays project-root-relative -- the pre-existing
-       behaviour, which is the right answer for a flat repository and for
-       `models/space.py` imported as `models.space` with the repository
-       root on sys.path.
-     - A package nested inside a namespace package (`src/ns/pkg/mod.py`
-       where only `pkg` has an `__init__.py`) is named from `pkg`, i.e. one
-       segment too short. Rarer than the src-layout case this fixes, and
-       ProjectScope still registers both spellings as internal modules, so
-       the cost is a missed `explicit_import`, not a wrong edge.
-    """
-    directories = list(parts[:-1])
-    root_depth = len(directories)
-    if root_depth and "/".join(directories) not in package_dirs:
-        return 0
-    while root_depth > 0 and "/".join(directories[:root_depth]) in package_dirs:
-        root_depth -= 1
-    return root_depth
-
-
-def _reexporting_package(module: str, imported_module: str) -> bool:
-    """True when `imported_module` is an ancestor package of `module`.
-
-    Prefix-only, and segment-aligned so `pkg.algos` does not match
-    `pkg.algorithms`. This is the shape of a genuine re-export: `from pkg
-    import create_thing` names the package, while the definition lives in
-    `pkg.factory` below it.
-
-    This used to accept the *suffix* direction too, which was the only way
-    to match a src-layout file whose module was mis-derived as
-    `pkg.src.pkg.algos.space`. With modules now derived from the package
-    root that direction is dead: dropping it moved zero resolutions on the
-    2,103-file reference corpus (package_reexport 25 either way, calls
-    resolved 15,435 either way), so what it can no longer do is match a
-    vendored copy of a package sitting below the real one -- which it should
-    not have been doing.
-    """
-    if not module or not imported_module:
-        return False
-    return module == imported_module or module.startswith(f"{imported_module}.")
 
 # Top-level-or-indented `def` / `async def` / `class` headers. A regex, not an
 # AST walk, on purpose: measured at 72ms over the 2,107-file reference corpus
@@ -273,22 +231,6 @@ def _classify_call(
     return CALL_UNATTRIBUTABLE
 
 
-def external_symbol_id(module: str, name: str) -> str:
-    """Canonical id for an ExternalSymbol node, stable across runs."""
-    identity = f"{module}\0{name}"
-    return "ext_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:20]
-
-
-def _resolve_relative_module(
-    caller_module: str, imported_module: Optional[str], is_relative: bool
-) -> str:
-    imported_module = imported_module or ""
-    if not is_relative:
-        return imported_module
-    package = caller_module.rsplit(".", 1)[0] if "." in caller_module else ""
-    return ".".join(part for part in (package, imported_module) if part)
-
-
 def _caller_for_call(
     functions: Sequence[FunctionInfo], call: FunctionCall
 ) -> Optional[FunctionInfo]:
@@ -303,29 +245,6 @@ def _caller_for_call(
     if not candidates:
         return None
     return min(candidates, key=lambda f: (f.end_line - f.start_line, -f.start_line))
-
-
-def _import_target(
-    analysis: FileAnalysis, call: FunctionCall, caller_module: str
-) -> tuple[str, str]:
-    for imported in analysis.imports_detailed:
-        binding = imported.alias or imported.imported_name
-        if imported.module is not None:
-            if call.qualifier is None and call.called_name == binding:
-                return (
-                    _resolve_relative_module(
-                        caller_module, imported.module, imported.is_relative
-                    ),
-                    imported.imported_name,
-                )
-            continue
-
-        module_binding = imported.alias or imported.imported_name.split(".", 1)[0]
-        if call.qualifier == module_binding:
-            return imported.imported_name, call.called_name
-        if not imported.alias and call.qualifier == imported.imported_name:
-            return imported.imported_name, call.called_name
-    return "", call.called_name
 
 
 def _call_reference_id(
@@ -347,10 +266,22 @@ def _records_for_file(
     include_source: bool,
     scope: Optional[ProjectScope] = None,
 ) -> tuple[
-    List[NodeRecord], List[EdgeRecord], List[Dict[str, Any]], List[Dict[str, Any]], int
+    List[NodeRecord],
+    List[EdgeRecord],
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+    int,
 ]:
     nodes, structural_edges = file_analyses_to_records(
-        [analysis], project_root, include_source=include_source
+        [analysis],
+        project_root,
+        include_source=include_source,
+        # One file is not a corpus: resolving `class X(Base)` against it
+        # would only ever find a base defined in the same file. This path
+        # collects references instead and resolves them at the end of the
+        # run (see LatticeStreamingIngestor.ingest).
+        emit_dependencies=False,
     )
     relative_file = to_relative_path(analysis.file_path, project_root)
     # Package-root-relative when a scope is available. Deriving the module
@@ -451,6 +382,7 @@ def _records_for_file(
         structural_edges,
         references,
         list(external_by_pair.values()),
+        file_dependency_references(analysis, project_root, module),
         skipped_calls,
     )
 
@@ -478,9 +410,14 @@ def iter_lattice_ingest_batches(
 
     batch = new_batch()
     for analysis in analyses:
-        nodes, edges, references, external_calls, skipped = _records_for_file(
-            analysis, project_root, include_source, scope
-        )
+        (
+            nodes,
+            edges,
+            references,
+            external_calls,
+            dependency_refs,
+            skipped,
+        ) = _records_for_file(analysis, project_root, include_source, scope)
         file_operations = len(nodes) + len(edges) + len(references)
         file_operations += len(external_calls)
         file_bytes = sum(
@@ -499,6 +436,7 @@ def iter_lattice_ingest_batches(
         batch.structural_edges.extend(edges)
         batch.call_references.extend(references)
         batch.external_calls.extend(external_calls)
+        batch.dependency_refs.extend(dependency_refs)
         batch.skipped_calls += skipped
         batch.operation_count += file_operations
         batch.estimated_bytes += file_bytes
@@ -530,6 +468,15 @@ class LatticeStreamingIngestor:
         # rule to an exact one (or the reverse). Surfaced in ingest()'s stats
         # as `resolution_method_<name>`.
         self._resolution_methods: Counter = Counter()
+        # Every inherits/decorates/imports reference seen this run. Held
+        # rather than resolved per batch: unlike a call, whose target is
+        # usually in the same file, a base class or a registration decorator
+        # is by definition somewhere else, so a per-batch attempt would miss
+        # nearly all of them and defer them anyway. Size on the 2,107-file
+        # reference corpus is a few tens of thousands of small dicts -- an
+        # order of magnitude under the analyses this ingestor exists to
+        # avoid retaining.
+        self._dependency_refs: List[Dict[str, Any]] = []
 
     def _write_external_calls(
         self,
@@ -587,6 +534,130 @@ class LatticeStreamingIngestor:
             node_id_map=endpoints,
         )
         return len(external_calls)
+
+    def _write_dependencies(
+        self, files_by_module: Mapping[str, Optional[str]]
+    ) -> Dict[str, int]:
+        """Resolve the run's DEPENDS_ON references and write the edges.
+
+        Runs after every batch, so every Function/Class/File node the corpus
+        defines already exists and one pass can see all of them. Chunked the
+        way _finalize_pending chunks the pending-call stream:
+        find_symbols_by_properties opens a read transaction per call, and
+        handing it tens of thousands of names at once is what that chunking
+        exists to avoid.
+        """
+        stats = {
+            f"dependencies_{kind}": 0
+            for kind in (KIND_INHERITS, KIND_DECORATES, KIND_IMPORTS)
+        }
+        stats["dependencies_unresolved"] = 0
+        edges: List[EdgeRecord] = []
+        # Facts republished by a previous delete_file, i.e. dependencies of
+        # files that did not change on this run but whose target did. Drained
+        # here so they are resolved against the rebuilt nodes.
+        after = 0
+        while records := self.backend.db.read_stream(
+            PENDING_DEPENDENCY_STREAM, after_sequence=after, limit=1000
+        ):
+            after = records[-1].sequence
+            self._dependency_refs.extend(dict(r.payload) for r in records)
+        if after:
+            with self.backend.db.write() as txn:
+                txn.trim_stream(PENDING_DEPENDENCY_STREAM, after)
+                txn.commit()
+        # A republished fact and a freshly extracted one carry the same
+        # deterministic id, so deduping here is what stops a re-indexed file
+        # from getting two identical edges.
+        by_id: Dict[str, Dict[str, Any]] = {}
+        for reference in self._dependency_refs:
+            by_id.setdefault(reference["id"], reference)
+        self._dependency_refs = list(by_id.values())
+        external: Dict[str, NodeRecord] = {}
+        seen_imports: set[tuple[str, str]] = set()
+
+        symbol_refs: List[Dict[str, Any]] = []
+        for reference in self._dependency_refs:
+            if reference["kind"] != KIND_IMPORTS:
+                symbol_refs.append(reference)
+                continue
+            edge = resolve_import_reference(reference, files_by_module)
+            if edge is None or (edge.src_id, edge.dst_id) in seen_imports:
+                continue
+            seen_imports.add((edge.src_id, edge.dst_id))
+            edges.append(edge)
+            stats["dependencies_" + KIND_IMPORTS] += 1
+
+        for chunk in _chunked(symbol_refs, 1000):
+            requests: Dict[tuple[str, str], int] = {}
+            for reference in chunk:
+                # 50 per label, not 2: unlike the call resolver's uniqueness
+                # probe this needs the candidates themselves, to pick the one
+                # whose module matches the import.
+                requests[("name", reference["target_name"])] = 50
+            candidates_by_key = self.backend.find_symbols_by_properties(requests)
+            for reference in chunk:
+                candidates = candidates_by_key.get(
+                    ("name", reference["target_name"]), []
+                )
+                target, method, confidence = resolve_dependency_reference(
+                    reference, candidates
+                )
+                if target is not None:
+                    edges.append(
+                        dependency_edge(
+                            reference,
+                            target["id"],
+                            target.get("node_type", "Function"),
+                            method,
+                            confidence,
+                        )
+                    )
+                    stats["dependencies_" + reference["kind"]] += 1
+                    continue
+                module = reference["target_module"]
+                if not module or module in files_by_module:
+                    stats["dependencies_unresolved"] += 1
+                    continue
+                # Outside the corpus: the existing external-symbol boundary,
+                # reused rather than inventing a second unresolved-target
+                # concept. `@app.route`, `pydantic.BaseModel`.
+                symbol_id = external_symbol_id(module, reference["target_name"])
+                if (
+                    symbol_id not in external
+                    and symbol_id not in self._external_symbol_ids
+                ):
+                    external[symbol_id] = NodeRecord(
+                        id=symbol_id,
+                        type="ExternalSymbol",
+                        properties={
+                            "id": symbol_id,
+                            "module": module,
+                            "name": reference["target_name"],
+                            "qualified_name": f"{module}.{reference['target_name']}",
+                        },
+                    )
+                edges.append(
+                    dependency_edge(
+                        reference,
+                        symbol_id,
+                        "ExternalSymbol",
+                        "external_boundary",
+                        "high",
+                    )
+                )
+                stats["dependencies_" + reference["kind"]] += 1
+
+        if external:
+            created = self.backend.upsert_nodes(
+                list(external.values()), assume_new=False
+            )
+            for (_label, canonical_id), internal_id in created.items():
+                self._external_symbol_ids[canonical_id] = internal_id
+        if edges:
+            self.backend.upsert_edges(edges)
+        self._dependency_refs = []
+        return stats
 
     @staticmethod
     def _resolution(
@@ -850,6 +921,10 @@ class LatticeStreamingIngestor:
             "external_symbols": 0,
             "external_edges": 0,
             "calls_skipped_unattributable": 0,
+            "dependencies_inherits": 0,
+            "dependencies_decorates": 0,
+            "dependencies_imports": 0,
+            "dependencies_unresolved": 0,
             "batch_target_size": batch_size,
             "last_batch_operations": 0,
             "last_batch_bytes": 0,
@@ -871,6 +946,7 @@ class LatticeStreamingIngestor:
                 batch.call_references, finalize=False
             )
             resolved = self.backend.apply_call_outcomes(resolutions, pending)
+            self._dependency_refs.extend(batch.dependency_refs)
             write_seconds = perf_counter() - write_started
             stats["batches"] += 1
             stats["total_nodes"] += len(batch.nodes)
@@ -892,6 +968,21 @@ class LatticeStreamingIngestor:
             stats["last_batch_write_ms"] = round(write_seconds * 1000)
             if on_batch_committed is not None:
                 on_batch_committed(dict(stats))
+
+        # After the last batch, so every definition a base class or a
+        # decorator could name is already a node.
+        files_by_module: Dict[str, Optional[str]] = {}
+        for relative, module in scope.modules_by_file.items():
+            if not module:
+                continue
+            files_by_module[module] = None if module in files_by_module else relative
+        dependency_stats = self._write_dependencies(files_by_module)
+        stats.update(dependency_stats)
+        stats["total_edges"] += sum(
+            count
+            for key, count in dependency_stats.items()
+            if key != "dependencies_unresolved"
+        )
 
         resolved, unresolved = self._finalize_pending(
             stats["calls_pending"], on_progress=on_finalize_progress

@@ -51,6 +51,19 @@ EDGE_ENDPOINT_TYPES: Dict[str, Tuple[str, str]] = {
     "CONTAINS_VARIABLE": ("File", "Variable"),
     "IMPORTS": ("File", "File"),
     "INHERITS": ("Class", "Class"),
+    # The one edge type whose endpoints are NOT fixed. DEPENDS_ON is a
+    # single relation carrying a `kind` -- "inherits" (Class -> Class),
+    # "decorates" (Function|Class -> Function|Class), "imports" (File ->
+    # File) -- and any of them may land on an ExternalSymbol when the
+    # target is outside the corpus. The pair below is the default used
+    # when an EdgeRecord does not name its own endpoint labels; edges
+    # built by graph/ingest.py always do (EdgeRecord.src_type/dst_type).
+    #
+    # NOTE for Kuzu specifically: its REL TABLE DDL in schema.py declares
+    # DEPENDS_ON as Class -> Class only, so a cross-label DEPENDS_ON
+    # would fail there. Not fixed because nothing writes one: Kuzu
+    # ingests through the Parquet bulk loader, not through
+    # file_analyses_to_records.
     "DEPENDS_ON": ("Class", "Class"),
     "METHOD_OF": ("Function", "Class"),
     "HAS_IMPORT": ("File", "Import"),
@@ -92,6 +105,9 @@ class KuzuBackend:
         self.db: Optional[kuzu.Database] = None
         self.conn: Optional[kuzu.Connection] = None
         self.schema_manager: Optional[SchemaManager] = None
+        # Declared columns per node table, filled lazily from table_info.
+        # See _table_columns.
+        self._table_columns: Dict[str, frozenset] = {}
 
     def open(self) -> None:
         # Idempotent, for the same reason as LatticeBackend.open(): callers
@@ -113,6 +129,7 @@ class KuzuBackend:
         self.conn = None
         self.db = None
         self.schema_manager = None
+        self._table_columns = {}
 
     def __enter__(self):
         """Context-manager support so callers cannot forget close().
@@ -144,6 +161,32 @@ class KuzuBackend:
         """Preserved from SchemaManager for DependencyGraph's existing use."""
         return self.schema_manager.detect_schema_version()
 
+    def _table_columns_for(self, label: str) -> frozenset:
+        """Columns the node table actually declares, from Kuzu itself.
+
+        Kuzu rejects a MERGE that sets a property the table does not have
+        ("Binder exception: Cannot find property module for n"), and the
+        canonical NodeRecord carries properties this DDL never had --
+        Function.module/parent_class and Class.module, which the other two
+        backends do declare. Adding them to schema.py is not an option: the
+        Parquet bulk loader (graph/bulk_loader.py) issues bare
+        `COPY Function FROM <file>`, which matches columns by position, so
+        two extra columns would break every bulk load.
+
+        So the extra properties are dropped for this backend only. Read from
+        table_info rather than a fourth hand-maintained copy of the DDL, and
+        cached: this is one query per label per open, not per node.
+        """
+        columns = self._table_columns.get(label)
+        if columns is None:
+            result = self.conn.execute(f"CALL table_info('{label}') RETURN *")
+            names = set()
+            while result.has_next():
+                names.add(result.get_next()[1])
+            columns = frozenset(names)
+            self._table_columns[label] = columns
+        return columns
+
     def upsert_nodes(
         self,
         nodes: Iterable[NodeRecord],
@@ -164,7 +207,12 @@ class KuzuBackend:
             if pk is None:
                 raise ValueError(f"Unknown node type for upsert: {node.type}")
             pk_value = node.properties.get(pk, node.id)
-            set_props = {k: v for k, v in node.properties.items() if k != pk}
+            declared = self._table_columns_for(node.type)
+            set_props = {
+                k: v
+                for k, v in node.properties.items()
+                if k != pk and k in declared
+            }
             set_clause = ", ".join(f"n.{k} = ${k}" for k in set_props)
             params = {pk: pk_value, **set_props}
             query = f"MERGE (n:{node.type} {{{pk}: ${pk}}})"
@@ -187,7 +235,8 @@ class KuzuBackend:
             endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
             if endpoints is None:
                 raise ValueError(f"Unknown edge type for upsert: {edge.type}")
-            src_type, dst_type = endpoints
+            src_type = edge.src_type or endpoints[0]
+            dst_type = edge.dst_type or endpoints[1]
             src_pk = NODE_PRIMARY_KEY[src_type]
             dst_pk = NODE_PRIMARY_KEY[dst_type]
             params = {

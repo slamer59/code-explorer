@@ -85,6 +85,14 @@ _EMBED_BATCH_SIZE = settings.embed_batch_size
 CALL_TARGET_LABELS: Tuple[str, ...] = ("Function", "Class")
 
 PENDING_CALL_STREAM = "__code_explorer_pending_calls"
+# Same mechanism as PENDING_CALL_STREAM, for DEPENDS_ON. Re-indexing one file
+# deletes its nodes and every edge touching them -- including edges *pointing
+# at* it from files that did not change. For CALLS that loss is repaired by
+# republishing the extraction fact below; without the same treatment,
+# re-indexing a base class silently dropped every subclass edge (measured on
+# a 3-file fixture: 2 subclasses before, 0 after), which is precisely the
+# "(none)" answer these edges exist to fix.
+PENDING_DEPENDENCY_STREAM = "__code_explorer_pending_dependencies"
 UNRESOLVED_CALL_STREAM = "code_explorer_unresolved_calls"
 
 
@@ -397,7 +405,12 @@ class LatticeBackend:
                     endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
                     if endpoints is None:
                         raise ValueError(f"Unknown edge type for upsert: {edge.type}")
-                    src_type, dst_type = endpoints
+                    # Per-edge labels win when the record carries them:
+                    # DEPENDS_ON's endpoints vary by `kind` (see
+                    # EdgeRecord.src_type). Everything else leaves them None
+                    # and uses the registered pair.
+                    src_type = edge.src_type or endpoints[0]
+                    dst_type = edge.dst_type or endpoints[1]
                     src_id = node_id_map.get((src_type, edge.src_id))
                     if src_id is None:
                         src_id = self._find_node_id(txn, src_type, edge.src_id)
@@ -437,14 +450,19 @@ class LatticeBackend:
                     *txn.get_outgoing_edges(node_id),
                     *txn.get_incoming_edges(node_id),
                 ):
-                    if edge.edge_type != "CALLS":
+                    if edge.edge_type == "CALLS":
+                        stream, key = PENDING_CALL_STREAM, "call_reference"
+                        kind = "call.pending"
+                    elif edge.edge_type == "DEPENDS_ON":
+                        stream = PENDING_DEPENDENCY_STREAM
+                        key = "dependency_reference"
+                        kind = "dependency.pending"
+                    else:
                         continue
-                    reference = txn.get_edge_property(edge.id, "call_reference")
+                    reference = txn.get_edge_property(edge.id, key)
                     if not reference or reference.get("caller_file") == file_key:
                         continue
-                    txn.publish_stream(
-                        PENDING_CALL_STREAM, reference, kind="call.pending"
-                    )
+                    txn.publish_stream(stream, reference, kind=kind)
 
             for node_id in node_ids:
                 for edge in txn.get_outgoing_edges(node_id):

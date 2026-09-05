@@ -180,6 +180,47 @@ def test_streaming_path_agrees_with_generic_path(plugin_project, temp_dir):
     }
 
 
+def test_reindexing_a_base_class_keeps_its_subclass_edges(plugin_project, temp_dir):
+    """Re-indexing one file deletes every edge touching its nodes, including
+    edges pointing *at* it from files that did not change. Without the
+    republish, touching a base class silently restored the "(none)" answer
+    these edges exist to remove."""
+    backend = LatticeBackend(temp_dir / "reindex.lattice")
+    graph = DependencyGraph(
+        db_path=temp_dir / "reindex.lattice",
+        project_root=plugin_project,
+        backend=backend,
+    )
+    analyzer = CodeAnalyzer()
+    graph.ingest_analysis_stream(
+        analyzer.iter_analyze_directory(plugin_project),
+        batch_size=1000,
+        batch_bytes=8 << 20,
+        assume_new=True,
+    )
+
+    def subclasses():
+        return sorted(
+            row["name"]
+            for row in graph.backend.query(
+                "MATCH (d:Class)-[r:DEPENDS_ON]->(t:Class) "
+                "WHERE t.name = $name RETURN d.name AS name",
+                {"name": "BasePlugin"},
+            )
+        )
+
+    assert subclasses() == ["AlphaPlugin", "BetaPlugin"]
+
+    base = plugin_project / "demo" / "base.py"
+    base.write_text(BASE_SOURCE + "\n\n# touched\n")
+    graph.backend.delete_file("demo/base.py")
+    graph.ingest_analysis_stream(
+        [analyzer.analyze_file(base)], batch_size=1000, batch_bytes=8 << 20
+    )
+
+    assert subclasses() == ["AlphaPlugin", "BetaPlugin"]
+
+
 def test_object_and_protocol_bases_do_not_become_edges(temp_dir):
     """`object` and the typing markers would be one hub node the whole
     corpus points at, which answers nothing."""

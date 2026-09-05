@@ -606,6 +606,12 @@ def dependency_edge(
             "line_number": reference["call_line"],
             "resolution_method": resolution_method,
             "confidence": confidence,
+            # The unresolved fact, carried on the edge exactly as CALLS
+            # carries call_reference: re-indexing the *target* file deletes
+            # this edge, and republishing the fact is the only way the
+            # subclass's dependency survives without re-parsing the
+            # subclass. See LatticeBackend.delete_file.
+            "dependency_reference": dict(reference),
         },
     )
 

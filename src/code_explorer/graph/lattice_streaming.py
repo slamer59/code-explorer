@@ -27,6 +27,7 @@ from code_explorer.analyzer.export_parquet import make_function_id, to_relative_
 from code_explorer.analyzer.models import FileAnalysis, FunctionCall, FunctionInfo
 from code_explorer.graph.backends.lattice_backend import (
     PENDING_CALL_STREAM,
+    PENDING_DEPENDENCY_STREAM,
     UNRESOLVED_CALL_STREAM,
     LatticeBackend,
     _chunked,
@@ -552,6 +553,26 @@ class LatticeStreamingIngestor:
         }
         stats["dependencies_unresolved"] = 0
         edges: List[EdgeRecord] = []
+        # Facts republished by a previous delete_file, i.e. dependencies of
+        # files that did not change on this run but whose target did. Drained
+        # here so they are resolved against the rebuilt nodes.
+        after = 0
+        while records := self.backend.db.read_stream(
+            PENDING_DEPENDENCY_STREAM, after_sequence=after, limit=1000
+        ):
+            after = records[-1].sequence
+            self._dependency_refs.extend(dict(r.payload) for r in records)
+        if after:
+            with self.backend.db.write() as txn:
+                txn.trim_stream(PENDING_DEPENDENCY_STREAM, after)
+                txn.commit()
+        # A republished fact and a freshly extracted one carry the same
+        # deterministic id, so deduping here is what stops a re-indexed file
+        # from getting two identical edges.
+        by_id: Dict[str, Dict[str, Any]] = {}
+        for reference in self._dependency_refs:
+            by_id.setdefault(reference["id"], reference)
+        self._dependency_refs = list(by_id.values())
         external: Dict[str, NodeRecord] = {}
         seen_imports: set[tuple[str, str]] = set()
 

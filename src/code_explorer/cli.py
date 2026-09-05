@@ -121,47 +121,57 @@ def _print_skills_guide(ctx: click.Context, param: click.Parameter, value: bool)
     help="Print a usage guide for AI agents (which command to use when, gotchas), then exit.",
 )
 def cli() -> None:
-    """Code Explorer - Python dependency analysis tool.
+    """Code Explorer - one command instead of a grep loop.
 
-    Analyze Python codebases to understand dependencies, track impact of changes,
-    and visualize code relationships.
-
-    The tool now tracks granular imports, decorators, class attributes, exceptions,
-    and module hierarchy for comprehensive code analysis.
-
-    LLM/agent usage: `search` is the entry point built for this -- give it a
-    natural-language or keyword query and it returns a ranked hit list plus a
-    ready-to-use context bundle (the top hit's source, plus its direct
-    callers/callees) in one call, so an agent doesn't need to grep and then
-    separately read files. `impact` answers "what breaks if I change this"
-    once you already know the exact function. Run `code-explorer <command>
-    --help` for full per-command options -- each command's help text is kept
-    in sync with its actual flags, unlike a separate doc would be.
+    Give it a description or a name and it returns the matching code plus
+    the code around it -- what calls it, what it calls -- as one
+    token-budgeted bundle an LLM can use directly, instead of grepping and
+    opening files one at a time.
 
     Typical use:
 
     \b
-      code-explorer search "how do we refresh an auth token" /path/to/code
-      code-explorer search "resolve_call" /path/to/code --fuzzy
-      code-explorer impact module.py:function_name /path/to/code
-      code-explorer analyze /path/to/code
+      code-explorer search "how do we refresh an auth token" PATH
+      code-explorer search "resolve_call" PATH --fuzzy
+      code-explorer impact auth.py:refresh_token PATH
+      code-explorer analyze PATH
       code-explorer trace module.py:42 --variable user_input
       code-explorer stats
       code-explorer visualize module.py --output graph.md
 
+    Example output (`search "refresh token"`):
+
+    \b
+      +----------+---------------+---------+-------+
+      | Type     | Name          | File    | Score |
+      +----------+---------------+---------+-------+
+      | Function | refresh_token | auth.py | 1.375 |
+      +----------+---------------+---------+-------+
+    \b
+      Seed:
+          auth.py::refresh_token
+    \b
+      ### auth.py::refresh_token (seed)
+      ```python
+      def refresh_token(token):
+          return issue_new_token(token)
+      ```
+    \b
+      Downstream -- what this calls (<= 3 hops):
+      ### auth.py::issue_new_token (callee)
+      ```python
+      def issue_new_token(token):
+          return token + "x"
+      ```
+
+    \b
+    search finds the seed for you; impact takes a seed you name and runs the
+    same expansion. Both read the same index -- no `analyze` needed.
+    analyze builds a separate graph used by trace/stats/visualize.
+
     \b
     Run `code-explorer COMMAND --help` for that command's flags, a usage
     example, and a sample of its output.
-
-    \b
-    New capabilities:
-      - Code search: BM25/fuzzy/semantic search with an LLM-ready context
-        bundle for the top hit (see `code-explorer search --help`)
-      - Import tracking: See what imports a function/class
-      - Decorator analysis: Track decorator usage and dependencies
-      - Attribute tracking: Find what modifies class attributes
-      - Exception analysis: Trace exception propagation
-      - Module hierarchy: Understand package structure
     """
     pass
 

@@ -69,7 +69,7 @@ _NODE_OVERHEAD_TOKENS = 12
 # the table for no saving. The token budget, not the depth, is what bounds
 # the bundle.
 DEFAULT_DEPTH = 3
-DEFAULT_TOKEN_BUDGET = 12_000
+DEFAULT_TOKEN_BUDGET = 4_000
 
 # Skip expanding *through* a node with more than this many edges in the
 # direction being followed; the node itself is still returned as a result.
@@ -779,25 +779,18 @@ class ContextAssembler:
             )
         return sorted(nodes, key=lambda n: (-n.score, n.distance, n.file, n.name))
 
-    def _fill_sources(
-        self,
-        ranked: List[ReachedNode],
-        token_budget: int,
-        full_source_distance: int = 1,
-    ):
+    def _fill_sources(self, ranked: List[ReachedNode], token_budget: int):
         """Read source for as many ranked nodes as the budget allows.
 
         The only place this walk touches disk, and it walks in rank order,
         so the expensive operation is paid for winners only -- the cost
         asymmetry the whole design rests on (see the module docstring).
 
-        Distance-graded, then budget-degraded. A direct neighbour
-        (distance <= full_source_distance) gets its full source; anything
-        further out is rendered as a signature -- the reader only needs to
-        know *what* is N hops out and *where*, not its whole body. On top of
-        that, degrade (never truncate) once the budget runs out: a node whose
-        full source no longer fits, and everything after it, become signature
-        + docstring line. Stops entirely when even a signature no longer fits.
+        Degrade, don't truncate: while a node's full source fits, keep the
+        body; once the budget is spent, the node and everything after it are
+        rendered as signature + docstring instead of being cut mid-function
+        (which would hand an LLM code that reads as complete and isn't).
+        Stops entirely when even a signature no longer fits.
 
         Returns (kept, dropped) where kept is [(node, source, abridged)].
         """
@@ -811,33 +804,20 @@ class ContextAssembler:
                 )
             except (ValueError, FileNotFoundError) as e:
                 source = f"(could not read source: {e})"
-
-            # Distance-graded: beyond the first hop, describe rather than
-            # dump. A very short function can be *longer* once abridged (the
-            # "body omitted" marker outweighs a two-line body), so only take
-            # the signature when it actually saves something.
-            abridged = node.distance > full_source_distance
-            if abridged:
-                shortened = _signature_of(source)
-                if len(shortened) < len(source):
-                    source = shortened
-                else:
-                    abridged = False
-
             cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
-
-            # Budget degradation applies only to nodes that still carry full
-            # source (signature-only nodes are already near-free).
-            if not abridged and (degraded or spent + cost > token_budget):
+            abridged = False
+            if degraded or spent + cost > token_budget:
                 degraded = True
                 shortened = _signature_of(source)
+                # A very short function can be *longer* once abridged (the
+                # "body omitted" marker outweighs a two-line body), so only
+                # take the degraded form when it actually saves something.
                 if len(shortened) < len(source):
                     source = shortened
                     abridged = True
                     cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
                 if spent + cost > token_budget:
                     return kept, len(ranked) - i
-
             spent += cost
             kept.append((node, source, abridged))
         return kept, 0
@@ -852,7 +832,6 @@ class ContextAssembler:
         query: Optional[str] = None,
         direction: str = "both",
         hub_degree: int = DEFAULT_HUB_DEGREE,
-        full_source_distance: int = 1,
         read_source: bool = True,
     ) -> CodeContext:
         """Collect to `depth`, rank, and render under `token_budget`.
@@ -908,9 +887,7 @@ class ContextAssembler:
             # The seed's own source is never negotiable -- it is the thing
             # being asked about -- so it comes off the budget first.
             remaining = max(token_budget - _estimate_tokens(seed.source_code), 0)
-            kept, _dropped = self._fill_sources(
-                ranked, remaining, full_source_distance=full_source_distance
-            )
+            kept, _dropped = self._fill_sources(ranked, remaining)
         else:
             # Caller only wants the ranked names (`impact --names-only`).
             # Skipping the disk read is the entire point of collecting

@@ -43,7 +43,7 @@ from .settings import settings
 # lazily. Keep these two in sync with context.py -- test_context_expansion.py
 # asserts they match.
 _DEFAULT_DEPTH = 3
-_DEFAULT_TOKEN_BUDGET = 12_000
+_DEFAULT_TOKEN_BUDGET = settings.context_token_budget
 
 console = Console()
 

@@ -78,6 +78,13 @@ class Settings(BaseSettings):
     # FileAnalysis this is cheap -- 256 in flight is ~16 MB.
     analysis_queue_depth: int = 256
 
+    # LLM context bundle token budget (see context.py). Nodes are emitted in
+    # hop order with full bodies while this budget lasts, then degrade to
+    # signature + docstring. 4,000 is a deliberate default: it covers a seed
+    # and its direct neighbours with room to spare, without drowning the
+    # agent in the whole transitive closure.
+    context_token_budget: int = 4000
+
     # Directories skipped by ingest_incremental's file walk (see graph/graph.py).
     # Third-party trees matter more than build artefacts here: a single
     # unexcluded site-packages or conda env pulls an entire dependency tree

@@ -25,3 +25,7 @@ perfo/bench_kuzu.db*
 perfo/bench_lattice.*
 perfo/bench_context.db*
 perfo/bench_sqlite.db*
+
+# Benchmark corpora and scratch runs -- cloned repos, indexes, node_modules.
+# A stray `git add -A` once swept 6,087 files and a 327MB CUDA .so in here.
+.benchmarks/

@@ -99,6 +99,10 @@ NODE_COLUMNS: Dict[str, Dict[str, str]] = {
         "is_public": "INTEGER",
         "source_code": "TEXT",
         "search_text": "TEXT",
+        # Not in the Kuzu DDL, same reason as Function.module above: a class
+        # is a valid resolution target (its constructor, and now its role as
+        # a base class), and the explicit-import rule matches on module.
+        "module": "TEXT",
     },
     "Import": {
         "id": "TEXT",
@@ -126,6 +130,18 @@ NODE_COLUMNS: Dict[str, Dict[str, str]] = {
         "is_class_attribute": "INTEGER",
     },
     "Exception": {"id": "TEXT", "name": "TEXT", "file": "TEXT", "line_number": "INTEGER"},
+    # Not in the Kuzu DDL either: the library-boundary node
+    # (graph/lattice_streaming.py). Declared here so the generic ingest path
+    # can point a DEPENDS_ON at `pydantic.BaseModel` on this backend too,
+    # instead of silently dropping every dependency on a third-party symbol.
+    # Never file-scoped -- one node is shared by the whole corpus -- so it is
+    # absent from FILE_SCOPED_NODE_TYPES and survives a single-file re-index.
+    "ExternalSymbol": {
+        "id": "TEXT",
+        "module": "TEXT",
+        "name": "TEXT",
+        "qualified_name": "TEXT",
+    },
     "Module": {
         "id": "TEXT",
         "name": "TEXT",
@@ -145,7 +161,17 @@ EDGE_COLUMNS: Dict[str, Dict[str, str]] = {
     "CONTAINS_VARIABLE": {},
     "IMPORTS": {"line_number": "INTEGER", "is_direct": "INTEGER"},
     "INHERITS": {},
-    "DEPENDS_ON": {"dependency_type": "TEXT", "line_number": "INTEGER"},
+    # `kind` is "inherits" / "decorates" / "imports" -- see graph/ingest.py
+    # for why this is one relation with a kind rather than three edge types.
+    # dependency_type predates it (graph/edge_operations.py writes it) and is
+    # kept so that writer keeps working.
+    "DEPENDS_ON": {
+        "dependency_type": "TEXT",
+        "line_number": "INTEGER",
+        "kind": "TEXT",
+        "resolution_method": "TEXT",
+        "confidence": "TEXT",
+    },
     "METHOD_OF": {},
     "HAS_IMPORT": {},
     "IMPORTS_FROM": {},
@@ -155,6 +181,7 @@ EDGE_COLUMNS: Dict[str, Dict[str, str]] = {
     "HANDLES_EXCEPTION": {"line_number": "INTEGER", "context": "TEXT"},
     "CONTAINS_MODULE": {},
     "MODULE_OF": {},
+    "CALLS_EXTERNAL": {"count": "INTEGER"},
 }
 
 # Columns declared BOOLEAN in the Kuzu DDL: stored 0/1 in SQLite, converted
@@ -786,7 +813,21 @@ class SqliteBackend:
             # initialize_schema() never made.
             if etype not in EDGE_COLUMNS:
                 continue
-            for endpoint, label in (("src", src_type), ("dst", dst_type)):
+            # DEPENDS_ON's endpoints vary by `kind` (File->File for imports,
+            # Class->Class for inheritance, Function|Class for decoration),
+            # so the registered pair is only a default. Deleting by it alone
+            # left the removed file's import and decoration edges behind as
+            # dangling rows -- there are no foreign keys here to catch that.
+            # Sweeping every owned label is correct because node ids are
+            # globally unique, so a Function id can only ever match a
+            # Function endpoint.
+            endpoint_labels = (
+                [("src", label) for label in owned]
+                + [("dst", label) for label in owned]
+                if etype == "DEPENDS_ON"
+                else [("src", src_type), ("dst", dst_type)]
+            )
+            for endpoint, label in endpoint_labels:
                 ids = owned.get(label)
                 if not ids:
                     continue

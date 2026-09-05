@@ -397,7 +397,12 @@ class LatticeBackend:
                     endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
                     if endpoints is None:
                         raise ValueError(f"Unknown edge type for upsert: {edge.type}")
-                    src_type, dst_type = endpoints
+                    # Per-edge labels win when the record carries them:
+                    # DEPENDS_ON's endpoints vary by `kind` (see
+                    # EdgeRecord.src_type). Everything else leaves them None
+                    # and uses the registered pair.
+                    src_type = edge.src_type or endpoints[0]
+                    dst_type = edge.dst_type or endpoints[1]
                     src_id = node_id_map.get((src_type, edge.src_id))
                     if src_id is None:
                         src_id = self._find_node_id(txn, src_type, edge.src_id)

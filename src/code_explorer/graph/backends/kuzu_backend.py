@@ -51,6 +51,19 @@ EDGE_ENDPOINT_TYPES: Dict[str, Tuple[str, str]] = {
     "CONTAINS_VARIABLE": ("File", "Variable"),
     "IMPORTS": ("File", "File"),
     "INHERITS": ("Class", "Class"),
+    # The one edge type whose endpoints are NOT fixed. DEPENDS_ON is a
+    # single relation carrying a `kind` -- "inherits" (Class -> Class),
+    # "decorates" (Function|Class -> Function|Class), "imports" (File ->
+    # File) -- and any of them may land on an ExternalSymbol when the
+    # target is outside the corpus. The pair below is the default used
+    # when an EdgeRecord does not name its own endpoint labels; edges
+    # built by graph/ingest.py always do (EdgeRecord.src_type/dst_type).
+    #
+    # NOTE for Kuzu specifically: its REL TABLE DDL in schema.py declares
+    # DEPENDS_ON as Class -> Class only, so a cross-label DEPENDS_ON
+    # would fail there. Not fixed because nothing writes one: Kuzu
+    # ingests through the Parquet bulk loader, not through
+    # file_analyses_to_records.
     "DEPENDS_ON": ("Class", "Class"),
     "METHOD_OF": ("Function", "Class"),
     "HAS_IMPORT": ("File", "Import"),
@@ -187,7 +200,8 @@ class KuzuBackend:
             endpoints = EDGE_ENDPOINT_TYPES.get(edge.type)
             if endpoints is None:
                 raise ValueError(f"Unknown edge type for upsert: {edge.type}")
-            src_type, dst_type = endpoints
+            src_type = edge.src_type or endpoints[0]
+            dst_type = edge.dst_type or endpoints[1]
             src_pk = NODE_PRIMARY_KEY[src_type]
             dst_pk = NODE_PRIMARY_KEY[dst_type]
             params = {

@@ -247,7 +247,15 @@ def test_search_reindex_uses_streaming_analysis_not_full_repository_list(
 
     result = CliRunner().invoke(
         cli,
-        ["search", "rebuild_helper", str(temp_dir), "--reindex", "--no-context"],
+        [
+            "search",
+            "rebuild_helper",
+            str(temp_dir),
+            "--reindex",
+            "--no-context",
+            "--backend",
+            "lattice",
+        ],
     )
 
     assert result.exit_code == 0, result.output
@@ -261,7 +269,15 @@ def test_search_reindex_displays_committed_graph_batches(temp_dir):
 
     result = CliRunner().invoke(
         cli,
-        ["search", "rebuild_helper", str(temp_dir), "--reindex", "--no-context"],
+        [
+            "search",
+            "rebuild_helper",
+            str(temp_dir),
+            "--reindex",
+            "--no-context",
+            "--backend",
+            "lattice",
+        ],
     )
 
     assert result.exit_code == 0, result.output
@@ -285,7 +301,15 @@ def test_search_reindex_displays_final_call_resolution_progress(temp_dir):
 
     result = CliRunner().invoke(
         cli,
-        ["search", "rebuild_helper", str(temp_dir), "--reindex", "--no-context"],
+        [
+            "search",
+            "rebuild_helper",
+            str(temp_dir),
+            "--reindex",
+            "--no-context",
+            "--backend",
+            "lattice",
+        ],
     )
 
     assert result.exit_code == 0, result.output

@@ -872,8 +872,8 @@ def _open_search_index(
 @click.option(
     "--backend",
     type=click.Choice(["lattice", "sqlite"]),
-    default="lattice",
-    help="Storage backend for the search index (default: lattice)",
+    default="sqlite",
+    help="Storage backend for the search index (default: sqlite)",
 )
 @click.option(
     "--reindex",
@@ -1104,12 +1104,13 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
 @click.option(
     "--backend",
     type=click.Choice(["lattice", "sqlite"]),
-    default="lattice",
+    default="sqlite",
     help=(
-        "Storage backend for the search index (default: lattice). "
-        "'sqlite' is the measured-faster alternative under evaluation -- "
-        "stdlib sqlite3 with FTS5/BM25; it keeps its own index file, so "
-        "switching backends does not reuse or clobber the other's."
+        "Storage backend for the search index (default: sqlite). "
+        "stdlib sqlite3 with FTS5/BM25 and the import-aware resolver. "
+        "'lattice' remains available for embedded-graph use -- it keeps its "
+        "own index file, so switching backends does not reuse or clobber the "
+        "other's."
     ),
 )
 @click.option(

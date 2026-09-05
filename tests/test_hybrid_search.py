@@ -43,3 +43,32 @@ def test_limit_truncates_results():
     fused = reciprocal_rank_fusion([results], limit=5)
 
     assert len(fused) == 5
+
+
+def test_demote_tests_puts_implementation_above_its_tests():
+    """Regression for a real gemseo result: `search "function dimension"`
+    ranked three test_get_function_dimension* variants (13.7/13.4/13.4)
+    above get_function_dimension itself (13.1), so the context bundle was
+    seeded from the test file."""
+    from code_explorer.hybrid_search import demote_tests
+
+    hits = [
+        SearchResult(
+            node_id="t1", node_type="Function",
+            name="test_get_function_dimension",
+            file="gemseo/tests/algos/test_optimization_problem.py",
+            score=13.742,
+        ),
+        SearchResult(
+            node_id="impl", node_type="Function",
+            name="get_function_dimension",
+            file="gemseo/src/gemseo/algos/optimization_problem.py",
+            score=13.081,
+        ),
+    ]
+
+    ranked = demote_tests(hits)
+
+    assert ranked[0].name == "get_function_dimension"
+    # Tests are demoted, not dropped -- "where is this tested" is a real query.
+    assert {r.name for r in ranked} == {h.name for h in hits}

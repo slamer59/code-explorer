@@ -1270,7 +1270,7 @@ def search(
     """
     from .context import ContextAssembler
     from .graph import DependencyGraph
-    from .hybrid_search import reciprocal_rank_fusion
+    from .hybrid_search import demote_tests, reciprocal_rank_fusion
 
     target = Path(path).resolve()
     bm25_db_path, vector_db_path, make_backend = _search_index_paths(target, backend)
@@ -1365,6 +1365,11 @@ def search(
             hits = reciprocal_rank_fusion([bm25_hits, vector_hits], limit=limit)
         else:
             hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
+        # A test is short, so its term density beats the function it exercises:
+        # on gemseo, "function dimension" put three test_get_function_dimension*
+        # variants above get_function_dimension itself, and the bundle was then
+        # seeded from the test. Demote, don't drop -- see demote_tests.
+        hits = demote_tests(hits)
     except Exception as e:
         console.print(f"[red]Error during search:[/red] {e}")
         sys.exit(1)

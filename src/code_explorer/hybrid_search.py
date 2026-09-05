@@ -63,3 +63,55 @@ def reciprocal_rank_fusion(
         )
         for node_id in ranked_ids[:limit]
     ]
+
+
+# Path fragments that mark a file as test code. Deliberately conservative --
+# only unambiguous conventions, so a module legitimately named e.g.
+# `contest.py` or `latest.py` is not demoted.
+_TEST_PATH_MARKERS = ("/tests/", "/test/", "tests/", "test/")
+
+
+def _is_test_file(path: str) -> bool:
+    name = path.rsplit("/", 1)[-1]
+    return (
+        name.startswith("test_")
+        or name.endswith("_test.py")
+        or any(marker in path for marker in _TEST_PATH_MARKERS)
+    )
+
+
+def demote_tests(
+    results: List[SearchResult], factor: float = 0.4
+) -> List[SearchResult]:
+    """Re-rank so an implementation outranks its own tests.
+
+    BM25 scores term density, and a test is short: `test_get_function_dimension`
+    is a two-line assert whose name and body are almost entirely the query
+    terms, while the function it tests carries a long docstring and body that
+    dilute them. Measured on gemseo, `search "function dimension"` returned
+    three `test_get_function_dimension*` variants (13.742, 13.447, 13.368)
+    above `get_function_dimension` itself (13.081) -- so the context bundle was
+    seeded from the test file and expanded from there.
+
+    Tests are kept, not dropped: "where is this tested" is a real question, and
+    a test is sometimes the only caller that documents usage. They are just no
+    longer allowed to displace the implementation.
+
+    HYPOTHESIS: a flat multiplier is enough because the gap is small (~5% here)
+    -- tests win by a nose, not by a mile. If a corpus turns up where tests
+    outrank implementations by more than `factor`, this needs to become a
+    signal in a proper ranking function rather than a post-hoc nudge.
+    """
+    if not results:
+        return results
+    adjusted = [
+        SearchResult(
+            node_id=r.node_id,
+            node_type=r.node_type,
+            name=r.name,
+            file=r.file,
+            score=r.score * factor if _is_test_file(r.file) else r.score,
+        )
+        for r in results
+    ]
+    return sorted(adjusted, key=lambda r: r.score, reverse=True)

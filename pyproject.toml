@@ -11,7 +11,7 @@ dependencies = [
     "click>=8.0",
     "rich>=13.0",
     "astroid>=3.0",
-    "kuzu==0.11.2",
+    "kuzu==0.11.3",
     "latticedb>=0.15.0",
     "pandas>=2.0",
     "memray>=1.19.1",

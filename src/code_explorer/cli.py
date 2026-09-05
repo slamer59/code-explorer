@@ -68,10 +68,11 @@ Quick reference:
                                                  (needs local Ollama +
                                                  nomic-embed-text)
   code-explorer analyze PATH                    Build the dependency graph
-                                                 used by impact/trace/stats/
+                                                 used by trace/stats/
                                                  visualize
   code-explorer impact file.py:function_name    What breaks if this changes
-                                                 (needs analyze first)
+                                                 (reads the search index;
+                                                  no analyze needed)
   code-explorer trace file.py:LINE --variable NAME
                                                  Trace where a variable's
                                                  value comes from/goes
@@ -80,23 +81,25 @@ Quick reference:
 
 search vs. impact:
   - Only have a description of behavior, not the exact function -> search
-  - Already know the exact function, want its dependents -> impact (after
-    running analyze)
+  - Already know the exact function, want its dependents -> impact (reads
+    the search index)
 
 Gotchas:
-  - search builds its own index at PATH/.code-explorer/graph.lattice on
-    first run (separate from analyze's graph). There is no incremental
-    update yet -- pass --reindex after the code under PATH changes.
+  - search builds its own index at PATH/.code-explorer/graph.sqlite on
+    first run (default backend; --backend lattice also available). Pass
+    --reindex after the code under PATH changes.
   - --semantic requires a local Ollama server with the nomic-embed-text
     model pulled (ollama pull nomic-embed-text). Without it, use plain
     search or --fuzzy instead.
-  - impact/trace/stats/visualize need analyze to have been run first;
-    re-run analyze --refresh after code changes.
+  - trace/stats/visualize need analyze to have been run first; re-run
+    analyze --refresh after code changes. impact uses the search index,
+    like search.
   - From a source checkout, run via:
       uv run --python 3.12 --extra dev code-explorer ...
     (the default Python on some systems has no tree-sitter-languages wheel)
 
-Run `code-explorer <command> --help` for full per-command flags.
+Run `code-explorer <command> --help` for that command's flags, a usage
+example, and a sample of its output.
 """
 
 
@@ -258,6 +261,10 @@ def analyze(
     Examples:
         code-explorer analyze ./src
         code-explorer analyze /path/to/project --exclude tests --exclude migrations
+
+    Output: a progress bar, then `Done N files in M bounded batches; X calls
+    resolved, Y retained unresolved`, then a summary table of counts (files,
+    functions, classes, edges, imports).
     """
     try:
         from .analyzer import CodeAnalyzer
@@ -913,6 +920,11 @@ def impact(
         code-explorer impact utils.py:calculate --downstream
         code-explorer impact main.py:main --depth 2 --budget 4000
         code-explorer impact core/api.py:Client --names-only
+
+    Output: `Seed: file::name` then one `### file::name (role[, N hops][,
+    signature only])` code block per neighbour in hop order -- full body
+    while under `--budget`, else signature + docstring. The same bundle
+    `search` emits, minus the results table.
     """
     from .context import ContextAssembler
 
@@ -1147,14 +1159,13 @@ def search(
     same expansion on a seed you name yourself -- see
     docs/explanation/latticedb-migration.md, Section 18.
 
-    This is LatticeDB-only for now (Kuzu has no full-text/vector search).
-    It builds its own index at PATH/.code-explorer/graph.lattice (or
-    graph_vectors.lattice for --semantic, which needs vectors enabled at
-    index-creation time -- kept as a separate index so plain/fuzzy search
-    doesn't pay for vector storage it doesn't use), separate from
-    `analyze`'s Kuzu index. When an index already exists, changed/new/
-    deleted files are re-indexed incrementally (content-hash based, Phase
-    3) rather than reused as-is; --reindex forces a full rebuild instead.
+    Builds its own index at PATH/.code-explorer/graph.sqlite (default
+    backend; --backend lattice for the embedded graph engine). --semantic
+    keeps a separate vector index (graph_vectors.*) so plain/fuzzy search
+    doesn't pay for vector storage it doesn't use. When an index already
+    exists, changed/new/deleted files are re-indexed incrementally
+    (content-hash based, Phase 3) rather than reused as-is; --reindex
+    forces a full rebuild instead.
 
     QUERY: text to search for, e.g. "refresh token"
     PATH: directory to search (default: current directory)
@@ -1164,6 +1175,11 @@ def search(
         code-explorer search "refesh_token" --fuzzy
         code-explorer search "how do we renew an expired credential" --semantic
         code-explorer search "resolve call" --no-context --limit 10
+
+    Output: a ranked `Type | Name | File | Score` table; then `Seed:
+    file::name` and one `### file::name (role[, N hops][, signature only])`
+    code block per neighbour in hop order -- full body while under `--budget`,
+    else signature + docstring.
     """
     from .context import ContextAssembler
     from .graph import DependencyGraph
@@ -1361,6 +1377,9 @@ def trace(
     Examples:
         code-explorer trace module.py:42 --variable user_input
         code-explorer trace utils.py:15 --variable result
+
+    Output: a header naming the variable, then a table of data-flow steps
+    (where it's assigned and where it flows), or `No data flow found.`
     """
     try:
         from .graph import DependencyGraph
@@ -1484,6 +1503,9 @@ def stats(db_path: Optional[str], top: int) -> None:
     Examples:
         code-explorer stats
         code-explorer stats --top 20
+
+    Output: a `Codebase Statistics` panel of counts (files, functions,
+    classes, edges, calls, modules) plus a `Most-called functions` table.
     """
     try:
         from .graph import DependencyGraph
@@ -1701,6 +1723,9 @@ def visualize(
     Examples:
         code-explorer visualize module.py --output graph.md
         code-explorer visualize utils.py --function process_data --max-depth 2
+
+    Output: a config table, then `✓ Diagram saved to: <path>` -- a Mermaid
+    `graph TD` diagram of caller/callee edges, renderable in GitHub/VS Code.
     """
     try:
         from .graph import DependencyGraph

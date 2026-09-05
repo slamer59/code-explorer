@@ -47,6 +47,11 @@ _DEFAULT_TOKEN_BUDGET = settings.context_token_budget
 
 console = Console()
 
+# How many extra hits to pull from the backend before re-ranking (demote_tests)
+# and truncating to the user's --limit. 4 covers the observed worst case: a
+# function with four near-identical tests, all out-scoring it.
+_RERANK_OVERFETCH = 4
+
 # Plain text (no Rich markup) -- printed via click.echo, not console.print,
 # so square brackets in example commands/flags render literally instead of
 # being parsed as Rich style tags (see cli.py's search command output bug:
@@ -121,7 +126,7 @@ def _print_skills_guide(ctx: click.Context, param: click.Parameter, value: bool)
     help="Print a usage guide for AI agents (which command to use when, gotchas), then exit.",
 )
 def cli() -> None:
-    """Code Explorer - one command instead of a grep loop.
+    '''Code Explorer - one command instead of a grep loop.
 
     Give it a description or a name and it returns the matching code plus
     the code around it -- what calls it, what it calls -- as one
@@ -161,29 +166,39 @@ def cli() -> None:
     Example:
 
     \b
-      $ code-explorer search "refresh token" ./myproject
+      $ code-explorer search "function dimension" ~/src/gemseo --limit 5
     \b
-      +----------+---------------+---------+-------+
-      | Type     | Name          | File    | Score |
-      +----------+---------------+---------+-------+
-      | Function | refresh_token | auth.py | 1.375 |
-      +----------+---------------+---------+-------+
+      Running BM25 search for 'function dimension'...
+      Search took 1ms.
+    \b
+      +----------+------------------------+--------------------------+--------+
+      | Type     | Name                   | File                     |  Score |
+      +----------+------------------------+--------------------------+--------+
+      | Function | get_function_dimension | .../optimization_prob... | 13.081 |
+      | Function | output_dimension       | .../mlearning/transfo... |  8.541 |
+      +----------+------------------------+--------------------------+--------+
     \b
       Seed:
-          auth.py::refresh_token
+          src/gemseo/algos/optimization_problem.py::get_function_dimension
     \b
-      ### auth.py::refresh_token (seed)
+      ### src/gemseo/algos/optimization_problem.py::get_function_dimension (seed)
       ```python
-      def refresh_token(token):
-          return issue_new_token(token)
+          def get_function_dimension(self, name: str) -> int:
+              """Return the dimension of a function of the problem."""
+              ...
       ```
+    \b
+      Upstream -- what calls this (<= 3 hops):
+      ### .../optimization_problem.py::get_functions_dimensions (caller)
+      ### .../test_optimization_problem.py::test_get_functions_dimensions (caller, 2 hops)
     \b
       Downstream -- what this calls (<= 3 hops):
-      ### auth.py::issue_new_token (callee)
-      ```python
-      def issue_new_token(token):
-          return token + "x"
-      ```
+      ### src/gemseo/algos/design_space.py::get_current_value (callee)
+      ### src/gemseo/utils/string_tools.py::pretty_str (callee, 2 hops)
+      ### .../design_space.py::__update_normalization_vars (callee, 3 hops, signature only)
+    \b
+      (each ### block carries the source; abridged here -- see
+       `code-explorer search --help` for a full transcript)
 
     \b
     search finds the seed for you; impact takes a seed you name and runs the
@@ -193,7 +208,7 @@ def cli() -> None:
     \b
     Run `code-explorer COMMAND --help` for that command's flags, a usage
     example, and a sample of its output.
-    """
+    '''
     pass
 
 
@@ -1219,7 +1234,7 @@ def search(
     backend: str,
     include_source: bool,
 ) -> None:
-    """Search code by keyword and show a ready-to-use context bundle.
+    '''Search code by keyword and show a ready-to-use context bundle.
 
     Searches function/class source code with BM25 (or --fuzzy for
     typo-tolerant matching, or --semantic for conceptual vector search),
@@ -1253,40 +1268,103 @@ def search(
     Example:
 
     \b
-      $ code-explorer search "refresh token" ./myproject
+      $ code-explorer search "function dimension" ~/src/gemseo --limit 5
     \b
-      Search results for 'refresh token'
-      ┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓
-      ┃ Type     ┃ Name          ┃ File    ┃ Score ┃
-      ┡━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩
-      │ Function │ refresh_token │ auth.py │ 1.375 │
-      └──────────┴───────────────┴─────────┴───────┘
+      Analyzing files... ------------------ 2103/2103 100% 0:00:02
+      Done 2,103 files in 1 bounded batches; 15,446 calls resolved,
+      7,722 retained unresolved (5.2s).
+      Running BM25 search for 'function dimension'...
+      Search took 1ms.
     \b
+                        Search results for 'function dimension'
+      +----------+-----------------------------+--------------------------+--------+
+      | Type     | Name                        | File                     |  Score |
+      +----------+-----------------------------+--------------------------+--------+
+      | Function | get_function_dimension      | .../algos/optimizatio... | 13.081 |
+      | Function | test_get_function_dimension | .../tests/algos/test_... |  5.497 |
+      | Function | test_..._unavailable        | .../tests/algos/test_... |  5.379 |
+      | Function | test_..._unknown            | .../tests/algos/test_... |  5.347 |
+      | Function | test_..._no_dim             | .../tests/algos/test_... |  5.199 |
+      +----------+-----------------------------+--------------------------+--------+
+      Assembling context for function
+      src/gemseo/algos/optimization_problem.py::get_function_dimension...
+    \b
+      +-----------------------------------------------------------------------+
+      | Context                                                               |
+      | Top hit: .../optimization_problem.py::get_function_dimension (Function)|
+      +-----------------------------------------------------------------------+
       Seed:
-          auth.py::refresh_token
+          src/gemseo/algos/optimization_problem.py::get_function_dimension
     \b
-      ### auth.py::refresh_token (seed)
+      ### src/gemseo/algos/optimization_problem.py::get_function_dimension (seed)
       ```python
-      def refresh_token(token):
-          '''Refresh an OAuth access token by calling the auth server.'''
-          return issue_new_token(token)
+          def get_function_dimension(self, name: str) -> int:
+              """Return the dimension of a function of the problem."""
+              for function in self.functions:
+                  if function.name == name:
+                      break
+              else:
+                  msg = f"The problem has no function named {name}."
+                  raise ValueError(msg)
+              if function.dim:
+                  return function.dim
+              ...
       ```
     \b
       Upstream -- what calls this (<= 3 hops):
-          (none)
+      ### tests/algos/test_optimization_problem.py::test_get_function_dimension (caller)
+      ```python
+      def test_get_function_dimension(constrained_problem, name, dimension) -> None:
+          """Check the output dimension of a problem function."""
+          assert constrained_problem.get_function_dimension(name) == dimension
+      ```
+    \b
+      ### src/gemseo/algos/optimization_problem.py::get_functions_dimensions (caller)
+      ```python
+          def get_functions_dimensions(self, names=None) -> dict[str, int]:
+              """Return the dimensions of the outputs of the problem functions."""
+              if names is None:
+                  names = [self._objective.name, *self.constraints.get_names()]
+              return {name: self.get_function_dimension(name) for name in names}
+      ```
+    \b
+      ### tests/algos/test_optimization_problem.py::test_get_functions_dimensions (caller, 2 hops)
+      ```python
+      def test_get_functions_dimensions(constrained_problem, names, dimensions) -> None:
+          """Check the computation of the functions dimensions."""
+          assert constrained_problem.get_functions_dimensions(names) == dimensions
+      ```
     \b
       Downstream -- what this calls (<= 3 hops):
-      ### auth.py::issue_new_token (callee)
+      ### src/gemseo/algos/design_space.py::get_current_value (callee)
       ```python
-      def issue_new_token(token):
-          '''Issue a brand new token.'''
-          return token + "x"
+          def get_current_value(self, variable_names=None, complex_to_real=False,
+                                as_dict=False, normalize=False):
+              """Return the current design value."""
+              ...
       ```
+    \b
+      ### src/gemseo/utils/string_tools.py::pretty_str (callee, 2 hops)
+      ```python
+      def pretty_str(obj, delimiter=DEFAULT_DELIMITER, sort=True, use_and=False) -> str:
+          """Return a readable string representation of an object."""
+          return __stringify(obj, delimiter, key_value_separator, str, sort, use_and)
+      ```
+    \b
+      ### src/gemseo/algos/design_space.py::__update_normalization_vars (callee, 3 hops, signature only)
+      ```python
+          def __update_normalization_vars(self) -> None:
+              """Compute the inner attributes used for normalization."""
+          ...  # body omitted
+      ```
+    \b
+      (abridged -- the real run emits 20 blocks / ~530 lines before the
+      4,000-token budget starts degrading them to signatures)
     \b
     Each neighbour block is headed `### file::name (role[, N hops][, signature
     only])` in hop order -- full body while under --budget, signature +
     docstring once it runs out.
-    """
+    '''
     from .context import ContextAssembler
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
@@ -1374,21 +1452,27 @@ def search(
     console.print(f"[dim]Running {mode} search for {query!r}...[/dim]")
     t2 = time.time()
     try:
+        # Over-fetch, then re-rank, then truncate. Demoting after the backend
+        # has already cut to `limit` is too late: on gemseo with --limit 3,
+        # the four test_get_function_dimension* variants filled the window and
+        # get_function_dimension (4th by raw BM25) was gone before demotion
+        # could promote it.
+        fetch = max(limit * _RERANK_OVERFETCH, limit)
         if semantic:
-            hits = graph.backend.search_vector(query, limit=limit)
+            hits = graph.backend.search_vector(query, limit=fetch)
         elif hybrid:
-            bm25_hits = graph.backend.search_text(query, limit=limit)
-            vector_hits = vector_graph.backend.search_vector(query, limit=limit)
+            bm25_hits = graph.backend.search_text(query, limit=fetch)
+            vector_hits = vector_graph.backend.search_vector(query, limit=fetch)
             # RRF, not raw score blending -- BM25's score and vector's
             # distance aren't on comparable scales. See hybrid_search.py.
-            hits = reciprocal_rank_fusion([bm25_hits, vector_hits], limit=limit)
+            hits = reciprocal_rank_fusion([bm25_hits, vector_hits], limit=fetch)
         else:
-            hits = graph.backend.search_text(query, limit=limit, fuzzy=fuzzy)
+            hits = graph.backend.search_text(query, limit=fetch, fuzzy=fuzzy)
         # A test is short, so its term density beats the function it exercises:
         # on gemseo, "function dimension" put three test_get_function_dimension*
         # variants above get_function_dimension itself, and the bundle was then
         # seeded from the test. Demote, don't drop -- see demote_tests.
-        hits = demote_tests(hits)
+        hits = demote_tests(hits)[:limit]
     except Exception as e:
         console.print(f"[red]Error during search:[/red] {e}")
         sys.exit(1)

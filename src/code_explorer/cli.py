@@ -690,10 +690,10 @@ def _open_search_index(
                     # bounded memory for a simpler, and measurably faster,
                     # build. Stats keys are a subset, hence the .get() reads
                     # in the summary line below.
-                    from .analyzer.call_resolver import CallResolver
+                    from .graph.import_resolver import resolve_import_aware
 
                     results = list(analyses)
-                    resolved = CallResolver(results).resolve_all_calls()
+                    resolved, resolve_stats = resolve_import_aware(results, target)
                     stats = graph.ingest_results(
                         results,
                         resolved_calls=resolved,
@@ -708,11 +708,17 @@ def _open_search_index(
                         "functions": sum(len(r.functions) for r in results),
                         "classes": sum(len(r.classes) for r in results),
                         "calls_resolved": len(resolved),
-                        "calls_unresolved": 0,
-                        **{k: 0 for k in (
-                            "external_symbols", "external_edges",
-                            "calls_skipped_unattributable",
-                        )},
+                        "calls_unresolved": resolve_stats["calls_unresolved"],
+                        "calls_skipped_unattributable": resolve_stats[
+                            "calls_skipped_unattributable"
+                        ],
+                        "external_symbols": 0,
+                        "external_edges": resolve_stats["external_edges"],
+                        **{
+                            k: v
+                            for k, v in resolve_stats.items()
+                            if k.startswith("resolution_method_")
+                        },
                     }
                 # Include calls resolved during the final durable-stream pass.
                 show_graph_progress(stats)

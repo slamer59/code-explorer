@@ -820,12 +820,20 @@ def file_analyses_to_records(
                 call["caller_start_line"],
                 project_root,
             )
-            callee_id = make_function_id(
-                call["callee_file"],
-                call["callee_function"],
-                call["callee_start_line"],
-                project_root,
-            )
+            if call.get("callee_type") == "Class":
+                callee_id = make_class_id(
+                    call["callee_file"],
+                    call["callee_function"],
+                    call["callee_start_line"],
+                    project_root,
+                )
+            else:
+                callee_id = make_function_id(
+                    call["callee_file"],
+                    call["callee_function"],
+                    call["callee_start_line"],
+                    project_root,
+                )
             edges.append(
                 EdgeRecord(
                     src_id=caller_id,

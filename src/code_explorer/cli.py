@@ -36,6 +36,15 @@ from .console_styles import (
 )
 from .settings import settings
 
+# context.py's DEFAULT_DEPTH / DEFAULT_TOKEN_BUDGET, restated here purely as
+# click defaults and --help text. Importing context at module scope pulls
+# pandas + pyarrow in behind graph/, measured at +260ms on *every* CLI
+# invocation including `--help`; the command bodies import the real engine
+# lazily. Keep these two in sync with context.py -- test_context_expansion.py
+# asserts they match.
+_DEFAULT_DEPTH = 3
+_DEFAULT_TOKEN_BUDGET = 12_000
+
 console = Console()
 
 # Plain text (no Rich markup) -- printed via click.echo, not console.print,
@@ -521,119 +530,485 @@ def analyze(
         sys.exit(1)
 
 
+# Opening/building the search index is shared by `search` (which finds a
+# seed by query first) and `impact` (which is handed one): both need the
+# same index, the same incremental update, and the same corrupt-index
+# recovery. It lived inside `search` as a closure until `impact` was
+# repointed off the old Kuzu graph onto this one.
+def _search_index_paths(target: Path, backend: str):
+    """(bm25_path, vector_path, make_backend) for one repo + backend choice.
+
+    Each backend keeps its own index file so the two can coexist and be
+    compared on the same repo without one clobbering the other.
+    """
+    from .graph.backends.lattice_backend import LatticeBackend
+    from .graph.backends.sqlite_backend import SqliteBackend
+
+    root = target / ".code-explorer"
+    if backend == "sqlite":
+        return (
+            root / "graph.sqlite",
+            root / "graph_vectors.sqlite",
+            lambda p, vectors: SqliteBackend(p, enable_vectors=vectors),
+        )
+    return (
+        root / "graph.lattice",
+        root / "graph_vectors.lattice",
+        lambda p, vectors: LatticeBackend(p, enable_vectors=vectors),
+    )
+
+
+def _open_search_index(
+    db_path: Path,
+    target: Path,
+    make_backend,
+    enable_vectors: bool,
+    force_reindex: bool,
+    include_source: bool = False,
+) -> "DependencyGraph":
+    """Open (building/updating as needed) one search index.
+
+    Called for `search`'s primary index (BM25 or vector, per --semantic),
+    again for the vector index when hybrid retrieval kicks in, and by
+    `impact`, which now reads this index rather than the old Kuzu graph --
+    so all three share one build/incremental-update/corrupt-recovery path.
+    """
+    from .analyzer.base_analyzer import CodeAnalyzer
+    from .graph import DependencyGraph
+
+    needs_index = force_reindex or not db_path.exists()
+    if force_reindex:
+        for stale in db_path.parent.glob(db_path.name + "*"):
+            stale.unlink(missing_ok=True)
+
+    def _build_index(needs_index: bool) -> DependencyGraph:
+        backend = make_backend(db_path, enable_vectors)
+        # On a from-scratch build, let ingest_analysis_stream create the
+        # BM25 indexes in one pass at the end instead of maintaining them
+        # across ~15K node writes (-26% commit time on gemseo -- see
+        # LatticeBackend.ensure_fts_indexes).
+        graph = DependencyGraph(
+            db_path=db_path,
+            project_root=target,
+            backend=backend,
+            defer_fts_indexes=needs_index,
+        )
+        if needs_index:
+            console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
+            t0 = time.time()
+            graph_task = None
+            finalize_task = None
+            graph_progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                TimeElapsedColumn(),
+                console=console,
+            )
+
+            def show_graph_progress(batch_stats: dict) -> None:
+                nonlocal graph_task
+                batches = batch_stats["batches"]
+                tuning = ""
+                description = (
+                    f"  ↳ Graph: {batches:,} "
+                    f"{'batch' if batches == 1 else 'batches'} · "
+                    f"{batch_stats['total_nodes']:,} nodes · "
+                    f"{batch_stats['total_edges']:,} edges · "
+                    f"{batch_stats['calls_resolved']:,} calls{tuning}"
+                )
+                if graph_task is None:
+                    graph_task = graph_progress.add_task(description, total=None)
+                else:
+                    graph_progress.update(graph_task, description=description)
+
+            def show_finalize_progress(finalize_stats: dict) -> None:
+                nonlocal finalize_task
+                if finalize_task is None:
+                    for task in list(analysis_progress.tasks):
+                        analysis_progress.remove_task(task.id)
+                    finalize_task = analysis_progress.add_task(
+                        "Resolving pending calls...",
+                        total=finalize_stats["total"],
+                    )
+                analysis_progress.update(
+                    finalize_task,
+                    completed=finalize_stats["processed"],
+                    description=(
+                        "Resolving pending calls "
+                        f"({finalize_stats['resolved']:,} resolved · "
+                        f"{finalize_stats['unresolved']:,} unresolved)..."
+                    ),
+                )
+
+            analysis_progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                MofNCompleteColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TimeElapsedColumn(),
+                TextColumn("ETA"),
+                TimeRemainingColumn(),
+                console=console,
+            )
+            with Live(
+                Group(analysis_progress, graph_progress),
+                console=console,
+                refresh_per_second=10,
+            ):
+                analyses = CodeAnalyzer().iter_analyze_directory(
+                    target,
+                    max_workers=settings.analysis_workers,
+                    progress=analysis_progress,
+                )
+                # Capability check, not a class-name check: the streaming
+                # path needs the backend's durable pending-call streams.
+                # requeue_unresolved_calls is the entry point ingest() calls
+                # first, so its presence is the honest test. (An earlier
+                # version probed publish_pending_call, which exists on
+                # neither backend -- so LatticeDB silently took the generic
+                # path and lost its FTS indexes.)
+                if hasattr(graph.backend, "requeue_unresolved_calls"):
+                    stats = graph.ingest_analysis_stream(
+                        analyses,
+                        batch_size=settings.upsert_batch_size,
+                        batch_bytes=settings.ingest_batch_bytes,
+                        include_source=include_source,
+                        # This branch only runs after creating or deleting db_path.
+                        assume_new=True,
+                        on_batch_committed=show_graph_progress,
+                        on_finalize_progress=show_finalize_progress,
+                    )
+                else:
+                    # Generic path for backends without LatticeDB's durable
+                    # call streams (SqliteBackend). Materialises the parsed
+                    # files, resolves calls with CallResolver, then does one
+                    # bulk upsert -- so it trades the streaming pipeline's
+                    # bounded memory for a simpler, and measurably faster,
+                    # build. Stats keys are a subset, hence the .get() reads
+                    # in the summary line below.
+                    from .analyzer.call_resolver import CallResolver
+
+                    results = list(analyses)
+                    resolved = CallResolver(results).resolve_all_calls()
+                    stats = graph.ingest_results(
+                        results,
+                        resolved_calls=resolved,
+                        include_source=include_source,
+                        assume_new=True,
+                    )
+                    stats = {
+                        "files": len(results),
+                        "batches": 1,
+                        "total_nodes": stats.get("total_nodes", 0),
+                        "total_edges": stats.get("total_edges", 0),
+                        "functions": sum(len(r.functions) for r in results),
+                        "classes": sum(len(r.classes) for r in results),
+                        "calls_resolved": len(resolved),
+                        "calls_unresolved": 0,
+                        **{k: 0 for k in (
+                            "external_symbols", "external_edges",
+                            "calls_skipped_unattributable",
+                        )},
+                    }
+                # Include calls resolved during the final durable-stream pass.
+                show_graph_progress(stats)
+                if graph_task is not None:
+                    graph_progress.stop_task(graph_task)
+            n_functions = stats["functions"]
+            n_classes = stats["classes"]
+            console.print(
+                f"[green]Done[/green] {stats['files']:,} files in "
+                f"{stats['batches']:,} bounded batches; "
+                f"{stats['calls_resolved']:,} calls resolved, "
+                f"{stats['calls_unresolved']:,} retained unresolved "
+                f"({time.time() - t0:.1f}s)."
+            )
+            if stats.get("external_edges") or stats.get(
+                "calls_skipped_unattributable"
+            ):
+                console.print(
+                    "[dim]Library boundary: "
+                    f"{stats['external_edges']:,} calls into "
+                    f"{stats['external_symbols']:,} external symbols "
+                    f"recorded; {stats['calls_skipped_unattributable']:,} "
+                    "unattributable calls skipped (builtins, attribute "
+                    "calls on locals).[/dim]"
+                )
+            if stats["calls_unresolved"]:
+                _report_unresolved(graph, db_path, stats["calls_unresolved"])
+            if enable_vectors:
+                console.print(
+                    "[cyan]Generating embeddings via local Ollama[/cyan] "
+                    "(batched Ollama HTTP calls, this is the slow "
+                    "part) ..."
+                )
+                t1 = time.time()
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    BarColumn(),
+                    MofNCompleteColumn(),
+                    TimeElapsedColumn(),
+                    console=console,
+                ) as progress:
+                    embed_task = progress.add_task(
+                        "Embedding", total=n_functions + n_classes
+                    )
+                    n = graph.backend.build_vector_index(
+                        on_progress=lambda: progress.advance(embed_task)
+                    )
+                console.print(
+                    f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s."
+                )
+        return graph
+
+    try:
+        graph = _build_index(needs_index)
+        if not needs_index:
+            # Index already exists and force_reindex wasn't passed: don't
+            # silently reuse it as-is (stale data), and don't pay for a
+            # full rebuild either -- hash every file, skip unchanged ones,
+            # and invalidate+reprocess only what changed (Phase 3).
+            t0 = time.time()
+            stats = graph.ingest_incremental(target)
+            elapsed = time.time() - t0
+            if stats["reprocessed"] or stats["deleted"]:
+                console.print(
+                    f"[cyan]Updated[/cyan] {stats['reprocessed']} changed file(s), "
+                    f"removed {stats['deleted']} deleted file(s), "
+                    f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
+                )
+                if enable_vectors and stats["changed_node_ids"]:
+                    # ingest_incremental only touches nodes/edges/BM25 text --
+                    # it doesn't call build_vector_index. Deleted/old vectors
+                    # are already gone (delete_file removes the node itself),
+                    # so the only gap is new/changed nodes having no vector
+                    # yet -- re-embed just those (node_ids scoping, see
+                    # LatticeBackend.build_vector_index), not the whole repo.
+                    t1 = time.time()
+                    n = graph.backend.build_vector_index(
+                        node_ids=stats["changed_node_ids"]
+                    )
+                    console.print(
+                        f"[cyan]Re-embedded[/cyan] {n} changed node(s) "
+                        f"({time.time() - t1:.1f}s)."
+                    )
+    except Exception as e:
+        if needs_index:
+            # We were already building a fresh index -- this is a real
+            # failure (permissions, disk, Ollama down for --semantic, etc.),
+            # not a stale-index problem. Don't retry, just report it.
+            console.print(f"[red]Error:[/red] Failed to build search index: {e}")
+            sys.exit(1)
+        # We tried to reuse an existing index and opening it failed -- most
+        # likely leftover state from an interrupted previous run (a killed
+        # process, a crash mid-write). It's a disposable derived cache, not
+        # source data, so rebuild it automatically instead of surfacing a
+        # raw "I/O error" and making the user diagnose it themselves.
+        console.print(
+            f"[yellow]Existing index at {db_path} looks corrupt or "
+            f"incomplete ({e}) -- rebuilding from scratch...[/yellow]"
+        )
+        for stale in db_path.parent.glob(db_path.name + "*"):
+            stale.unlink(missing_ok=True)
+        try:
+            graph = _build_index(needs_index=True)
+        except Exception as e2:
+            console.print(f"[red]Error:[/red] Failed to build search index: {e2}")
+            sys.exit(1)
+    return graph
+
+
 @cli.command()
 @click.argument("target")
+@click.argument("path", type=click.Path(exists=True), default=".")
 @click.option(
     "--downstream",
     is_flag=True,
-    help="Show downstream impact (what this function calls) instead of upstream",
+    help="Only what this function calls (default: both directions)",
+)
+@click.option(
+    "--upstream",
+    is_flag=True,
+    help="Only what calls this function (default: both directions)",
+)
+@click.option(
+    "--depth",
+    type=int,
+    default=_DEFAULT_DEPTH,
+    help=f"How many hops to collect before ranking (default: {_DEFAULT_DEPTH})",
 )
 @click.option(
     "--max-depth",
     type=int,
-    default=5,
-    help="Maximum depth for transitive analysis (default: 5)",
+    default=None,
+    help="Deprecated alias for --depth, kept so existing scripts keep working",
 )
 @click.option(
-    "--db-path",
-    type=click.Path(),
-    default=None,
-    help="Path to KuzuDB database (default: .code-explorer/graph.db)",
+    "--budget",
+    type=int,
+    default=_DEFAULT_TOKEN_BUDGET,
+    help=(
+        "Token budget for the bundle (default: "
+        f"{_DEFAULT_TOKEN_BUDGET:,}). Nodes past the budget degrade to "
+        "signatures rather than being cut mid-function."
+    ),
+)
+@click.option(
+    "--names-only",
+    is_flag=True,
+    help="List the ranked neighbourhood without reading any source",
+)
+@click.option(
+    "--backend",
+    type=click.Choice(["lattice", "sqlite"]),
+    default="lattice",
+    help="Storage backend for the search index (default: lattice)",
+)
+@click.option(
+    "--reindex",
+    is_flag=True,
+    help="Force a fresh index instead of reusing an existing one",
 )
 def impact(
     target: str,
+    path: str,
     downstream: bool,
-    max_depth: int,
-    db_path: Optional[str],
+    upstream: bool,
+    depth: int,
+    max_depth: Optional[int],
+    budget: int,
+    names_only: bool,
+    backend: str,
+    reindex: bool,
 ) -> None:
-    """Find impact of changing a function.
+    """Expand one named function: what calls it, and what it calls.
 
-    Shows which functions will be affected if you change the specified function.
-    By default, shows upstream impact (who calls this function). Use --downstream
-    to see what this function calls.
+    Same engine as `search` -- collect the neighbourhood to --depth, rank
+    the whole set at once, then emit a token-budgeted context bundle with
+    source attached. `search` finds the seed by query first; `impact` is
+    handed the seed, and that is the only difference between the two.
 
-    TARGET: Function to analyze in format "file.py:function_name"
+    Reads the SAME index `search` builds (.code-explorer/graph.lattice),
+    building or incrementally updating it as needed. It used to read
+    `analyze`'s separate Kuzu graph, whose naive call resolution produced
+    roughly 5.5x the spurious fan-out; `trace`, `stats` and `visualize`
+    still read that older graph -- see their docstrings.
+
+    TARGET: "file.py:function_name" (a class name works too)
+    PATH: repository to search (default: current directory)
 
     Examples:
         code-explorer impact module.py:process_data
         code-explorer impact utils.py:calculate --downstream
-        code-explorer impact main.py:main --max-depth 3
+        code-explorer impact main.py:main --depth 2 --budget 4000
+        code-explorer impact core/api.py:Client --names-only
     """
-    try:
-        from .graph import DependencyGraph
-        from .impact import ImpactAnalyzer
-    except ImportError as e:
-        console.print(
-            "[red]Error:[/red] Missing required module. "
-            "Please ensure graph.py and impact.py are implemented."
-        )
-        console.print(f"[dim]Details: {e}[/dim]")
-        sys.exit(1)
+    from .context import ContextAssembler
 
-    # Parse target
     if ":" not in target:
         console.print(
             "[red]Error:[/red] Invalid target format. Expected 'file:function'"
         )
         console.print("[dim]Example: module.py:process_data[/dim]")
         sys.exit(1)
-
     file_name, function_name = target.split(":", 1)
 
-    # Initialize graph
-    if db_path is None:
-        db_path = Path.cwd() / ".code-explorer" / "graph.db"
+    if max_depth is not None:
+        depth = max_depth
+
+    if downstream and upstream:
+        direction = "both"
+    elif downstream:
+        direction = "downstream"
+    elif upstream:
+        direction = "upstream"
     else:
-        db_path = Path(db_path)
+        # Default changed with the move onto the search index: the old
+        # command defaulted to upstream-only. "What influences this and
+        # what it influences" is the question a reader actually has, and
+        # the token budget -- not the direction flag -- is what keeps the
+        # answer bounded now.
+        direction = "both"
 
-    if not db_path.exists():
-        console.print(
-            "[red]Error:[/red] Database not found. Run 'analyze' command first."
-        )
-        console.print(f"[dim]Expected location: {db_path}[/dim]")
-        sys.exit(1)
+    root = Path(path).resolve()
+    db_path, _vector_db_path, make_backend = _search_index_paths(root, backend)
+    graph = _open_search_index(
+        db_path, root, make_backend, enable_vectors=False, force_reindex=reindex
+    )
 
-    try:
-        graph = DependencyGraph(db_path=db_path)
-        analyzer = ImpactAnalyzer(graph)
-    except Exception as e:
-        console.print(f"[red]Error:[/red] Failed to initialize graph: {e}")
-        sys.exit(1)
-
-    # Display header
     console.print()
-    direction = "downstream" if downstream else "upstream"
     console.print(
         create_header_panel(
-            "Impact Analysis: Function Dependency",
-            f"Target: {file_name}::{function_name} | Direction: {direction.title()} | Depth: {max_depth}"
+            "Impact: expanded context",
+            f"Seed: {file_name}::{function_name} | Direction: {direction} | "
+            f"Depth: {depth} | Budget: {budget:,} tokens",
         )
     )
     console.print()
 
+    assembler = ContextAssembler(graph)
     try:
-        results = analyzer.analyze_function_impact(
-            file=file_name,
-            function=function_name,
-            direction=direction,
-            max_depth=max_depth,
+        try:
+            ctx = assembler.expand(
+                file_name,
+                function_name,
+                node_type="Function",
+                depth=depth,
+                token_budget=budget,
+                direction=direction,
+                read_source=not names_only,
+            )
+        except ValueError:
+            # A target naming a class rather than a function is a normal
+            # thing to type; retry before reporting "not found".
+            ctx = assembler.expand(
+                file_name,
+                function_name,
+                node_type="Class",
+                depth=depth,
+                token_budget=budget,
+                direction=direction,
+            )
+    except ValueError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        console.print(
+            "[dim]The path must match the index (relative to the repo root), "
+            "e.g. src/pkg/module.py:function_name.[/dim]"
         )
-
-        if not results:
-            console.print("[yellow]No impact found.[/yellow]")
-            return
-
-        # Display results using the format_as_table method
-        table = analyzer.format_as_table(results)
-        console.print(table)
-        console.print(f"\n{StyleGuide.success_icon} Found [yellow]{format_count(len(results))}[/yellow] impacted functions")
-
-    except Exception as e:
-        console.print(f"[red]Error during impact analysis:[/red] {e}")
-        import traceback
-
-        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        graph.backend.close()
         sys.exit(1)
+    except FileNotFoundError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        graph.backend.close()
+        sys.exit(1)
+
+    if names_only:
+        table = Table(title="Ranked neighbourhood", show_header=True)
+        table.add_column("Hops", style="cyan", justify="right")
+        table.add_column("Direction", style="magenta")
+        table.add_column("File", style="green")
+        table.add_column("Name", style="yellow")
+        table.add_column("Line", style="blue", justify="right")
+        for section in ctx.resolved_sections():
+            for node in section.nodes:
+                table.add_row(
+                    str(node.distance),
+                    section.role,
+                    node.file,
+                    node.name,
+                    str(node.line_number),
+                )
+        console.print(table)
+    else:
+        console.print(ctx.to_markdown())
+
+    n = sum(len(s.nodes) for s in ctx.resolved_sections())
+    console.print(
+        f"\n{StyleGuide.success_icon} {format_count(n)} related node(s) in the bundle"
+    )
+    graph.backend.close()
 
 
 def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
@@ -694,6 +1069,25 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     help="Only show search hits, skip assembling a context bundle for the top hit",
 )
 @click.option(
+    "--depth",
+    type=int,
+    default=_DEFAULT_DEPTH,
+    help=(
+        "How many hops around the top hit to collect before ranking "
+        f"(default: {_DEFAULT_DEPTH}). Same expansion engine as `impact`."
+    ),
+)
+@click.option(
+    "--budget",
+    type=int,
+    default=_DEFAULT_TOKEN_BUDGET,
+    help=(
+        "Token budget for the context bundle (default: "
+        f"{_DEFAULT_TOKEN_BUDGET:,}). Nodes past the budget degrade to "
+        "signatures rather than being cut mid-function."
+    ),
+)
+@click.option(
     "--reindex",
     is_flag=True,
     help="Force a fresh index instead of reusing an existing one",
@@ -726,6 +1120,8 @@ def search(
     fuzzy: bool,
     semantic: bool,
     no_context: bool,
+    depth: int,
+    budget: int,
     reindex: bool,
     backend: str,
     include_source: bool,
@@ -734,8 +1130,11 @@ def search(
 
     Searches function/class source code with BM25 (or --fuzzy for
     typo-tolerant matching, or --semantic for conceptual vector search),
-    then assembles a bounded, LLM-ready context bundle (the top hit plus
-    its direct callers/callees, with source attached) -- see
+    then expands around the top hit and emits a token-budgeted, LLM-ready
+    context bundle: the neighbourhood collected to --depth hops, ranked as
+    one set (distance, the query's own BM25 relevance, in-degree), with
+    source attached for whatever fits --budget. `impact` runs the exact
+    same expansion on a seed you name yourself -- see
     docs/explanation/latticedb-migration.md, Section 18.
 
     This is LatticeDB-only for now (Kuzu has no full-text/vector search).
@@ -756,278 +1155,19 @@ def search(
         code-explorer search "how do we renew an expired credential" --semantic
         code-explorer search "resolve call" --no-context --limit 10
     """
-    from .analyzer.base_analyzer import CodeAnalyzer
     from .context import ContextAssembler
     from .graph import DependencyGraph
-    from .graph.backends.lattice_backend import LatticeBackend
-    from .graph.backends.sqlite_backend import SqliteBackend
     from .hybrid_search import reciprocal_rank_fusion
 
     target = Path(path).resolve()
-    # Each backend keeps its own index file so the two can coexist and be
-    # compared on the same repo without one clobbering the other.
-    if backend == "sqlite":
-        bm25_db_path = target / ".code-explorer" / "graph.sqlite"
-        vector_db_path = target / ".code-explorer" / "graph_vectors.sqlite"
-        _make_backend = lambda p, vectors: SqliteBackend(p, enable_vectors=vectors)
-    else:
-        bm25_db_path = target / ".code-explorer" / "graph.lattice"
-        vector_db_path = target / ".code-explorer" / "graph_vectors.lattice"
-        _make_backend = lambda p, vectors: LatticeBackend(p, enable_vectors=vectors)
+    bm25_db_path, vector_db_path, make_backend = _search_index_paths(target, backend)
     db_path = vector_db_path if semantic else bm25_db_path
 
-    def _open_and_sync(db_path: Path, enable_vectors: bool, force_reindex: bool) -> DependencyGraph:
-        """Open (building/updating as needed) one LatticeDB index. Used
-        once for the primary index (BM25 or vector, per --semantic), and a
-        second time for the vector index when hybrid retrieval kicks in
-        (see the hybrid block below) -- factored out so both call sites
-        share the same build/incremental-update/corrupt-recovery logic
-        that previously lived inline here for the single-index case.
-        """
-        needs_index = force_reindex or not db_path.exists()
-        if force_reindex:
-            for stale in db_path.parent.glob(db_path.name + "*"):
-                stale.unlink(missing_ok=True)
 
-        def _build_index(needs_index: bool) -> DependencyGraph:
-            backend = _make_backend(db_path, enable_vectors)
-            # On a from-scratch build, let ingest_analysis_stream create the
-            # BM25 indexes in one pass at the end instead of maintaining them
-            # across ~15K node writes (-26% commit time on gemseo -- see
-            # LatticeBackend.ensure_fts_indexes).
-            graph = DependencyGraph(
-                db_path=db_path,
-                project_root=target,
-                backend=backend,
-                defer_fts_indexes=needs_index,
-            )
-            if needs_index:
-                console.print(f"[cyan]Indexing[/cyan] {target} for search ...")
-                t0 = time.time()
-                graph_task = None
-                finalize_task = None
-                graph_progress = Progress(
-                    SpinnerColumn(),
-                    TextColumn("[progress.description]{task.description}"),
-                    TimeElapsedColumn(),
-                    console=console,
-                )
-
-                def show_graph_progress(batch_stats: dict) -> None:
-                    nonlocal graph_task
-                    batches = batch_stats["batches"]
-                    tuning = ""
-                    description = (
-                        f"  ↳ Graph: {batches:,} "
-                        f"{'batch' if batches == 1 else 'batches'} · "
-                        f"{batch_stats['total_nodes']:,} nodes · "
-                        f"{batch_stats['total_edges']:,} edges · "
-                        f"{batch_stats['calls_resolved']:,} calls{tuning}"
-                    )
-                    if graph_task is None:
-                        graph_task = graph_progress.add_task(description, total=None)
-                    else:
-                        graph_progress.update(graph_task, description=description)
-
-                def show_finalize_progress(finalize_stats: dict) -> None:
-                    nonlocal finalize_task
-                    if finalize_task is None:
-                        for task in list(analysis_progress.tasks):
-                            analysis_progress.remove_task(task.id)
-                        finalize_task = analysis_progress.add_task(
-                            "Resolving pending calls...",
-                            total=finalize_stats["total"],
-                        )
-                    analysis_progress.update(
-                        finalize_task,
-                        completed=finalize_stats["processed"],
-                        description=(
-                            "Resolving pending calls "
-                            f"({finalize_stats['resolved']:,} resolved · "
-                            f"{finalize_stats['unresolved']:,} unresolved)..."
-                        ),
-                    )
-
-                analysis_progress = Progress(
-                    SpinnerColumn(),
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(),
-                    MofNCompleteColumn(),
-                    TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-                    TimeElapsedColumn(),
-                    TextColumn("ETA"),
-                    TimeRemainingColumn(),
-                    console=console,
-                )
-                with Live(
-                    Group(analysis_progress, graph_progress),
-                    console=console,
-                    refresh_per_second=10,
-                ):
-                    analyses = CodeAnalyzer().iter_analyze_directory(
-                        target,
-                        max_workers=settings.analysis_workers,
-                        progress=analysis_progress,
-                    )
-                    # Capability check, not a class-name check: the streaming
-                    # path needs the backend's durable pending-call streams.
-                    # requeue_unresolved_calls is the entry point ingest() calls
-                    # first, so its presence is the honest test. (An earlier
-                    # version probed publish_pending_call, which exists on
-                    # neither backend -- so LatticeDB silently took the generic
-                    # path and lost its FTS indexes.)
-                    if hasattr(graph.backend, "requeue_unresolved_calls"):
-                        stats = graph.ingest_analysis_stream(
-                            analyses,
-                            batch_size=settings.upsert_batch_size,
-                            batch_bytes=settings.ingest_batch_bytes,
-                            include_source=include_source,
-                            # This branch only runs after creating or deleting db_path.
-                            assume_new=True,
-                            on_batch_committed=show_graph_progress,
-                            on_finalize_progress=show_finalize_progress,
-                        )
-                    else:
-                        # Generic path for backends without LatticeDB's durable
-                        # call streams (SqliteBackend). Materialises the parsed
-                        # files, resolves calls with CallResolver, then does one
-                        # bulk upsert -- so it trades the streaming pipeline's
-                        # bounded memory for a simpler, and measurably faster,
-                        # build. Stats keys are a subset, hence the .get() reads
-                        # in the summary line below.
-                        from .analyzer.call_resolver import CallResolver
-
-                        results = list(analyses)
-                        resolved = CallResolver(results).resolve_all_calls()
-                        stats = graph.ingest_results(
-                            results,
-                            resolved_calls=resolved,
-                            include_source=include_source,
-                            assume_new=True,
-                        )
-                        stats = {
-                            "files": len(results),
-                            "batches": 1,
-                            "total_nodes": stats.get("total_nodes", 0),
-                            "total_edges": stats.get("total_edges", 0),
-                            "functions": sum(len(r.functions) for r in results),
-                            "classes": sum(len(r.classes) for r in results),
-                            "calls_resolved": len(resolved),
-                            "calls_unresolved": 0,
-                            **{k: 0 for k in (
-                                "external_symbols", "external_edges",
-                                "calls_skipped_unattributable",
-                            )},
-                        }
-                    # Include calls resolved during the final durable-stream pass.
-                    show_graph_progress(stats)
-                    if graph_task is not None:
-                        graph_progress.stop_task(graph_task)
-                n_functions = stats["functions"]
-                n_classes = stats["classes"]
-                console.print(
-                    f"[green]Done[/green] {stats['files']:,} files in "
-                    f"{stats['batches']:,} bounded batches; "
-                    f"{stats['calls_resolved']:,} calls resolved, "
-                    f"{stats['calls_unresolved']:,} retained unresolved "
-                    f"({time.time() - t0:.1f}s)."
-                )
-                if stats.get("external_edges") or stats.get(
-                    "calls_skipped_unattributable"
-                ):
-                    console.print(
-                        "[dim]Library boundary: "
-                        f"{stats['external_edges']:,} calls into "
-                        f"{stats['external_symbols']:,} external symbols "
-                        f"recorded; {stats['calls_skipped_unattributable']:,} "
-                        "unattributable calls skipped (builtins, attribute "
-                        "calls on locals).[/dim]"
-                    )
-                if stats["calls_unresolved"]:
-                    _report_unresolved(graph, db_path, stats["calls_unresolved"])
-                if enable_vectors:
-                    console.print(
-                        "[cyan]Generating embeddings via local Ollama[/cyan] "
-                        "(batched Ollama HTTP calls, this is the slow "
-                        "part) ..."
-                    )
-                    t1 = time.time()
-                    with Progress(
-                        SpinnerColumn(),
-                        TextColumn("[progress.description]{task.description}"),
-                        BarColumn(),
-                        MofNCompleteColumn(),
-                        TimeElapsedColumn(),
-                        console=console,
-                    ) as progress:
-                        embed_task = progress.add_task(
-                            "Embedding", total=n_functions + n_classes
-                        )
-                        n = graph.backend.build_vector_index(
-                            on_progress=lambda: progress.advance(embed_task)
-                        )
-                    console.print(
-                        f"[green]Embedded[/green] {n:,} nodes in {time.time() - t1:.1f}s."
-                    )
-            return graph
-
-        try:
-            graph = _build_index(needs_index)
-            if not needs_index:
-                # Index already exists and force_reindex wasn't passed: don't
-                # silently reuse it as-is (stale data), and don't pay for a
-                # full rebuild either -- hash every file, skip unchanged ones,
-                # and invalidate+reprocess only what changed (Phase 3).
-                t0 = time.time()
-                stats = graph.ingest_incremental(target)
-                elapsed = time.time() - t0
-                if stats["reprocessed"] or stats["deleted"]:
-                    console.print(
-                        f"[cyan]Updated[/cyan] {stats['reprocessed']} changed file(s), "
-                        f"removed {stats['deleted']} deleted file(s), "
-                        f"{stats['unchanged']} unchanged ({elapsed:.1f}s)."
-                    )
-                    if enable_vectors and stats["changed_node_ids"]:
-                        # ingest_incremental only touches nodes/edges/BM25 text --
-                        # it doesn't call build_vector_index. Deleted/old vectors
-                        # are already gone (delete_file removes the node itself),
-                        # so the only gap is new/changed nodes having no vector
-                        # yet -- re-embed just those (node_ids scoping, see
-                        # LatticeBackend.build_vector_index), not the whole repo.
-                        t1 = time.time()
-                        n = graph.backend.build_vector_index(
-                            node_ids=stats["changed_node_ids"]
-                        )
-                        console.print(
-                            f"[cyan]Re-embedded[/cyan] {n} changed node(s) "
-                            f"({time.time() - t1:.1f}s)."
-                        )
-        except Exception as e:
-            if needs_index:
-                # We were already building a fresh index -- this is a real
-                # failure (permissions, disk, Ollama down for --semantic, etc.),
-                # not a stale-index problem. Don't retry, just report it.
-                console.print(f"[red]Error:[/red] Failed to build search index: {e}")
-                sys.exit(1)
-            # We tried to reuse an existing index and opening it failed -- most
-            # likely leftover state from an interrupted previous run (a killed
-            # process, a crash mid-write). It's a disposable derived cache, not
-            # source data, so rebuild it automatically instead of surfacing a
-            # raw "I/O error" and making the user diagnose it themselves.
-            console.print(
-                f"[yellow]Existing index at {db_path} looks corrupt or "
-                f"incomplete ({e}) -- rebuilding from scratch...[/yellow]"
-            )
-            for stale in db_path.parent.glob(db_path.name + "*"):
-                stale.unlink(missing_ok=True)
-            try:
-                graph = _build_index(needs_index=True)
-            except Exception as e2:
-                console.print(f"[red]Error:[/red] Failed to build search index: {e2}")
-                sys.exit(1)
-        return graph
-
-    graph = _open_and_sync(db_path, enable_vectors=semantic, force_reindex=reindex)
+    graph = _open_search_index(
+        db_path, target, make_backend, enable_vectors=semantic,
+        force_reindex=reindex, include_source=include_source,
+    )
 
     # Hybrid retrieval (Phase 6): only when the user asked for plain search
     # (no explicit --fuzzy/--semantic -- those mean "I want exactly that
@@ -1041,7 +1181,10 @@ def search(
     vector_graph: Optional[DependencyGraph] = None
     hybrid = not fuzzy and not semantic and vector_db_path.exists()
     if hybrid:
-        vector_graph = _open_and_sync(vector_db_path, enable_vectors=True, force_reindex=False)
+        vector_graph = _open_search_index(
+            vector_db_path, target, make_backend, enable_vectors=True,
+            force_reindex=False, include_source=include_source,
+        )
 
     def _close_all() -> None:
         graph.backend.close()
@@ -1066,7 +1209,13 @@ def search(
                 if not no_context:
                     console.print("[dim]Assembling context...[/dim]")
                     try:
-                        ctx = ContextAssembler(graph).assemble_context(exact_file, exact_name)
+                        # No query text fed to the ranking here: the user
+                        # named an exact target, so BM25 relevance to the
+                        # literal "file.py:func" string would be noise.
+                        ctx = ContextAssembler(graph).expand(
+                            exact_file, exact_name, "Function",
+                            depth=depth, token_budget=budget,
+                        )
                         console.print()
                         console.print(
                             create_header_panel(
@@ -1151,7 +1300,10 @@ def search(
             # hybrid mode: both indexes cover the same source and are
             # kept in sync (see _open_and_sync above), and only `graph`
             # is guaranteed non-None here.
-            ctx = ContextAssembler(graph).assemble(top.file, top.name, top.node_type)
+            ctx = ContextAssembler(graph).expand(
+                top.file, top.name, top.node_type,
+                depth=depth, token_budget=budget, query=query,
+            )
             console.print()
             console.print(
                 create_header_panel(

@@ -820,6 +820,7 @@ class ContextAssembler:
         query: Optional[str] = None,
         direction: str = "both",
         hub_degree: int = DEFAULT_HUB_DEGREE,
+        read_source: bool = True,
     ) -> CodeContext:
         """Collect to `depth`, rank, and render under `token_budget`.
 
@@ -870,10 +871,16 @@ class ContextAssembler:
             hub_degree=hub_degree,
         )
         ranked = self.rank(reached, query=query)
-        # The seed's own source is never negotiable -- it is the thing being
-        # asked about -- so it comes off the budget before anything else.
-        remaining = max(token_budget - _estimate_tokens(seed.source_code), 0)
-        kept, dropped = self._fill_sources(ranked, remaining)
+        if read_source:
+            # The seed's own source is never negotiable -- it is the thing
+            # being asked about -- so it comes off the budget first.
+            remaining = max(token_budget - _estimate_tokens(seed.source_code), 0)
+            kept, _dropped = self._fill_sources(ranked, remaining)
+        else:
+            # Caller only wants the ranked names (`impact --names-only`).
+            # Skipping the disk read is the entire point of collecting
+            # before fetching -- it turns a bundle into a listing for free.
+            kept = [(node, "", False) for node in ranked]
 
         up: List[ContextNode] = []
         down: List[ContextNode] = []

@@ -955,7 +955,13 @@ class LatticeStreamingIngestor:
             if not module:
                 continue
             files_by_module[module] = None if module in files_by_module else relative
-        stats.update(self._write_dependencies(files_by_module))
+        dependency_stats = self._write_dependencies(files_by_module)
+        stats.update(dependency_stats)
+        stats["total_edges"] += sum(
+            count
+            for key, count in dependency_stats.items()
+            if key != "dependencies_unresolved"
+        )
 
         resolved, unresolved = self._finalize_pending(
             stats["calls_pending"], on_progress=on_finalize_progress

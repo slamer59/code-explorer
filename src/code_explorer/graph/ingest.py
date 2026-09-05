@@ -640,6 +640,18 @@ def file_analyses_to_records(
             file that extends it), and resolves its own references later --
             see graph/lattice_streaming.py.
 
+            LIMITATION: "the whole corpus" is exactly `results`. On an
+            incremental re-ingest of a handful of changed files, a base
+            class or decorator defined in an unchanged file is not among
+            them, so its edge falls back to the external boundary or is
+            dropped -- and, more rarely, a name that is ambiguous corpus-
+            wide can look unique within the subset and resolve to the
+            wrong definition. The streaming path does not have this
+            problem (it resolves against the database, not the batch).
+            Left as-is because the generic path's only production use is a
+            full build (see cli.py: it is the branch for backends without
+            LatticeDB's durable call streams).
+
     Returns:
         (nodes, edges) ready for CodeGraphBackend.upsert_nodes/upsert_edges.
     """

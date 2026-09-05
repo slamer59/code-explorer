@@ -5,6 +5,7 @@ Command-line interface for Code Explorer.
 Provides commands for analyzing Python codebases and tracking dependencies.
 """
 
+import json
 import shutil
 import sys
 import time
@@ -1171,6 +1172,15 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     ),
 )
 @click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="Emit results and context bundle as JSON on stdout instead of "
+    "rendered tables. Machine-readable output for agents and benchmarks -- "
+    "the rendered table truncates long names with an ellipsis, so it cannot "
+    "be parsed back reliably.",
+)
+@click.option(
     "--no-context",
     is_flag=True,
     help="Only show search hits, skip assembling a context bundle for the top hit",
@@ -1227,6 +1237,7 @@ def search(
     limit: int,
     fuzzy: bool,
     semantic: bool,
+    as_json: bool,
     no_context: bool,
     depth: int,
     budget: int,
@@ -1369,6 +1380,14 @@ def search(
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
 
+    if as_json:
+        # Everything human -- progress bars, timings, the ingest summary --
+        # moves to stderr so stdout carries the JSON document and nothing
+        # else. Done on the shared module-level console rather than a local
+        # one because the ingest helpers print through it too, and a caller
+        # piping stdout to a JSON parser must not receive their output.
+        console.file = sys.stderr
+
     target = Path(path).resolve()
     bm25_db_path, vector_db_path, make_backend = _search_index_paths(target, backend)
     db_path = vector_db_path if semantic else bm25_db_path
@@ -1488,6 +1507,16 @@ def search(
         _close_all()
         return
 
+    payload: dict = {
+        "query": query, "mode": mode, "backend": backend, "limit": limit,
+        "hits": [
+            {"rank": i, "type": h.node_type, "name": h.name,
+             "file": h.file, "score": round(h.score, 6)}
+            for i, h in enumerate(hits, start=1)
+        ],
+        "context": None,
+    }
+
     console.print()
     if semantic:
         score_label = "Distance (lower=closer)"
@@ -1495,14 +1524,15 @@ def search(
         score_label = "Fused rank score"
     else:
         score_label = "Score"
-    table = Table(title=f"Search results for {query!r}")
-    table.add_column("Type")
-    table.add_column("Name")
-    table.add_column("File")
-    table.add_column(score_label, justify="right")
-    for hit in hits:
-        table.add_row(hit.node_type, hit.name, hit.file, f"{hit.score:.3f}")
-    console.print(table)
+    if not as_json:
+        table = Table(title=f"Search results for {query!r}")
+        table.add_column("Type")
+        table.add_column("Name")
+        table.add_column("File")
+        table.add_column(score_label, justify="right")
+        for hit in hits:
+            table.add_row(hit.node_type, hit.name, hit.file, f"{hit.score:.3f}")
+        console.print(table)
 
     if not no_context:
         # Whichever type ranks first: ContextAssembler.assemble dispatches on
@@ -1525,16 +1555,23 @@ def search(
                 top.file, top.name, top.node_type,
                 depth=depth, token_budget=budget, query=query,
             )
-            console.print()
-            console.print(
-                create_header_panel(
-                    "Context", f"Top hit: {top.file}::{top.name} ({top.node_type})"
+            payload["context"] = ctx.to_markdown()
+            payload["seed"] = {"file": top.file, "name": top.name,
+                               "type": top.node_type}
+            if not as_json:
+                console.print()
+                console.print(
+                    create_header_panel(
+                        "Context", f"Top hit: {top.file}::{top.name} ({top.node_type})"
+                    )
                 )
-            )
-            console.print(ctx.to_markdown(), markup=False)
+                console.print(ctx.to_markdown(), markup=False)
         except (ValueError, FileNotFoundError) as e:
+            payload["context_error"] = str(e)
             console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 
+    if as_json:
+        click.echo(json.dumps(payload, indent=1))
     _close_all()
 
 

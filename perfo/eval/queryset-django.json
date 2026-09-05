@@ -1,0 +1,3704 @@
+{
+ "repo": "django",
+ "scanned": 3000,
+ "cases": [
+  {
+   "sha": "026b005f3dc43a98557ce5a546b5e4938d06fed1",
+   "query": "Updated deprecation docs for calendar-based warning names.",
+   "answers": [
+    {
+     "file": "django/utils/deprecation.py",
+     "symbols": [
+      "deprecate_posargs"
+     ]
+    },
+    {
+     "file": "tests/deprecation/test_deprecate_posargs.py",
+     "symbols": [
+      "DeprecatePosargsTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "52abe52bec23df6523aff492364f4f1b049c9572",
+   "query": "Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+   "answers": [
+    {
+     "file": "django/db/models/query.py",
+     "symbols": [
+      "QuerySet"
+     ]
+    },
+    {
+     "file": "django/http/response.py",
+     "symbols": [
+      "JsonResponse"
+     ]
+    },
+    {
+     "file": "django/utils/deprecation.py",
+     "symbols": [
+      "RemovedInDjango2028Warning",
+      "RemovedInDjango2029Warning",
+      "__getattr__"
+     ]
+    },
+    {
+     "file": "tests/async/test_async_queryset.py",
+     "symbols": [
+      "AsyncQuerySetTest"
+     ]
+    },
+    {
+     "file": "tests/deprecation/test_middleware_mixin.py",
+     "symbols": [
+      "MiddlewareMixinTests"
+     ]
+    },
+    {
+     "file": "tests/httpwrappers/tests.py",
+     "symbols": [
+      "JsonResponseTests"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 6
+  },
+  {
+   "sha": "0751d5fed159fd9ff7edba522ece13c8c9d2a0d0",
+   "query": "Prevented consumption of rhs iterators in annotation lookups.",
+   "answers": [
+    {
+     "file": "django/db/models/lookups.py",
+     "symbols": [
+      "FieldGetDbPrepValueIterableMixin"
+     ]
+    },
+    {
+     "file": "tests/lookup/tests.py",
+     "symbols": [
+      "LookupTests",
+      "test_in_iterator_rhs",
+      "test_range_iterator_rhs"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6",
+   "query": "Used _is_pk_set() in the XML serializer.",
+   "answers": [
+    {
+     "file": "django/core/serializers/xml_serializer.py",
+     "symbols": [
+      "Serializer"
+     ]
+    },
+    {
+     "file": "tests/composite_pk/tests.py",
+     "symbols": [
+      "CompositePKFixturesTests",
+      "test_serialize_unsaved_user_xml_omits_pk"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "8d1c673466bcabff500edc6c7724e5a20f6df3de",
+   "query": "Used _is_pk_set() in Model.__eq__.",
+   "answers": [
+    {
+     "file": "django/db/models/base.py",
+     "symbols": [
+      "Model"
+     ]
+    },
+    {
+     "file": "tests/basic/tests.py",
+     "symbols": [
+      "ModelTest"
+     ]
+    },
+    {
+     "file": "tests/composite_pk/tests.py",
+     "symbols": [
+      "CompositePKTests",
+      "test_eq"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "60a17fccf4f2fa31b823b0f938005897f2f3ef16",
+   "query": "Preserved parent instance hints on custom Prefetch querysets.",
+   "answers": [
+    {
+     "file": "django/db/models/fields/related_descriptors.py",
+     "symbols": [
+      "ForwardManyToOneDescriptor",
+      "ReverseOneToOneDescriptor"
+     ]
+    },
+    {
+     "file": "tests/prefetch_related/tests.py",
+     "symbols": [
+      "MultiDbTests",
+      "test_forward_fk_prefetch_custom_queryset_uses_parent_database",
+      "test_reverse_o2o_prefetch_custom_queryset_uses_parent_database"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4",
+   "query": "Made .values() and .order_by() resolve FilteredRelation aliases correctly.",
+   "answers": [
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    },
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query",
+      "get_names_to_join"
+     ]
+    },
+    {
+     "file": "tests/filtered_relation/tests.py",
+     "symbols": [
+      "FilteredRelationTests",
+      "test_lookup_sep_in_alias_order_by",
+      "test_lookup_sep_in_alias_values"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "fdfbb711e3dd52683ae633f568761efe2735d5f0",
+   "query": "Included the invalid view type in path()/re_path() error.",
+   "answers": [
+    {
+     "file": "django/urls/conf.py",
+     "symbols": [
+      "_path"
+     ]
+    },
+    {
+     "file": "tests/urlpatterns/tests.py",
+     "symbols": [
+      "SimplifiedURLTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "be6cf832293779d8aeaeddca8c47a37ba1530898",
+   "query": "Allowed transforms in order_by() after alias().",
+   "answers": [
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    },
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query"
+     ]
+    },
+    {
+     "file": "tests/annotations/tests.py",
+     "symbols": [
+      "AliasTests",
+      "test_order_by_alias_transform"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c",
+   "query": "Fixed #37275, Refs #24920 -- Fixed SQLite DecimalField conversion without precision.",
+   "answers": [
+    {
+     "file": "django/db/backends/sqlite3/operations.py",
+     "symbols": [
+      "DatabaseOperations"
+     ]
+    },
+    {
+     "file": "tests/model_fields/models.py",
+     "symbols": [
+      "DecimalWithoutPrecision",
+      "Foo",
+      "Meta"
+     ]
+    },
+    {
+     "file": "tests/model_fields/test_decimalfield.py",
+     "symbols": [
+      "DecimalFieldTests",
+      "test_decimalfield_without_precision"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea",
+   "query": "Made QuerySet.totally_ordered understand aliases to pure Col/ColPairs.",
+   "answers": [
+    {
+     "file": "django/db/models/query.py",
+     "symbols": [
+      "QuerySet"
+     ]
+    },
+    {
+     "file": "tests/composite_pk/test_order_by.py",
+     "symbols": [
+      "CompositePKOrderByTests",
+      "test_alias_totally_ordered"
+     ]
+    },
+    {
+     "file": "tests/ordering/models.py",
+     "symbols": [
+      "BarcodedArticle"
+     ]
+    },
+    {
+     "file": "tests/ordering/tests.py",
+     "symbols": [
+      "TotallyOrderedTests",
+      "test_alias",
+      "test_alias_relation",
+      "test_alias_self_relation"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "812c08bd4e9da7b74ab9ee0db83da58a6da48d19",
+   "query": "Allowed F() expressions on the RHS of CompositePK lookups.",
+   "answers": [
+    {
+     "file": "django/db/models/fields/tuple_lookups.py",
+     "symbols": [
+      "TupleLookupMixin"
+     ]
+    },
+    {
+     "file": "tests/composite_pk/test_filter.py",
+     "symbols": [
+      "CompositePKFilterTests",
+      "test_filter_by_pk_exact_rhs_f_object"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "99d56e5cf15839995f62f24294584f1e2976b1ea",
+   "query": "Restored rendering of html-safe strings in form media.",
+   "answers": [
+    {
+     "file": "django/forms/widgets.py",
+     "symbols": [
+      "Media"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/tests/test_media.py",
+     "symbols": [
+      "FormsMediaTestCase",
+      "test_html_safe_string_css",
+      "test_html_safe_string_deduplication",
+      "test_html_safe_string_js",
+      "test_html_safe_string_merging"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "c6be0bf3bb744d234947cefd6def9f31d9655800",
+   "query": "Added fields.E323 for models referenced by ManyToManyFields.",
+   "answers": [
+    {
+     "file": "django/db/models/fields/related.py",
+     "symbols": [
+      "ManyToManyField",
+      "_check_on_delete"
+     ]
+    },
+    {
+     "file": "tests/invalid_models_tests/test_relative_fields.py",
+     "symbols": [
+      "Child",
+      "DatabaseLevelOnDeleteTests",
+      "OtherModel",
+      "OtherModelParent",
+      "Parent",
+      "test_db_python_m2m_chain"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "082b3df4067c3899dd4d57e8c2eca5baea9d07bb",
+   "query": "Fixed incorrect values for second-degree relations in ModelAdmin.list_display.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/templatetags/admin_list.py",
+     "symbols": [
+      "items_for_result"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/models.py",
+     "symbols": [
+      "Musician"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/tests.py",
+     "symbols": [
+      "ChangeListTests",
+      "GrandChildAdmin",
+      "MusicianAdmin",
+      "test_list_display_related_field_uses_display_for_field",
+      "test_list_display_second_degree_relation"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "6df8fe3bc1879265958b8e59c637a4145995e93c",
+   "query": "Tested FK values with __html__() in ModelAdmin.list_display.",
+   "answers": [
+    {
+     "file": "tests/admin_changelist/models.py",
+     "symbols": [
+      "GrandChild"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/tests.py",
+     "symbols": [
+      "ChangeListTests",
+      "GrandChildAdmin",
+      "test_list_display_first_degree_relation"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9",
+   "query": "Handled further malformed _source_model values in admin popups.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewBasicTest"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb",
+   "query": "Fixed #37257, Refs #35738 -- Prevented double-dot deprecation warnings for template literals.",
+   "answers": [
+    {
+     "file": "django/template/base.py",
+     "symbols": [
+      "Parser"
+     ]
+    },
+    {
+     "file": "tests/template_tests/syntax_tests/test_basic.py",
+     "symbols": [
+      "BasicSyntaxTests",
+      "test_double_dot_in_literal"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "89e82866dc2746383c336c7b10e050b9da3ae1ef",
+   "query": "Omitted inlines without add permission on save-as-new.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewPermissionsTest",
+      "get_immutable_formset_kwargs",
+      "test_save_as_new_with_view_only_inlines"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "8f52e9199b260cdacc5ad372692cddf2dcf76558",
+   "query": "Skipped questioner for field changes on unmanaged models.",
+   "answers": [
+    {
+     "file": "django/db/migrations/autodetector.py",
+     "symbols": [
+      "MigrationAutodetector"
+     ]
+    },
+    {
+     "file": "tests/migrations/test_autodetector.py",
+     "symbols": [
+      "AutodetectorTests",
+      "test_unmanaged_add_field_unique_default",
+      "test_unmanaged_alter_field_no_default"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6baaf6a87706265446c4c7f2e3b96e3c49385b27",
+   "query": "Asserted exact HttpResponse types in tests.",
+   "answers": [
+    {
+     "file": "tests/async/tests.py",
+     "symbols": [
+      "ViewTests"
+     ]
+    },
+    {
+     "file": "tests/decorators/test_common.py",
+     "symbols": [
+      "NoAppendSlashTests"
+     ]
+    },
+    {
+     "file": "tests/decorators/test_csrf.py",
+     "symbols": [
+      "CsrfExemptTests"
+     ]
+    },
+    {
+     "file": "tests/decorators/test_http.py",
+     "symbols": [
+      "RequireHttpMethodsTest",
+      "RequireSafeDecoratorTest"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 4
+  },
+  {
+   "sha": "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5",
+   "query": "Cleared stale db_default when pk comes from related object.",
+   "answers": [
+    {
+     "file": "django/db/models/base.py",
+     "symbols": [
+      "Model"
+     ]
+    },
+    {
+     "file": "tests/field_defaults/models.py",
+     "symbols": [
+      "DBDefaultsFunctionFK",
+      "DBDefaultsFunctionPK",
+      "DBDefaultsOneToOnePK",
+      "Meta"
+     ]
+    },
+    {
+     "file": "tests/field_defaults/tests.py",
+     "symbols": [
+      "DefaultTests",
+      "test_foreign_key_to_parent_with_expression_pk"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "47511a21026cdd721d8fbf8571cc079bc38bb46d",
+   "query": "Fixed CVE-2026-15920 -- Made display_for_field() validate URLs before rendering admin links.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/utils.py",
+     "symbols": [
+      "display_for_field"
+     ]
+    },
+    {
+     "file": "tests/admin_utils/tests.py",
+     "symbols": [
+      "UtilsTests",
+      "test_url_display_for_field_invalid_url"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "27137e655e442e81095f1f8f77ff3870d9fdf169",
+   "query": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+   "answers": [
+    {
+     "file": "django/test/signals.py",
+     "symbols": [
+      "language_changed"
+     ]
+    },
+    {
+     "file": "django/utils/translation/trans_real.py",
+     "symbols": [
+      "all_locale_paths",
+      "check_for_language",
+      "reset_cache",
+      "translation_catalog_exists"
+     ]
+    },
+    {
+     "file": "tests/i18n/tests.py",
+     "symbols": [
+      "CountrySpecificLanguageTests",
+      "test_check_for_language_lang_code_max_length"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "5637bec7a033d67407694316bdda74304449488e",
+   "query": "Fixed incomplete mocking in SQLiteInMemoryTestDbs.",
+   "answers": [
+    {
+     "file": "tests/servers/tests.py",
+     "symbols": [
+      "LiveServerTestCloseConnectionTest"
+     ]
+    },
+    {
+     "file": "tests/test_runner/tests.py",
+     "symbols": [
+      "SQLiteInMemoryTestDbs"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "60121939f6b225c7a719dd561e372e1d8e5e2c4a",
+   "query": "Preserved milliseconds in DataSource time fields.",
+   "answers": [
+    {
+     "file": "django/contrib/gis/gdal/field.py",
+     "symbols": [
+      "Field",
+      "OFTDateTime",
+      "OFTTime"
+     ]
+    },
+    {
+     "file": "tests/gis_tests/gdal_tests/test_ds.py",
+     "symbols": [
+      "DataSourceTest",
+      "test_datetime_with_milliseconds"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "ea303dee45f4b703b31f73ceb235f11742d3c518",
+   "query": "Allowed altering spatial indexes on RasterField.",
+   "answers": [
+    {
+     "file": "django/contrib/gis/db/backends/postgis/schema.py",
+     "symbols": [
+      "PostGISSchemaEditor"
+     ]
+    },
+    {
+     "file": "tests/gis_tests/gis_migrations/test_operations.py",
+     "symbols": [
+      "OperationTests",
+      "test_alter_raster_field_add_spatial_index",
+      "test_alter_raster_field_remove_spatial_index"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "9465349120ef8a0b0689e12bcbfd05f3d173ebdf",
+   "query": "Prevented fallback to python default for a pk with a db_default.",
+   "answers": [
+    {
+     "file": "django/db/models/base.py",
+     "symbols": [
+      "Model"
+     ]
+    },
+    {
+     "file": "tests/field_defaults/models.py",
+     "symbols": [
+      "DBDefaultsFK",
+      "DBDefaultsOneToOnePK"
+     ]
+    },
+    {
+     "file": "tests/field_defaults/tests.py",
+     "symbols": [
+      "DefaultTests",
+      "test_primary_key_assigned_db_default_expression"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "ca14173f968cf36115f22d6c6785f738de4391ed",
+   "query": "Fixed simplify_regex() with multiple unnamed groups.",
+   "answers": [
+    {
+     "file": "django/urls/utils.py",
+     "symbols": [
+      "replace_unnamed_groups"
+     ]
+    },
+    {
+     "file": "tests/urlpatterns/tests.py",
+     "symbols": [
+      "SimplifyRegexTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "c9ff757a55392b1f50968eb89fe775f6155168d8",
+   "query": "Fixed bulk_create() for late-saved related primary keys.",
+   "answers": [
+    {
+     "file": "django/db/models/query.py",
+     "symbols": [
+      "QuerySet"
+     ]
+    },
+    {
+     "file": "tests/bulk_create/tests.py",
+     "symbols": [
+      "BulkCreateTests",
+      "test_pk_from_related_instance_saved_after_init"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "92e1d9e3619ae5274a64b38f26177064486892f2",
+   "query": "Prevented sort controls for unordered __str__ admin columns.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/templatetags/admin_list.py",
+     "symbols": [
+      "result_headers"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/tests.py",
+     "symbols": [
+      "ChangeListTests",
+      "test_default_str_column_is_not_sortable"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "TestGenericRelations"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "92470ad3742524902b29769d2c822dbe791630db",
+   "query": "Fixed a crash for second-degree relations in ModelAdmin.list_display.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/templatetags/admin_list.py",
+     "symbols": [
+      "items_for_result"
+     ]
+    },
+    {
+     "file": "django/contrib/admin/utils.py",
+     "symbols": [
+      "lookup_field"
+     ]
+    },
+    {
+     "file": "tests/admin_utils/models.py",
+     "symbols": [
+      "Site"
+     ]
+    },
+    {
+     "file": "tests/admin_utils/tests.py",
+     "symbols": [
+      "UtilsTests"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 4
+  },
+  {
+   "sha": "c2517faff335f683e1cbe55d9844910b3fb40670",
+   "query": "Fixed content_disposition_header() quoting of filenames ending with newlines.",
+   "answers": [
+    {
+     "file": "django/utils/http.py",
+     "symbols": [
+      "content_disposition_header"
+     ]
+    },
+    {
+     "file": "tests/utils_tests/test_http.py",
+     "symbols": [
+      "ContentDispositionHeaderTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "8a162076e1988ddf9453edfb8329d5df1573dc38",
+   "query": "Improved wording in PR quality check messages.",
+   "answers": [
+    {
+     "file": "scripts/pr_quality/check_pr.py",
+     "symbols": [
+      "check_ai_disclosure",
+      "check_branch_description"
+     ]
+    },
+    {
+     "file": "scripts/pr_quality/tests/test_check_pr.py",
+     "symbols": [
+      "TestIntegration"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "2a5da9d00555beef8e5f6307cfcbfc029d45491e",
+   "query": "Used normalized field names for composite pks in inspectdb.",
+   "answers": [
+    {
+     "file": "django/core/management/commands/inspectdb.py",
+     "symbols": [
+      "Command"
+     ]
+    },
+    {
+     "file": "tests/inspectdb/models.py",
+     "symbols": [
+      "CompositePKModel",
+      "CompositePKModel2"
+     ]
+    },
+    {
+     "file": "tests/inspectdb/tests.py",
+     "symbols": [
+      "InspectDBTransactionalTests",
+      "test_composite_primary_key_uses_normalized_column_names"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "d8cedcab5241725003eef059dd76c533f24c5430",
+   "query": "Escaped introspection error comments in inspectdb.",
+   "answers": [
+    {
+     "file": "django/core/management/commands/inspectdb.py",
+     "symbols": [
+      "Command"
+     ]
+    },
+    {
+     "file": "tests/inspectdb/tests.py",
+     "symbols": [
+      "InspectDBTestCase",
+      "test_introspection_errors_escape_table_name_and_message"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "76e1bca1311ae7073a1fa4add6f9d19d709f0f09",
+   "query": "Restored missing Index options in PostGISSchemaEditor._create_spatial_index_sql().",
+   "answers": [
+    {
+     "file": "django/contrib/gis/db/backends/postgis/schema.py",
+     "symbols": [
+      "PostGISSchemaEditor"
+     ]
+    },
+    {
+     "file": "tests/gis_tests/geoapp/test_indexes.py",
+     "symbols": [
+      "SchemaIndexesTests",
+      "test_3d_field_opclass_not_overridden",
+      "test_covering_index",
+      "test_partial_index",
+      "test_specified_opclass_is_used",
+      "test_tablespace",
+      "test_using_not_overridden"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "274df4df0bca7fcfb5c1c1d49567f770df147eeb",
+   "query": "Clarified pull request instructions and adjusted error messages.",
+   "answers": [
+    {
+     "file": "scripts/pr_quality/check_pr.py",
+     "symbols": [
+      "check_branch_description"
+     ]
+    },
+    {
+     "file": "scripts/pr_quality/tests/test_check_pr.py",
+     "symbols": [
+      "TestCheckBranchDescription",
+      "TestIntegration",
+      "make_pr_body"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "a486b48d4ea0d34babe58cae215b2123748aacbd",
+   "query": "Logged cached_db session cache delete failures.",
+   "answers": [
+    {
+     "file": "django/contrib/sessions/backends/cached_db.py",
+     "symbols": [
+      "SessionStore"
+     ]
+    },
+    {
+     "file": "tests/cache/failing_cache.py",
+     "symbols": [
+      "CacheClass",
+      "adelete",
+      "delete"
+     ]
+    },
+    {
+     "file": "tests/sessions_tests/tests.py",
+     "symbols": [
+      "CacheDBSessionTests",
+      "test_cache_async_delete_failure_non_fatal",
+      "test_cache_delete_failure_non_fatal"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "2e48636c54910e435eb31e1b7d8a8089c84233ad",
+   "query": "Fixed #37187, #37190 -- Pointed ModelAdmin warnings to the deprecated code.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/test_actions.py",
+     "symbols": [
+      "AdminDetailActionsTest"
+     ]
+    },
+    {
+     "file": "tests/modeladmin/tests.py",
+     "symbols": [
+      "ModelAdminTests"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c",
+   "query": "Avoided mutating original view in non_atomic_requests().",
+   "answers": [
+    {
+     "file": "django/db/transaction.py",
+     "symbols": [
+      "_non_atomic_requests",
+      "wrapper"
+     ]
+    },
+    {
+     "file": "tests/handlers/tests.py",
+     "symbols": [
+      "TransactionsPerRequestTests",
+      "my_view",
+      "test_non_atomic_requests_does_not_mutate_original"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "7b8504eaabea6c70195baa3c02155c24a6e270c6",
+   "query": "Made migrations track all changes to unmanaged models.",
+   "answers": [
+    {
+     "file": "django/db/migrations/autodetector.py",
+     "symbols": [
+      "MigrationAutodetector"
+     ]
+    },
+    {
+     "file": "tests/migrations/test_autodetector.py",
+     "symbols": [
+      "AutodetectorTests",
+      "test_unmanaged_add_constraints",
+      "test_unmanaged_add_field",
+      "test_unmanaged_alter_field",
+      "test_unmanaged_remove_constraints",
+      "test_unmanaged_remove_field",
+      "test_unmanaged_rename_model"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "7ab2d803533dd3ffe310055414ad584cfbbf0bea",
+   "query": "Handled fields and files with the same name in encode_multipart().",
+   "answers": [
+    {
+     "file": "django/test/client.py",
+     "symbols": [
+      "encode_multipart"
+     ]
+    },
+    {
+     "file": "tests/test_client/tests.py",
+     "symbols": [
+      "ClientTest",
+      "test_uploading_file_and_field_with_same_name"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "5d489a52c3c604018c786f11d45453eb75fa24b3",
+   "query": "Skipped GC specific tests when GIL disabled.",
+   "answers": [
+    {
+     "file": "tests/backends/base/test_base.py",
+     "symbols": [
+      "DatabaseWrapperTests"
+     ]
+    },
+    {
+     "file": "tests/model_regress/test_state.py",
+     "symbols": [
+      "ModelStateTests"
+     ]
+    },
+    {
+     "file": "tests/select_related/tests.py",
+     "symbols": [
+      "SelectRelatedTests",
+      "assert_no_local_function_leaks"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "6ca2bbe2efce21010eff48f1f36a3f621d698ed8",
+   "query": "Fixed CVE-2026-53877 -- Prevented heap buffer over-read when creating GDALRaster from bytes.",
+   "answers": [
+    {
+     "file": "django/contrib/gis/gdal/raster/source.py",
+     "symbols": [
+      "GDALRaster"
+     ]
+    },
+    {
+     "file": "tests/gis_tests/gdal_tests/test_raster.py",
+     "symbols": [
+      "GDALRasterTests",
+      "test_vsi_buffer_length"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1",
+   "query": "Fixed CVE-2026-48588 -- Prevented caching of responses that set cookies and vary on Cookie.",
+   "answers": [
+    {
+     "file": "django/middleware/cache.py",
+     "symbols": [
+      "UpdateCacheMiddleware"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "refreshing_cookie_view",
+      "test_refreshed_cookie_not_cached"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c",
+   "query": "Updated JSONField has_changed method to check for disabled status.",
+   "answers": [
+    {
+     "file": "django/forms/fields.py",
+     "symbols": [
+      "JSONField"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/field_tests/test_jsonfield.py",
+     "symbols": [
+      "JSONFieldTest",
+      "test_disabled_has_changed"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "356e5b0f5ddb473eec3ed96d8ad9a37f3f8585eb",
+   "query": "Allowed non-UTF-8 bytes passwords in the PBKDF2 and MD5 password hashers.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/hashers.py",
+     "symbols": [
+      "MD5PasswordHasher",
+      "PBKDF2PasswordHasher"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_hashers.py",
+     "symbols": [
+      "TestUtilsHashPass",
+      "assertHasherVerifiesStrAndBytes"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "d058058976496cedf3f36fa303a0327af38cdeaa",
+   "query": "Prevented ValueError in FileBasedCache.touch() for expired keys.",
+   "answers": [
+    {
+     "file": "django/core/cache/backends/filebased.py",
+     "symbols": [
+      "FileBasedCache"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "FileBasedCacheTests",
+      "test_touch_expired_key_does_not_crash"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "8acd000725838f73c5e6781114f11866f6674c46",
+   "query": "Used netstring delimiter between vary on arguments for cached template fragments.",
+   "answers": [
+    {
+     "file": "django/core/cache/utils.py",
+     "symbols": [
+      "make_template_fragment_key"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "TestMakeTemplateFragmentKey",
+      "test_collision_vary_on"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "65acb3cc2e76c238f5aee38d22626d92171a2f7c",
+   "query": "Used netstring delimiter between vary on headers for cached pages.",
+   "answers": [
+    {
+     "file": "django/utils/cache.py",
+     "symbols": [
+      "_generate_cache_key"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheI18nTest",
+      "CacheUtils",
+      "test_learn_cache_key_no_header_collision"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "56050acb96abc7ac2079d83ffdd232056732bb47",
+   "query": "Applied the no-argument form of sensitive_post_parameters to MultiValueDict.",
+   "answers": [
+    {
+     "file": "django/views/debug.py",
+     "symbols": [
+      "SafeExceptionReporterFilter",
+      "_cleanse_multivaluedict"
+     ]
+    },
+    {
+     "file": "tests/view_tests/tests/test_debug.py",
+     "symbols": [
+      "ExceptionReporterFilterTests",
+      "test_partially_sensitive_request"
+     ]
+    },
+    {
+     "file": "tests/view_tests/views.py",
+     "symbols": [
+      "paranoid_view",
+      "partially_sensitive_view"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "99a14b6be85793f3371779cd9bf6fb9d9247f475",
+   "query": "Warned via system check on missing \"default\" entry in MAILERS setting.",
+   "answers": [
+    {
+     "file": "django/core/checks/mail.py",
+     "symbols": [
+      "check_mailers_default_alias"
+     ]
+    },
+    {
+     "file": "django/core/checks/registry.py",
+     "symbols": [
+      "Tags"
+     ]
+    },
+    {
+     "file": "tests/check_framework/test_mail.py",
+     "symbols": [
+      "MailersDefaultAliasCheckTests",
+      "test_mailers_default_alias_configured",
+      "test_mailers_empty",
+      "test_mailers_not_defined",
+      "test_mailers_without_default_alias"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "189c2d2ce58482db5c09d8b1e1464d1456dc9bab",
+   "query": "Supported subclasses\u2019 _get_lines() in jsonl Deserializer.",
+   "answers": [
+    {
+     "file": "django/core/serializers/jsonl.py",
+     "symbols": [
+      "Deserializer"
+     ]
+    },
+    {
+     "file": "tests/serializers/test_jsonl.py",
+     "symbols": [
+      "CustomDeserializer",
+      "JsonSerializerTransactionTestCase",
+      "JsonlDeserializerTests",
+      "_get_lines",
+      "test_subclass_can_override_get_lines"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "77d0c9d549a8d95156c833eceb6275d9b7317d4e",
+   "query": "Made admin display database defaults as empty values.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/utils.py",
+     "symbols": [
+      "display_for_field",
+      "display_for_value"
+     ]
+    },
+    {
+     "file": "tests/admin_utils/tests.py",
+     "symbols": [
+      "UtilsTests",
+      "test_empty_value_database_default_display_for_field",
+      "test_list_display_for_database_default",
+      "test_list_display_for_value_boolean_database_default"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "ca5746b8680a5e7e14014d365c0610f825df1dae",
+   "query": "Added missing chunk_size=None check to QuerySet.aiterator().",
+   "answers": [
+    {
+     "file": "django/db/models/query.py",
+     "symbols": [
+      "QuerySet",
+      "aiterator"
+     ]
+    },
+    {
+     "file": "tests/async/test_async_queryset.py",
+     "symbols": [
+      "AsyncQuerySetTest",
+      "test_aiterator_prefetch_related_chunk_size_none"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "09434486302078c3649e034dfa74cf3f102db20b",
+   "query": "Raised ValueError when Bcc is used in EmailMessage headers.",
+   "answers": [
+    {
+     "file": "django/core/mail/message.py",
+     "symbols": [
+      "EmailMessage"
+     ]
+    },
+    {
+     "file": "tests/mail/tests.py",
+     "symbols": [
+      "EmailMessageTests",
+      "test_bcc_in_headers_raises_error"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c",
+   "query": "Avoided crash in CreateModel with unique_together and AlterUniqueTogether.",
+   "answers": [
+    {
+     "file": "django/db/backends/base/schema.py",
+     "symbols": [
+      "BaseDatabaseSchemaEditor"
+     ]
+    },
+    {
+     "file": "tests/migrations/test_operations.py",
+     "symbols": [
+      "OperationTests",
+      "test_alter_index_together_deferred_overlapping_columns",
+      "test_alter_unique_together_deferred",
+      "test_alter_unique_together_deferred_overlapping_columns"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "14c66825e0088b7e08fe5d108fa293bd31722c39",
+   "query": "Added --using option to sendtestemail command.",
+   "answers": [
+    {
+     "file": "django/core/management/commands/sendtestemail.py",
+     "symbols": [
+      "Command",
+      "handle"
+     ]
+    },
+    {
+     "file": "tests/mail/test_sendtestemail.py",
+     "symbols": [
+      "SendTestEmailManagementCommand",
+      "test_using_default",
+      "test_using_nonexistent_mailer",
+      "test_using_option",
+      "test_using_option_with_admins",
+      "test_using_option_with_managers"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e",
+   "query": "Made GenericInlineModelAdmin.get_formset() use get_exclude().",
+   "answers": [
+    {
+     "file": "django/contrib/contenttypes/admin.py",
+     "symbols": [
+      "GenericInlineModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/generic_inline_admin/tests.py",
+     "symbols": [
+      "GenericInlineModelAdminTest",
+      "GetExcludeInline",
+      "get_exclude",
+      "test_get_exclude_is_respected"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1",
+   "query": "Skipped backends not implementing (a)get_user() in (a)force_login().",
+   "answers": [
+    {
+     "file": "django/test/client.py",
+     "symbols": [
+      "ClientMixin",
+      "overrides"
+     ]
+    },
+    {
+     "file": "tests/test_client/auth_backends.py",
+     "symbols": [
+      "BackendWithoutGetUserMethod",
+      "PermissionOnlyBackend"
+     ]
+    },
+    {
+     "file": "tests/test_client/tests.py",
+     "symbols": [
+      "ClientTest",
+      "test_force_login_all_backends_noop",
+      "test_force_login_skips_noop_get_user_backend"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "c6f81b383251dc9fd0918b4ba040c993444b931e",
+   "query": "Fixed sqlmigrate crash for RenameModel with a self-referential foreign key.",
+   "answers": [
+    {
+     "file": "django/db/backends/base/schema.py",
+     "symbols": [
+      "BaseDatabaseSchemaEditor"
+     ]
+    },
+    {
+     "file": "tests/migrations/test_operations.py",
+     "symbols": [
+      "OperationTests",
+      "test_rename_model_with_self_referential_fk_collect_sql"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c",
+   "query": "Returned NotImplemented in Media.__add__ for non-Media RHS.",
+   "answers": [
+    {
+     "file": "django/forms/widgets.py",
+     "symbols": [
+      "Media"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/tests/test_media.py",
+     "symbols": [
+      "FormsMediaTestCase",
+      "InvalidType",
+      "test_add_invalid_type"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "f970a98e464320c09dde8d45009eadfb4d038a57",
+   "query": "Moved django_file_prefixes() to django.utils.warnings.",
+   "answers": [
+    {
+     "file": "django/utils/warnings.py",
+     "symbols": [
+      "django_file_prefixes"
+     ]
+    },
+    {
+     "file": "tests/utils_tests/test_warnings.py",
+     "symbols": [
+      "DjangoFilePrefixesTests",
+      "setUp",
+      "test_does_not_match_packages_prefixed_with_django",
+      "test_no_file",
+      "test_with_file"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "867c7c0451f2e67e715da5b55b5bf6696747fdc3",
+   "query": "Skipped DB cache deletion when culling offset is zero.",
+   "answers": [
+    {
+     "file": "django/core/cache/backends/db.py",
+     "symbols": [
+      "DatabaseCache"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "DBCacheTests",
+      "test_delete_query_skipped_on_high_cull_frequency"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "46c5e76f0bcc76bfce19ad7ba07f716fc653a822",
+   "query": "Used safe_join() on downloaded template archive.",
+   "answers": [
+    {
+     "file": "django/core/management/templates.py",
+     "symbols": [
+      "TemplateCommand"
+     ]
+    },
+    {
+     "file": "tests/admin_scripts/tests.py",
+     "symbols": [
+      "StartProject",
+      "test_custom_project_template_from_tarball_by_url_bad_filename"
+     ]
+    },
+    {
+     "file": "tests/admin_scripts/views.py",
+     "symbols": [
+      "template_bad_filename"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "142b881cecaddc334cabec139e701c0e4b9798da",
+   "query": "Refs #36560, CVE-2026-35193 -- Replaced substring check on cache-control directives in UpdateCacheMiddleware.",
+   "answers": [
+    {
+     "file": "django/middleware/cache.py",
+     "symbols": [
+      "UpdateCacheMiddleware"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "test_authorization_header_exception_superstring",
+      "test_cache_control_not_cached_superstring",
+      "view"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "71af23d1f4678c4bf052e051d72e8928e1697de3",
+   "query": "Fixed rendering empty values for models with db_default on primary key.",
+   "answers": [
+    {
+     "file": "django/forms/widgets.py",
+     "symbols": [
+      "Widget"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/widget_tests/test_widget.py",
+     "symbols": [
+      "WidgetTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "a7a57a21a8cf42ecc767c204f7939ad4419ae25f",
+   "query": "Optimized cull frequency for DBCache.",
+   "answers": [
+    {
+     "file": "django/core/cache/backends/db.py",
+     "symbols": [
+      "BaseDatabaseCache",
+      "DatabaseCache"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "DBCacheTests",
+      "test_db_cull_optimized_off",
+      "test_db_cull_optimized_on",
+      "test_no_query_without_check"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56",
+   "query": "Restored exact boolean lookup against literals on SQLite.",
+   "answers": [
+    {
+     "file": "django/db/backends/base/features.py",
+     "symbols": [
+      "BaseDatabaseFeatures"
+     ]
+    },
+    {
+     "file": "django/db/backends/base/operations.py",
+     "symbols": [
+      "BaseDatabaseOperations"
+     ]
+    },
+    {
+     "file": "django/db/backends/mysql/operations.py",
+     "symbols": [
+      "DatabaseOperations"
+     ]
+    },
+    {
+     "file": "django/db/backends/postgresql/features.py",
+     "symbols": [
+      "DatabaseFeatures"
+     ]
+    },
+    {
+     "file": "django/db/models/lookups.py",
+     "symbols": [
+      "Lookup"
+     ]
+    },
+    {
+     "file": "tests/lookup/tests.py",
+     "symbols": [
+      "LookupTests"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 6
+  },
+  {
+   "sha": "42aa0b3364d312e7c6472258d8b0e9c0277fbf22",
+   "query": "Fixed CVE-2026-48587 -- Ignored whitespace padding when checking Vary header values.",
+   "answers": [
+    {
+     "file": "django/utils/cache.py",
+     "symbols": [
+      "has_vary_header"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "CacheUtils",
+      "hello_world_view_patch_vary_headers_asterisk",
+      "hello_world_view_patch_vary_headers_asterisk_space",
+      "hello_world_view_vary_headers_includes_asterisk",
+      "test_has_vary_header"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9",
+   "query": "Fixed CVE-2026-35193 -- Varied on Authorization when caching non-public responses.",
+   "answers": [
+    {
+     "file": "django/middleware/cache.py",
+     "symbols": [
+      "UpdateCacheMiddleware"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "test_authorization_header_exceptions",
+      "test_no_vary_on_authorization_for_empty_authorization_header",
+      "test_vary_on_authorization_for_authorization_header"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "d618d7ae4fec727d5b582bd24f803c28d17bf7cd",
+   "query": "Fixed CVE-2026-8404 -- Used Cache-Control directives case-insensitively in UpdateCacheMiddleware.",
+   "answers": [
+    {
+     "file": "django/middleware/cache.py",
+     "symbols": [
+      "UpdateCacheMiddleware"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "view"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "df887f50198593a0e5b4638bfddbbd43a30fd276",
+   "query": "Fixed CVE-2026-7666 -- Delayed setting SMTP connection until fully configured.",
+   "answers": [
+    {
+     "file": "django/core/mail/backends/smtp.py",
+     "symbols": [
+      "EmailBackend",
+      "_close_connection"
+     ]
+    },
+    {
+     "file": "tests/mail/test_backends.py",
+     "symbols": [
+      "SMTPBackendStoppedServerTests",
+      "SMTPBackendTests",
+      "test_reopen_replaces_partial_connection"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "672cfaa53c72dd67fb54ecbdd904ea364d2951c4",
+   "query": "Made PR quality check require tickets for new contributors.",
+   "answers": [
+    {
+     "file": "scripts/pr_quality/check_pr.py",
+     "symbols": [
+      "main"
+     ]
+    },
+    {
+     "file": "scripts/pr_quality/tests/test_check_pr.py",
+     "symbols": [
+      "TestIntegration",
+      "test_new_contributor_cannot_omit_ticket"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540",
+   "query": "Made HttpRequest.body handle malformed CONTENT_LENGTH.",
+   "answers": [
+    {
+     "file": "django/http/request.py",
+     "symbols": [
+      "HttpRequest"
+     ]
+    },
+    {
+     "file": "tests/asgi/tests.py",
+     "symbols": [
+      "ASGITest",
+      "MaxMemorySizeASGITests",
+      "test_body_size_exceeded_with_malformed_content_length",
+      "test_malformed_content_length"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "22d25eff1510eb157be3ef02984869b1309ec15d",
+   "query": "Handled escaped literals in simplify_regex().",
+   "answers": [
+    {
+     "file": "django/urls/utils.py",
+     "symbols": [
+      "remove_non_capturing_groups",
+      "simplify_regex",
+      "unescape_literals"
+     ]
+    },
+    {
+     "file": "tests/urlpatterns/tests.py",
+     "symbols": [
+      "SimplifyRegexTests"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "ea9742c6d02edf64fc0969f21506f2048c976051",
+   "query": "Made DjangoJSONEncoder consistently omit .000 microseconds.",
+   "answers": [
+    {
+     "file": "django/core/serializers/json.py",
+     "symbols": [
+      "DjangoJSONEncoder"
+     ]
+    },
+    {
+     "file": "tests/serializers/test_json.py",
+     "symbols": [
+      "DjangoJSONEncoderTests",
+      "test_datetime_and_time_microseconds"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "6e15ac8066312328de279e3e072667416c205bfc",
+   "query": "Deprecated the safe parameter of JSONResponse.",
+   "answers": [
+    {
+     "file": "django/http/response.py",
+     "symbols": [
+      "JsonResponse"
+     ]
+    },
+    {
+     "file": "tests/httpwrappers/tests.py",
+     "symbols": [
+      "JsonResponseTests",
+      "test_json_response_raises_type_error_with_safe_arg"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "f57a90073920f1c34096d062e151a7bd79065f01",
+   "query": "Removed integer pk assumption in AdminCustomQuerysetTest.",
+   "answers": [
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "EmptyModelAdmin",
+      "GetQuerySetModelAdmin",
+      "ParentAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/models.py",
+     "symbols": [
+      "GetQuerySetModel",
+      "Toy"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminCustomQuerysetTest"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "a53e02af6d7a07d0367b534f7107a0e2a37e3d34",
+   "query": "Used ModelAdmin.get_queryset() for change form actions.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "AttributeErrorRaisingAdmin",
+      "CustomManagerAdmin",
+      "restore_filtered_manager"
+     ]
+    },
+    {
+     "file": "tests/admin_views/models.py",
+     "symbols": [
+      "FilteredManager",
+      "_Manager"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminCustomQuerysetTest",
+      "test_action_changeform_uses_modeladmin_queryset"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "53645750412efa1e9013004040db328bd515e0f1",
+   "query": "Prevented control characters in HttpResponse reason_phrase.",
+   "answers": [
+    {
+     "file": "django/http/response.py",
+     "symbols": [
+      "HttpResponseBase"
+     ]
+    },
+    {
+     "file": "tests/responses/tests.py",
+     "symbols": [
+      "HttpResponseTests",
+      "test_invalid_reason_phrase"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "bc9bed573ce39c3b739a4a3b7848816d464b6bdc",
+   "query": "Included attributes in media object equality.",
+   "answers": [
+    {
+     "file": "django/forms/widgets.py",
+     "symbols": [
+      "Media",
+      "MediaAsset",
+      "_normalize_css",
+      "_normalize_js"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/tests/test_media.py",
+     "symbols": [
+      "FormsMediaObjectTestCase",
+      "FormsMediaTestCase",
+      "MediaAssetTestCase"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "e78a46a8fb291a11a31b6938b5089db1058f3925",
+   "query": "Increased the default PBKDF2 iterations for Django 6.2.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/hashers.py",
+     "symbols": [
+      "PBKDF2PasswordHasher"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_hashers.py",
+     "symbols": [
+      "TestUtilsHashPass"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "20960df455fffd73d556a5ed92cdf6832c23e65f",
+   "query": "Renamed savepoint() to savepoint_create().",
+   "answers": [
+    {
+     "file": "django/db/transaction.py",
+     "symbols": [
+      "savepoint",
+      "savepoint_create"
+     ]
+    },
+    {
+     "file": "tests/transactions/tests.py",
+     "symbols": [
+      "AtomicTests",
+      "DurableTests",
+      "SavepointTests",
+      "test_deprecation_warning"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "9b4433948714d5c43bab96b08bb6618c22512000",
+   "query": "Fixed regression in CSPSeleniumTestCase.",
+   "answers": [
+    {
+     "file": "tests/middleware/test_csp.py",
+     "symbols": [
+      "CSPMiddlewareWithDecoratedViewsTest"
+     ]
+    },
+    {
+     "file": "tests/middleware/views.py",
+     "symbols": [
+      "csp_failure"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "8fd29079ed1253f0cd88ccf330de30271a5d15e4",
+   "query": "Aligned admin change form and list minimum permission to run action.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/test_actions.py",
+     "symbols": [
+      "AdminActionsPermissionTests",
+      "AdminActionsTest",
+      "test_minimum_permission"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "7c125f6a6660a70a0568448b2e40db273a456479",
+   "query": "Disallowed admin change form actions on different objects.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/test_actions.py",
+     "symbols": [
+      "AdminDetailActionsTest",
+      "test_action_changeform_cannot_target_different_objects"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "fbe902d4a4b8b9dcb371509b25ba8feff3852e64",
+   "query": "Removed compilation-time order clearing on combined queries on Oracle.",
+   "answers": [
+    {
+     "file": "django/db/models/query.py",
+     "symbols": [
+      "QuerySet",
+      "_clear_ordering_in_combined_queries"
+     ]
+    },
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    },
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "6bbe2656e1e89a03d1ae8f2cea7bdd2a027f0665",
+   "query": "Reverted \"Refs #36938 -- Tolerated unnecessary ordering in compound queries on SQLite.\"",
+   "answers": [
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    },
+    {
+     "file": "tests/queries/test_qs_combinators.py",
+     "symbols": [
+      "QuerySetSetOperationTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "0e1d950fbb44878f6972a0e5730f69f98caf468e",
+   "query": "Made Query.clear_ordering() clear ordering on combined queries also.",
+   "answers": [
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query"
+     ]
+    },
+    {
+     "file": "tests/queries/test_qs_combinators.py",
+     "symbols": [
+      "QuerySetSetOperationTests",
+      "test_double_union_in_with_default_ordering"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "da6567da7ea0e844c9a880e02c7b34e1a184edf8",
+   "query": "Added preserve_request support to RedirectView.",
+   "answers": [
+    {
+     "file": "django/views/generic/base.py",
+     "symbols": [
+      "RedirectView"
+     ]
+    },
+    {
+     "file": "tests/generic_views/test_base.py",
+     "symbols": [
+      "RedirectViewTest",
+      "test_preserve_request_permanent_redirect",
+      "test_preserve_request_temporary_redirect"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f",
+   "query": "Updated SMTP EmailBackend tests for Python 3.15.",
+   "answers": [
+    {
+     "file": "django/core/mail/backends/smtp.py",
+     "symbols": [
+      "EmailBackend"
+     ]
+    },
+    {
+     "file": "tests/mail/test_backends.py",
+     "symbols": [
+      "SMTPBackendTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "ed5486376989c08b34cc62e7c8ba4a07bd60047d",
+   "query": "Fixed #37092, Refs #35870 -- Added missing deprecation warnings for USE_BLANK_CHOICE_DASH.",
+   "answers": [
+    {
+     "file": "django/conf/__init__.py",
+     "symbols": [
+      "LazySettings",
+      "Settings",
+      "UserSettingsHolder"
+     ]
+    },
+    {
+     "file": "tests/deprecation/test_use_blank_choice_dash.py",
+     "symbols": [
+      "UseBlankChoiceDashDeprecationTests",
+      "test_access",
+      "test_override_settings_warning",
+      "test_settings_assignment_warning",
+      "test_settings_init_warning"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e",
+   "query": "Replaced \"Go\" with \"Run\" in list_editable alert message.",
+   "answers": [
+    {
+     "file": "tests/admin_changelist/tests.py",
+     "symbols": [
+      "SeleniumTests"
+     ]
+    },
+    {
+     "file": "tests/admin_views/test_actions.py",
+     "symbols": [
+      "AdminActionsTest"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewListEditable"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "335c6d0129400eda792f3bec5c71bb28af5e5d37",
+   "query": "Checked maximum redirect lengths against percent-encoded URLs.",
+   "answers": [
+    {
+     "file": "django/http/response.py",
+     "symbols": [
+      "HttpResponseRedirectBase"
+     ]
+    },
+    {
+     "file": "tests/httpwrappers/tests.py",
+     "symbols": [
+      "HttpResponseTests",
+      "test_redirect_url_max_length_checks_encoded_location"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "2314cdf1ff860058a6579bb9f9bac1253fc9ab43",
+   "query": "Tolerated unnecessary ordering in compound queries on SQLite.",
+   "answers": [
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    },
+    {
+     "file": "tests/queries/test_qs_combinators.py",
+     "symbols": [
+      "QuerySetSetOperationTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "9c655e98006dec4f4fd47a84c254f36404d631e4",
+   "query": "Removed unnecessary ordering from compound queries.",
+   "answers": [
+    {
+     "file": "django/db/backends/oracle/features.py",
+     "symbols": [
+      "DatabaseFeatures"
+     ]
+    },
+    {
+     "file": "django/db/models/sql/compiler.py",
+     "symbols": [
+      "SQLCompiler"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "cb192dbb191525550f90d7cb9cff756f57e86aec",
+   "query": "Removed hardcoded pks in AdminViewPermissionsTest.",
+   "answers": [
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "RowLevelChangePermissionModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/models.py",
+     "symbols": [
+      "RowLevelChangePermissionModel"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewPermissionsTest"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "0c634de4e6950ec6fb83ab420b4af9c645b28acd",
+   "query": "Made ModelAdmin.list_select_related = False more efficient.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/views/main.py",
+     "symbols": [
+      "ChangeList",
+      "get_select_related_fields"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewBasicTest",
+      "test_get_select_related_fields_in_list_display_fk",
+      "test_get_select_related_fields_in_list_display_o2o"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "e7f539f813bd56a71ca3c1fbf379f47691002086",
+   "query": "Refs #36712, #36664 -- Used annotation_format parameter of getfullargspec() on Python 3.15.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/templatetags/base.py",
+     "symbols": [
+      "InclusionAdminNode"
+     ]
+    },
+    {
+     "file": "django/template/base.py",
+     "symbols": [
+      "FilterExpression"
+     ]
+    },
+    {
+     "file": "django/template/library.py",
+     "symbols": [
+      "Library"
+     ]
+    },
+    {
+     "file": "django/utils/inspect.py",
+     "symbols": [
+      "getfullargspec",
+      "lazy_annotations"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 4
+  },
+  {
+   "sha": "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e",
+   "query": "Propagated AlterField through attname-based to_field references.",
+   "answers": [
+    {
+     "file": "django/db/backends/base/schema.py",
+     "symbols": [
+      "_is_relevant_relation"
+     ]
+    },
+    {
+     "file": "django/db/backends/sqlite3/schema.py",
+     "symbols": [
+      "DatabaseSchemaEditor"
+     ]
+    },
+    {
+     "file": "tests/migrations/test_operations.py",
+     "symbols": [
+      "OperationTests",
+      "assert_column_lengths",
+      "test_alter_field_reloads_state_on_transitive_attname_to_field_type_change"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe",
+   "query": "Cleaned up logging and middleware tests.",
+   "answers": [
+    {
+     "file": "tests/auth_tests/test_forms.py",
+     "symbols": [
+      "PasswordResetFormTest"
+     ]
+    },
+    {
+     "file": "tests/logging_tests/logconfig.py",
+     "symbols": [
+      "MyHandler"
+     ]
+    },
+    {
+     "file": "tests/logging_tests/tests.py",
+     "symbols": [
+      "AdminEmailHandlerTest",
+      "make_log_record",
+      "test_sends_using_fail_silently"
+     ]
+    },
+    {
+     "file": "tests/middleware/tests.py",
+     "symbols": [
+      "BrokenLinkEmailsMiddlewareTest",
+      "test_sends_using_fail_silently"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 4
+  },
+  {
+   "sha": "f25ad7c086eb694372a8ef08cb713556bcb366a2",
+   "query": "Added error for missing EMAIL_FILE_PATH setting.",
+   "answers": [
+    {
+     "file": "django/core/mail/backends/filebased.py",
+     "symbols": [
+      "EmailBackend"
+     ]
+    },
+    {
+     "file": "tests/mail/test_backends.py",
+     "symbols": [
+      "FileBackendTests",
+      "test_error_if_email_file_path_setting_not_defined"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd",
+   "query": "Added sync_to_async() to dummy password hasher path.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/__init__.py",
+     "symbols": [
+      "acheck_password_with_timing_attack_mitigation"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_auth_backends.py",
+     "symbols": [
+      "BaseModelBackendTest",
+      "test_aauthentication_timing_async_bridge"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "75bb46cc454fdef0585f0a460f36f579b59f0356",
+   "query": "Replaced old PR quality comments when writing new ones.",
+   "answers": [
+    {
+     "file": "scripts/pr_quality/check_pr.py",
+     "symbols": [
+      "get_comment_ids_to_delete",
+      "get_pr_total_changes",
+      "github_request",
+      "main"
+     ]
+    },
+    {
+     "file": "scripts/pr_quality/tests/test_check_pr.py",
+     "symbols": [
+      "TestIntegration"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "57b23d15259c32dba80bb093645242f1b3b25365",
+   "query": "Added validate=True to base64.b64decode() calls.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/hashers.py",
+     "symbols": [
+      "Argon2PasswordHasher"
+     ]
+    },
+    {
+     "file": "django/core/cache/backends/db.py",
+     "symbols": [
+      "DatabaseCache"
+     ]
+    },
+    {
+     "file": "django/db/models/fields/__init__.py",
+     "symbols": [
+      "BinaryField"
+     ]
+    },
+    {
+     "file": "django/http/multipartparser.py",
+     "symbols": [
+      "MultiPartParser"
+     ]
+    },
+    {
+     "file": "tests/file_uploads/tests.py",
+     "symbols": [
+      "FileUploadTests"
+     ]
+    },
+    {
+     "file": "tests/model_fields/test_binaryfield.py",
+     "symbols": [
+      "BinaryFieldTests",
+      "test_invalid_data"
+     ]
+    },
+    {
+     "file": "tests/urlpatterns/converters.py",
+     "symbols": [
+      "Base64Converter"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 7
+  },
+  {
+   "sha": "c79bdfc1351ef2a2ad95df36241a74c736ef20a1",
+   "query": "Fixed CVE-2026-6907 -- Prevented caching of requests when Vary header contains an asterisk.",
+   "answers": [
+    {
+     "file": "django/middleware/cache.py",
+     "symbols": [
+      "UpdateCacheMiddleware"
+     ]
+    },
+    {
+     "file": "tests/cache/tests.py",
+     "symbols": [
+      "CacheMiddlewareTest",
+      "hello_world_view",
+      "hello_world_view_patch_vary_headers_asterisk",
+      "hello_world_view_vary_headers_includes_asterisk",
+      "test_vary_asterisk_not_cached"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "7f6e9b55130d5158804c0acbc0b24ccb7422ed82",
+   "query": "Fixed CVE-2026-35192 -- Ensured Vary header is sent when setting session cookie with SESSION_SAVE_EVERY_REQUEST=True.",
+   "answers": [
+    {
+     "file": "django/contrib/sessions/middleware.py",
+     "symbols": [
+      "SessionMiddleware"
+     ]
+    },
+    {
+     "file": "tests/sessions_tests/tests.py",
+     "symbols": [
+      "SessionMiddlewareTests",
+      "simple_view",
+      "test_save_every_request_with_non_empty_session_renews_session_cookie"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a",
+   "query": "Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+   "answers": [
+    {
+     "file": "django/core/signing.py",
+     "symbols": [
+      "b64_decode",
+      "base64_hmac"
+     ]
+    },
+    {
+     "file": "django/utils/crypto.py",
+     "symbols": [
+      "InvalidAlgorithm",
+      "salted_hmac"
+     ]
+    },
+    {
+     "file": "tests/signing/tests.py",
+     "symbols": [
+      "TestSigner",
+      "test_base64_hmac_default_algorithm_deprecation"
+     ]
+    },
+    {
+     "file": "tests/utils_tests/test_crypto.py",
+     "symbols": [
+      "TestUtilsCryptoMisc",
+      "test_salted_hmac_default_algorithm_deprecation"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "920b43eb5b40190bb2dbee00773e17307bc699d8",
+   "query": "Removed hardcoded pks in annotations and delete_regress tests.",
+   "answers": [
+    {
+     "file": "tests/annotations/tests.py",
+     "symbols": [
+      "NonAggregateAnnotationTestCase"
+     ]
+    },
+    {
+     "file": "tests/delete_regress/tests.py",
+     "symbols": [
+      "DeleteLockingTest"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "12dcba45cb0d3bcf735621c3b2175fdee08308d8",
+   "query": "Made RemoteUserMiddleware ImproperlyConfigured error message handle subclasses.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/middleware.py",
+     "symbols": [
+      "RemoteUserMiddleware"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_remote_user.py",
+     "symbols": [
+      "PersistentRemoteUserTest",
+      "RemoteUserImproperlyConfigured",
+      "test_improperly_configured_message_persistent_remote_user",
+      "test_improperly_configured_message_persistent_remote_user_async",
+      "test_improperly_configured_message_remote_user",
+      "test_improperly_configured_message_remote_user_async"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f",
+   "query": "Allowed overriding the PostgreSQL pool's \"check\" callable.",
+   "answers": [
+    {
+     "file": "django/db/backends/postgresql/base.py",
+     "symbols": [
+      "DatabaseWrapper"
+     ]
+    },
+    {
+     "file": "tests/backends/postgresql/tests.py",
+     "symbols": [
+      "Tests",
+      "custom_check",
+      "test_pool_check_can_be_overridden",
+      "test_pool_options_not_mutated"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "8c8b833d32c02d3ae6f43b04bb1e45968796b402",
+   "query": "Allowed Task and TaskResult to be pickled.",
+   "answers": [
+    {
+     "file": "django/tasks/base.py",
+     "symbols": [
+      "Task",
+      "__reduce__",
+      "_reconstruct"
+     ]
+    },
+    {
+     "file": "tests/tasks/test_tasks.py",
+     "symbols": [
+      "TaskTestCase",
+      "test_pickle_task",
+      "test_pickle_task_result",
+      "test_unpickle_arbitrary_string",
+      "test_unpickle_non_task_object"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "3f912ee4189602b4df121c0dc0428673fda5c253",
+   "query": "Extracted set_choices() method from FilePathField.__init__().",
+   "answers": [
+    {
+     "file": "django/forms/fields.py",
+     "symbols": [
+      "FilePathField",
+      "set_choices"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/field_tests/test_filepathfield.py",
+     "symbols": [
+      "FilePathFieldTest",
+      "test_set_choices_picks_up_new_files"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "60a9c70496e5d7b971928ce3da5b47c8836a4def",
+   "query": "Added trailing slash in django_file_prefixes().",
+   "answers": [
+    {
+     "file": "django/utils/deprecation.py",
+     "symbols": [
+      "django_file_prefixes"
+     ]
+    },
+    {
+     "file": "tests/deprecation/tests.py",
+     "symbols": [
+      "DjangoFilePrefixesTests",
+      "test_does_not_match_packages_prefixed_with_django"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "5b3cfce51770f46c6dc100e9be7f199a37176762",
+   "query": "Fixed ModelAdmin.list_editable form submission for non-editable instances.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin",
+      "_get_formset_with_permissions"
+     ]
+    },
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "PersonNoChangePermissionsAdmin9"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewListEditable"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "5d911f2d2fecc703be91b2b9b28acc59d34b35f3",
+   "query": "Deprecated double-dot variable lookups.",
+   "answers": [
+    {
+     "file": "django/template/base.py",
+     "symbols": [
+      "Parser"
+     ]
+    },
+    {
+     "file": "tests/template_tests/syntax_tests/test_basic.py",
+     "symbols": [
+      "BasicSyntaxTests",
+      "DeprecatedTests",
+      "TemplateNameInExceptionTests",
+      "test_double_dot_lookup"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "fb292a549371a7c011c25b1a10fe5d25c579814a",
+   "query": "Added connector validation to Q.create().",
+   "answers": [
+    {
+     "file": "django/db/models/query_utils.py",
+     "symbols": [
+      "Q",
+      "_check_connector",
+      "create"
+     ]
+    },
+    {
+     "file": "tests/queries/test_q.py",
+     "symbols": [
+      "QTests"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "c63591d4da533944af31ccb46a77eb221dbdba0a",
+   "query": "Centralized auth timing attack mitigations.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/__init__.py",
+     "symbols": [
+      "acheck_password_with_timing_attack_mitigation",
+      "aupdate_session_auth_hash",
+      "check_password_with_timing_attack_mitigation"
+     ]
+    },
+    {
+     "file": "django/contrib/auth/backends.py",
+     "symbols": [
+      "ModelBackend"
+     ]
+    },
+    {
+     "file": "django/contrib/auth/handlers/modwsgi.py",
+     "symbols": [
+      "_get_user",
+      "check_password"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "526b548cfb9c8a02ea2b7ae064ef3b795305d51a",
+   "query": "Marked authenticate() with @sensitive_variables() decorator.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/backends.py",
+     "symbols": [
+      "ModelBackend"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/models/custom_user.py",
+     "symbols": [
+      "ErrorAdminUser",
+      "ErrorUserManager",
+      "aget_by_natural_key",
+      "get_by_natural_key"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_auth_backends.py",
+     "symbols": [
+      "AuthenticateTests",
+      "test_model_backend_async_authenticate_sensitive_variables",
+      "test_model_backend_authenticate_sensitive_variables"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 3
+  },
+  {
+   "sha": "ad073338d02fce884301d159f30eaf17c7f2d246",
+   "query": "Reverted inadvertent changes to PK formatting in tests.",
+   "answers": [
+    {
+     "file": "tests/model_formsets/tests.py",
+     "symbols": [
+      "ModelFormsetTest"
+     ]
+    },
+    {
+     "file": "tests/modeladmin/tests.py",
+     "symbols": [
+      "ModelAdminTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "61a62be313e395ce1265132bfc99f51476fb3c95",
+   "query": "Adjusted UniqueConstraint handling of UNKNOWN condition.",
+   "answers": [
+    {
+     "file": "django/db/models/constraints.py",
+     "symbols": [
+      "CheckConstraint"
+     ]
+    },
+    {
+     "file": "django/db/models/query_utils.py",
+     "symbols": [
+      "Q"
+     ]
+    },
+    {
+     "file": "tests/constraints/tests.py",
+     "symbols": [
+      "UniqueConstraintTests",
+      "test_validate_nullable_condition"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "dc467fdc3b5744cec71fab876c23a14013e2510b",
+   "query": "Raised BadRequest for invalid encodings in Content-Type headers.",
+   "answers": [
+    {
+     "file": "django/http/request.py",
+     "symbols": [
+      "HttpRequest"
+     ]
+    },
+    {
+     "file": "django/utils/http.py",
+     "symbols": [
+      "parse_header_parameters"
+     ]
+    },
+    {
+     "file": "tests/requests_tests/tests.py",
+     "symbols": [
+      "RequestsTests",
+      "test_malformed_header"
+     ]
+    },
+    {
+     "file": "tests/utils_tests/test_http.py",
+     "symbols": [
+      "ParseHeaderParameterTests",
+      "test_rfc2231_invalid_encoding"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 4
+  },
+  {
+   "sha": "84db026228413dda4cd195464554d51c0b208e32",
+   "query": "Excluded fields by per-object permissions for ModelAdmin.list_editable.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin",
+      "_get_formset_with_permissions"
+     ]
+    },
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "ParentWithUUIDPKNoAddAdmin",
+      "PersonNoChangePermissionsAdmin9",
+      "has_change_permission"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewListEditable",
+      "test_list_editable_per_object_permissions",
+      "test_list_editable_per_object_permissions_submission"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 3
+  },
+  {
+   "sha": "673fa46d8063577c92cfab3a73a28e9406372e33",
+   "query": "Allowed Ready for checkin Trac status in PR checks.",
+   "answers": [
+    {
+     "file": "scripts/pr_quality/check_pr.py",
+     "symbols": [
+      "check_trac_status",
+      "main"
+     ]
+    },
+    {
+     "file": "scripts/pr_quality/tests/test_check_pr.py",
+     "symbols": [
+      "TestCheckTracStatus",
+      "TestIntegration",
+      "test_ready_for_checkin_assigned_unresolved_passes"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "a284a49153f005f2a7af087025e5112ba06cbd5f",
+   "query": "Fixed crash in Query.orderby_issubset_groupby for descending and random order_by strings.",
+   "answers": [
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query"
+     ]
+    },
+    {
+     "file": "tests/aggregation_regress/tests.py",
+     "symbols": [
+      "AggregationTests"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f",
+   "query": "Made SITE_ID system check validation use Site._meta.pk.",
+   "answers": [
+    {
+     "file": "django/contrib/sites/checks.py",
+     "symbols": [
+      "check_site_id"
+     ]
+    },
+    {
+     "file": "tests/sites_tests/tests.py",
+     "symbols": [
+      "SitesFrameworkTests",
+      "test_check_site_id_failed_to_validate",
+      "test_check_site_id_incorrect_type"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "820c7d3248af6afbdf3390c97b29e41ba126a421",
+   "query": "Added missing flat=True arg in DeferredAttribute.fetch_many().",
+   "answers": [
+    {
+     "file": "django/db/models/query_utils.py",
+     "symbols": [
+      "DeferredAttribute"
+     ]
+    },
+    {
+     "file": "tests/defer/tests.py",
+     "symbols": [
+      "DeferTests",
+      "test_defer_fk_fetch_mode_fetch_peers",
+      "test_only_fk_fetch_mode_fetch_peers"
+     ]
+    },
+    {
+     "file": "tests/many_to_one/tests.py",
+     "symbols": [
+      "ManyToOneTests",
+      "test_fetch_mode_fetch_peers_reverse_with_deferred_fk"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "3157285e27a426530ef571855e0e29c317e210df",
+   "query": "Made base File objects truthy by default.",
+   "answers": [
+    {
+     "file": "django/core/files/base.py",
+     "symbols": [
+      "ContentFile",
+      "File"
+     ]
+    },
+    {
+     "file": "django/core/files/uploadedfile.py",
+     "symbols": [
+      "UploadedFile",
+      "__bool__"
+     ]
+    },
+    {
+     "file": "django/db/models/fields/files.py",
+     "symbols": [
+      "FieldFile",
+      "__bool__"
+     ]
+    },
+    {
+     "file": "tests/files/tests.py",
+     "symbols": [
+      "NoNameFileTestCase",
+      "test_noname_bool"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "280256499c5b2d636949f3c8cb52159a8e4c26bb",
+   "query": "Refs CVE-2026-4292 -- Isolated new test in AdminViewListEditable.",
+   "answers": [
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "ParentWithUUIDPKNoAddAdmin",
+      "PersonAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewListEditable"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "e2abe321a6f1370e05c1a89a742125c9eafcac8c",
+   "query": "Added Permission.user_perm_str property.",
+   "answers": [
+    {
+     "file": "django/contrib/auth/models.py",
+     "symbols": [
+      "Permission",
+      "user_perm_str"
+     ]
+    },
+    {
+     "file": "tests/auth_tests/test_models.py",
+     "symbols": [
+      "PermissionTests",
+      "test_user_perm_str"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "7e9885f99cee771b51692fadc5592bdbf19641aa",
+   "query": "Fixed CVE-2026-33033 -- Mitigated potential DoS in MultiPartParser.",
+   "answers": [
+    {
+     "file": "django/http/multipartparser.py",
+     "symbols": [
+      "MultiPartParser"
+     ]
+    },
+    {
+     "file": "tests/requests_tests/tests.py",
+     "symbols": [
+      "RequestsTests",
+      "counting_read",
+      "test_multipart_file_upload_base64_whitespace_heavy"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6afe7ce93964f56e33a29d477c269436f9b60cbf",
+   "query": "Fixed CVE-2026-4292 -- Disallowed instance creation via ModelAdmin.list_editable.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/options.py",
+     "symbols": [
+      "ModelAdmin"
+     ]
+    },
+    {
+     "file": "tests/admin_views/admin.py",
+     "symbols": [
+      "ParentWithUUIDPKAdmin",
+      "PersonAdmin",
+      "has_add_permission"
+     ]
+    },
+    {
+     "file": "tests/admin_views/tests.py",
+     "symbols": [
+      "AdminViewListEditable",
+      "test_forged_post_submission_when_no_add_permission"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "caf90a971f09323775ed0cacf94eadaf39d040e0",
+   "query": "Fixed CVE-2026-3902 -- Ignored headers with underscores in ASGIRequest.",
+   "answers": [
+    {
+     "file": "django/core/handlers/asgi.py",
+     "symbols": [
+      "ASGIRequest"
+     ]
+    },
+    {
+     "file": "django/test/client.py",
+     "symbols": [
+      "AsyncRequestFactory"
+     ]
+    },
+    {
+     "file": "tests/asgi/tests.py",
+     "symbols": [
+      "ASGITest",
+      "test_underscores_in_headers_ignored"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "33bfc66add643f49d466c5a646989ad91677753d",
+   "query": "Made XML serializer put each ManyToManyField object on its own line.",
+   "answers": [
+    {
+     "file": "django/core/serializers/xml_serializer.py",
+     "symbols": [
+      "Serializer"
+     ]
+    },
+    {
+     "file": "tests/serializers/test_xml.py",
+     "symbols": [
+      "XmlSerializerTestCase"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "3b161e60964aff99eddcd2627a486d81c1836b3a",
+   "query": "Avoided propagating invalid arguments from When() to Q().",
+   "answers": [
+    {
+     "file": "django/db/models/expressions.py",
+     "symbols": [
+      "When"
+     ]
+    },
+    {
+     "file": "tests/expressions_case/tests.py",
+     "symbols": [
+      "CaseWhenTests",
+      "test_when_rejects_invalid_arguments"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "fcf916884d25ed430bd7cedaea2b10035c2aa3b6",
+   "query": "Made fields.E348 check detect further clashes between managers and related_names.",
+   "answers": [
+    {
+     "file": "django/db/models/fields/related.py",
+     "symbols": [
+      "ForeignObject",
+      "RelatedField"
+     ]
+    },
+    {
+     "file": "tests/invalid_models_tests/test_relative_fields.py",
+     "symbols": [
+      "Item",
+      "RelatedQueryNameClashWithManagerTests",
+      "Thing",
+      "test_clash_between_rel_name_and_manager_non_self_referential"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "cec10f992be8eed5ed90506375ae5794cbb7069e",
+   "query": "Fixed handling of __in lookups with None in exclude().",
+   "answers": [
+    {
+     "file": "django/db/models/sql/query.py",
+     "symbols": [
+      "Query"
+     ]
+    },
+    {
+     "file": "tests/composite_pk/test_filter.py",
+     "symbols": [
+      "CompositePKExcludeNoneTests",
+      "test_exclude_pk_in_full_none",
+      "test_exclude_pk_in_partial_none",
+      "test_filter_pk_in_full_none",
+      "test_filter_pk_in_partial_none"
+     ]
+    },
+    {
+     "file": "tests/queries/tests.py",
+     "symbols": [
+      "NullInExcludeTest"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "856c915326768962806705ca7733e4abbb8f794f",
+   "query": "Used QuerySet.totally_ordered in BaseModelFormSet.get_queryset() for stable ordering.",
+   "answers": [
+    {
+     "file": "django/forms/models.py",
+     "symbols": [
+      "BaseModelFormSet"
+     ]
+    },
+    {
+     "file": "tests/model_formsets/tests.py",
+     "symbols": [
+      "ModelFormsetTest",
+      "test_get_queryset_appends_pk_to_explicit_queryset_ordering",
+      "test_get_queryset_appends_pk_to_meta_ordering",
+      "test_get_queryset_unchanged_when_already_totally_ordered"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "8b7ea2bcdd7297941ca6beb72d93b9568e187349",
+   "query": "Maintained error message determinism in MultipleChoiceField.validate().",
+   "answers": [
+    {
+     "file": "django/forms/fields.py",
+     "symbols": [
+      "MultipleChoiceField"
+     ]
+    },
+    {
+     "file": "tests/forms_tests/field_tests/test_multiplechoicefield.py",
+     "symbols": [
+      "MultipleChoiceFieldTest"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "386257b33eb2a925cecc1a12ba5e7dd694617186",
+   "query": "Prevented crash in JSONField numeric lookups with expressions.",
+   "answers": [
+    {
+     "file": "django/db/models/fields/json.py",
+     "symbols": [
+      "KeyTransformNumericLookupMixin"
+     ]
+    },
+    {
+     "file": "tests/model_fields/test_jsonfield.py",
+     "symbols": [
+      "TestQuerying",
+      "test_numeric_lookups_with_expression"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "2d7f899deb2e3e58438a0703d6c3be4227641239",
+   "query": "Reloaded logging config when logging settings are changed in tests.",
+   "answers": [
+    {
+     "file": "django/test/signals.py",
+     "symbols": [
+      "update_logging_config",
+      "user_model_swapped"
+     ]
+    },
+    {
+     "file": "tests/logging_tests/tests.py",
+     "symbols": [
+      "SetupConfigureLogging",
+      "tearDown",
+      "test_logging_settings_changed"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "5146449a38222dc74f8f1ba88a7a7ef681e93101",
+   "query": "Removed unnecessary prohibits_dollar_signs_in_column_aliases feature flag.",
+   "answers": [
+    {
+     "file": "django/db/backends/base/features.py",
+     "symbols": [
+      "BaseDatabaseFeatures"
+     ]
+    },
+    {
+     "file": "django/db/backends/postgresql/features.py",
+     "symbols": [
+      "DatabaseFeatures"
+     ]
+    },
+    {
+     "file": "tests/annotations/tests.py",
+     "symbols": [
+      "AliasTests"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe",
+   "query": "Made admin use boolean icons for related BooleanFields in list_display.",
+   "answers": [
+    {
+     "file": "django/contrib/admin/utils.py",
+     "symbols": [
+      "lookup_field"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/models.py",
+     "symbols": [
+      "Child"
+     ]
+    },
+    {
+     "file": "tests/admin_changelist/tests.py",
+     "symbols": [
+      "ChangeListTests",
+      "GrandChildAdmin",
+      "test_list_display_related_field_boolean_display"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3",
+   "query": "Observed prepared argument in UUIDField.get_db_prep_value().",
+   "answers": [
+    {
+     "file": "django/db/models/fields/__init__.py",
+     "symbols": [
+      "UUIDField"
+     ]
+    },
+    {
+     "file": "tests/prefetch_related/models.py",
+     "symbols": [
+      "ArticleCustomUUID",
+      "get_db_prep_value"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "0ed8d4e7d1029e1283b04f70d51d2af96ad85d6a",
+   "query": "Made assertContains and assertNotContains idempotent for streaming responses.",
+   "answers": [
+    {
+     "file": "django/test/testcases.py",
+     "symbols": [
+      "SimpleTestCase"
+     ]
+    },
+    {
+     "file": "tests/test_utils/tests.py",
+     "symbols": [
+      "HTMLEqualTests",
+      "test_streaming_response_idempotent",
+      "test_streaming_response_not_contains_idempotent"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "d7bf84324fb4b0789302bd0624697ba973dd7140",
+   "query": "Handled coalescing JSON-primitive strings and JSON values on Oracle.",
+   "answers": [
+    {
+     "file": "django/db/models/functions/comparison.py",
+     "symbols": [
+      "Coalesce"
+     ]
+    },
+    {
+     "file": "tests/model_fields/models.py",
+     "symbols": [
+      "RelatedJSONModel"
+     ]
+    },
+    {
+     "file": "tests/model_fields/test_jsonfield.py",
+     "symbols": [
+      "TestQuerying",
+      "test_json_type_casting_with_coalesce"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "6c95af5c9d294a20d09f080d7c144e3b7362d65f",
+   "query": "Fixed ValueError when `query_params` and `follow` are used on test client.",
+   "answers": [
+    {
+     "file": "django/test/client.py",
+     "symbols": [
+      "ClientMixin"
+     ]
+    },
+    {
+     "file": "tests/test_client/tests.py",
+     "symbols": [
+      "ClientTest",
+      "test_follow_redirect_with_query_params"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "7cb2221e9267dec3f1cf7c88b8686d38fd956639",
+   "query": "Encapsulated loop logic to avoid leaking module-level variables.",
+   "answers": [
+    {
+     "file": "django/db/models/expressions.py",
+     "symbols": [
+      "_register_combinable_fields",
+      "register_combinable_fields"
+     ]
+    },
+    {
+     "file": "django/template/smartif.py",
+     "symbols": [
+      "_init_operators"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  }
+ ]
+}

@@ -128,16 +128,35 @@ def cli() -> None:
     token-budgeted bundle an LLM can use directly, instead of grepping and
     opening files one at a time.
 
-    Typical use:
+    Typical use -- command, and what it prints:
 
     \b
-      code-explorer search "how do we refresh an auth token" PATH
-      code-explorer search "resolve_call" PATH --fuzzy
-      code-explorer impact auth.py:refresh_token PATH
-      code-explorer analyze PATH
-      code-explorer trace module.py:42 --variable user_input
-      code-explorer stats
-      code-explorer visualize module.py --output graph.md
+      $ code-explorer search "how do we refresh an auth token" PATH
+        -> ranked Type|Name|File|Score table, then the context bundle:
+           Seed:, then ### file::name (role, N hops) + source per neighbour
+    \b
+      $ code-explorer search "resolve_call" PATH --fuzzy
+        -> same, typo-tolerant (matches resolve_calls, resolv_call)
+    \b
+      $ code-explorer impact auth.py:refresh_token PATH
+        -> the same bundle for a seed you name, minus the results table:
+           Ranked neighbourhood table (Hops|Direction|File|Name|Line) + source
+    \b
+      $ code-explorer analyze PATH
+        -> progress bar, "Graph persisted to: PATH/.code-explorer/graph.db",
+           then a Performance Metrics panel of per-stage timings
+    \b
+      $ code-explorer trace module.py:42 --variable user_input
+        -> "Tracing 'user_input' from module.py:42" + a Direction|Location|Line
+           table, or "No data flow found."
+    \b
+      $ code-explorer stats
+        -> a Codebase Statistics panel (files, functions, classes, edges)
+           and a Most-called functions table
+    \b
+      $ code-explorer visualize module.py --output graph.md
+        -> "Diagram saved to: graph.md", holding a Mermaid `graph TD` of
+           caller/callee edges that GitHub and VS Code render inline
 
     Example:
 

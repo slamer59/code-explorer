@@ -7,9 +7,24 @@ it, and writing the file is the part a user actually consumes.
 from collections import Counter
 
 from code_explorer.unresolved_report import (
+    _bucket,
     project_modules_from_files,
     write_report,
 )
+
+
+def test_bucket_separates_receiver_calls_from_missing_imports():
+    """The 97% "no import resolved" bucket is mostly duck-typed method calls."""
+    project = frozenset({"pkg"})
+    assert (
+        _bucket("", "execute", project, "discipline")
+        == "method on a receiver of unknown type"
+    )
+    # `self.foo()` is the resolver's own gap, not a receiver-type problem.
+    assert _bucket("", "helper", project, "self") == "no import resolved"
+    assert _bucket("", "len", project, "") == "no import resolved"
+    assert _bucket("pkg.mod", "Thing", project, "") == "project code (resolution gap)"
+    assert _bucket("numpy", "array", project, "np") == "external library"
 
 
 def test_project_modules_includes_parent_packages():

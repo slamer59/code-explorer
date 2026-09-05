@@ -117,6 +117,10 @@ def unresolved_references(results, project_root: Path, scope, index):
         )
 
     resolved = 0
+    # (caller_id, target_id) already carried by a resolved CALLS edge -- used
+    # to ask whether a new duck-typed edge adds reachability or duplicates a
+    # hop the graph already has.
+    resolved_pairs: set = set()
     pending = references
     for finalize in (False, True):
         batch, pending = pending, []
@@ -124,9 +128,10 @@ def unresolved_references(results, project_root: Path, scope, index):
             target, method = resolve_one(reference, finalize=finalize)
             if target is not None and method is not None:
                 resolved += 1
+                resolved_pairs.add((reference["caller_id"], target["id"]))
             else:
                 pending.append(reference)
-    return len(references), resolved, pending
+    return len(references), resolved, pending, resolved_pairs
 
 
 # ---------------------------------------------------------------- signals
@@ -272,7 +277,9 @@ def main() -> None:
     console.print(f"parsed {len(results):,} files in {time.perf_counter() - t0:.1f}s")
 
     scope, index, info_by_id = build(results, root)
-    total, resolved, pending = unresolved_references(results, root, scope, index)
+    total, resolved, pending, resolved_pairs = unresolved_references(
+        results, root, scope, index
+    )
     console.print(
         f"[cyan]{total:,}[/cyan] internal references: "
         f"[green]{resolved:,}[/green] resolved, [yellow]{len(pending):,}[/yellow] not"
@@ -394,6 +401,18 @@ def main() -> None:
             if function.parent_class:
                 methods_by_site[(rel, function.parent_class)].add(function.name)
 
+    class_id_by_name: Dict[str, List[str]] = defaultdict(list)
+    for analysis in results:
+        for class_info in analysis.classes:
+            class_id_by_name[class_info.name].append(
+                make_class_id(
+                    analysis.file_path,
+                    class_info.name,
+                    class_info.start_line,
+                    root,
+                )
+            )
+
     def target_for(type_name: str, method: str) -> str:
         """Walk `type_name` and its bases by name; report what we'd resolve to.
 
@@ -430,6 +449,8 @@ def main() -> None:
     evidence: Counter = Counter()
     evidence_small: Counter = Counter()
     outcome: Counter = Counter()
+    redundancy: Counter = Counter()
+    novel_pairs: set = set()
     new_pairs: set = set()
     direct_pairs: set = set()
     for reference in method_refs:
@@ -449,6 +470,21 @@ def main() -> None:
                 new_pairs.add((reference["caller_id"], type_name, name))
                 if verdict == "resolved":
                     direct_pairs.add((reference["caller_id"], type_name, name))
+                # Does the caller already reach that class directly? If it
+                # constructed it, the CALLS edge to the Class node is already
+                # there, and the new edge is a shortcut past one hop rather
+                # than new reachability.
+                ids = class_id_by_name.get(type_name, [])
+                already = any(
+                    (reference["caller_id"], cid) in resolved_pairs for cid in ids
+                )
+                redundancy[
+                    f"{kind}: caller already reaches the class"
+                    if already
+                    else f"{kind}: new reachability"
+                ] += 1
+                if not already:
+                    novel_pairs.add((reference["caller_id"], type_name, name))
 
     table = Table(title="(3a) receiver evidence on method-naming references")
     table.add_column("evidence")
@@ -465,10 +501,18 @@ def main() -> None:
         table.add_row(kind, f"{count:,}")
     console.print(table)
 
+    table = Table(title="(3c) is the new edge new reachability, or a shortcut?")
+    table.add_column("outcome")
+    table.add_column("count", justify="right")
+    for kind, count in redundancy.most_common():
+        table.add_row(kind, f"{count:,}")
+    console.print(table)
+
     console.print(
         f"[bold]distinct new CALLS edges[/bold]: {len(direct_pairs):,} "
         f"(method on the named class itself) / {len(new_pairs):,} "
-        f"(also walking base classes)"
+        f"(also walking base classes); of those, "
+        f"{len(novel_pairs):,} reach a class the caller does not already call"
     )
 
     table = Table(title="top unresolved method names")

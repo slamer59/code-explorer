@@ -22,7 +22,12 @@ _MAX_RECORDS = 20_000
 _PAGE = 1_000
 
 
-def _bucket(target_module: str, called_name: str, project_modules: frozenset) -> str:
+def _bucket(
+    target_module: str,
+    called_name: str,
+    project_modules: frozenset,
+    qualifier: str = "",
+) -> str:
     """Classify one unresolved target.
 
     HYPOTHESIS: a target whose module resolves to a project package is a
@@ -30,8 +35,23 @@ def _bucket(target_module: str, called_name: str, project_modules: frozenset) ->
     stdlib call the graph is never going to contain. Measured on the reference
     corpus, that split was ~25% internal / ~75% external among references that
     carried a module at all.
+
+    The no-module case is split further by whether the call had a receiver,
+    because "no import resolved" on its own is misleading: on the 2,103-file
+    gemseo corpus it covered 7,527 of 7,733 unresolved references (97%), and
+    a measurement of that bucket (perfo/benchmark_duck_typing.py) found 87%
+    of it to be `obj.method()` on a receiver whose type is unknown -- not a
+    missing import at all. Splitting them here is the difference between "the
+    import resolver has a 97% hole" (false) and "the resolver is fine, we
+    have no receiver types" (true).
+
+    What this can get wrong: it keys off the *presence* of a qualifier, not
+    its type, so `self.x.run()` and `numpy.linalg.norm()` both land in the
+    receiver bucket. It is a shape hint, not a classification of the target.
     """
     if not target_module:
+        if qualifier and qualifier != "self":
+            return "method on a receiver of unknown type"
         return "no import resolved"
     root = target_module.split(".")[0]
     if target_module in project_modules or root in project_modules:
@@ -70,7 +90,9 @@ def summarize_unresolved(
             seen += 1
             module = payload.get("target_module") or ""
             name = payload.get("target_name") or payload.get("called_name") or "?"
-            buckets[_bucket(module, name, project_modules)] += 1
+            buckets[
+                _bucket(module, name, project_modules, payload.get("qualifier") or "")
+            ] += 1
             targets[f"{module}.{name}" if module else name] += 1
         after = records[-1].sequence
 

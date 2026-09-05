@@ -1011,7 +1011,7 @@ def impact(
                 )
         console.print(table)
     else:
-        console.print(ctx.to_markdown())
+        console.print(ctx.to_markdown(), markup=False)
 
     n = sum(len(s.nodes) for s in ctx.resolved_sections())
     console.print(
@@ -1232,7 +1232,7 @@ def search(
                                 "Context", f"Exact match: {exact_file}::{exact_name}"
                             )
                         )
-                        console.print(ctx.to_markdown())
+                        console.print(ctx.to_markdown(), markup=False)
                     except (ValueError, FileNotFoundError) as e:
                         console.print(f"[yellow]Could not assemble context:[/yellow] {e}")
                 _close_all()
@@ -1320,7 +1320,7 @@ def search(
                     "Context", f"Top hit: {top.file}::{top.name} ({top.node_type})"
                 )
             )
-            console.print(ctx.to_markdown())
+            console.print(ctx.to_markdown(), markup=False)
         except (ValueError, FileNotFoundError) as e:
             console.print(f"[yellow]Could not assemble context for top hit:[/yellow] {e}")
 

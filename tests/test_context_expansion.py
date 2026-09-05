@@ -76,16 +76,35 @@ def test_expand_reaches_past_the_first_hop_with_true_distances(temp_dir):
 def test_budget_degrades_to_signatures_instead_of_cutting_source(temp_dir):
     graph = _ingest(temp_dir, "chain.py", CHAIN)
 
-    # ~90 tokens of body per node: enough for one, not for three.
-    ctx = ContextAssembler(graph).expand("chain.py", "a", depth=3, token_budget=150)
+    # ~90 tokens of body per node: enough for one, not for three. Distance
+    # grading is disabled so the budget alone does the degrading here.
+    ctx = ContextAssembler(graph).expand(
+        "chain.py", "a", depth=3, token_budget=150, full_source_distance=3
+    )
 
     abridged = [n for n in ctx.callees if n.abridged]
     assert abridged, "budget should have forced at least one node to a signature"
     for node in abridged:
         assert node.source_code.startswith("def ")
-        assert "body omitted (token budget)" in node.source_code
+        assert "body omitted" in node.source_code
         # Degraded, not cut mid-function: no partial statement survives.
         assert "x19 = 19" not in node.source_code
+
+
+def test_nodes_beyond_the_first_hop_render_as_signature_only(temp_dir):
+    graph = _ingest(temp_dir, "chain.py", CHAIN)
+
+    ctx = ContextAssembler(graph).expand("chain.py", "a", depth=3)
+
+    nodes = {n.name: n for n in ctx.callees}
+    # The direct neighbour keeps its full body ...
+    assert nodes["b"].abridged is False
+    assert "return c()" in nodes["b"].source_code
+    # ... while anything further out is described by signature, not dumped.
+    assert nodes["c"].abridged is True
+    assert nodes["d"].abridged is True
+    assert "body omitted" in nodes["c"].source_code
+    assert "x19 = 19" not in nodes["c"].source_code
 
 
 HUB = (

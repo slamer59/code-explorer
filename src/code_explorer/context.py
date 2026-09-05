@@ -1,28 +1,42 @@
-"""Minimal LLM context assembly for a single function or class.
+"""LLM context assembly for a single function or class.
 
-A small, bounded companion to ImpactAnalyzer (impact.py): given a seed
-function, returns the seed itself plus its direct (one-hop) callers and
-callees, each with source code attached, capped to a node budget. This is
-NOT transitive/multi-hop impact analysis -- see ImpactAnalyzer for that.
+Given a seed, returns the seed itself plus the code that influences it and
+the code it influences -- collected to depth 2-3, ranked as one set, and
+rendered under a token budget. This is the engine behind both `search`
+(find a seed, then expand) and `impact` (expand a seed you already named).
 
-A Class seed gets the same shape with the class-flavoured analogue of each
-neighbourhood: instantiation sites (incoming CALLS edges -- call resolution
-now targets Class nodes for constructor calls, see
+Collect-then-rank, not beam search. expand() walks the reachable set to
+`depth` *without* pruning the frontier level by level, then ranks the whole
+set at once, so a depth-3 node can legitimately outrank a depth-1 one.
+Pruning per level is myopic: a dull direct neighbour is very often the only
+path to the most relevant node two hops out. This is affordable only
+because of a cost asymmetry we measured: traversing edges is cheap
+(get_call_edges_with_lines, ~1.1ms per hop) while fetching source is a disk
+read per node -- so expand() traverses wide, ranks, and reads source only
+for the winners.
+
+The older one-hop entry points (assemble_context / assemble_class_context)
+are still here: a Class seed's neighbourhoods are structural (methods,
+bases, subclasses), not call-graph paths, so multi-hop isn't defined for
+them and expand() delegates that case unchanged.
+
+That Class seed gets the class-flavoured analogue of each neighbourhood:
+instantiation sites (incoming CALLS edges -- call resolution now targets
+Class nodes for constructor calls, see
 LatticeBackend.find_symbols_by_properties), its methods, its base classes
 and its subclasses. Verified on a 2-file fixture: a `Widget(label)` call
 site really does produce a CALLS edge whose target is the Class node.
 
-Ranked #2 (tied with BM25 search) in docs/explanation/latticedb-migration.md's
-"Implementation Status" section, for the explicit goal of giving an LLM "a
-real nice context" from a single seed, per that spec's Section 18 (LLM
-Context Strategy). Deliberately minimal per that ranking: one hop, a node
-cap, source attached -- no confidence scoring, no multi-hop expansion, no
-runtime/config evidence, no byte-budget trimming.
+Serves the goal in docs/explanation/latticedb-migration.md's Section 18
+(LLM Context Strategy): one command that gives an LLM "a real nice context"
+from a single seed, in place of a grep loop.
 """
 
+import math
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
+from .analyzer.export_parquet import make_class_id, make_function_id
 from .graph import DependencyGraph
 from .source_provider import FilesystemSourceProvider, SourceProvider
 
@@ -31,6 +45,67 @@ from .source_provider import FilesystemSourceProvider, SourceProvider
 # widening of an inherently approximate lookup (see _subclass_rows), not a
 # search feature, and every hit costs one indexed name lookup.
 _SUBCLASS_PROBE_LIMIT = 25
+
+# Rough token estimate: ~4 characters per token. Deliberately not a real
+# tokenizer -- adding tiktoken/transformers as a dependency to budget a
+# code bundle isn't worth it. What this can get wrong: dense code with many
+# short symbols tokenizes worse than 4 chars/token, so a bundle sized at
+# the budget can overshoot by roughly 10-25% on code-heavy input. Treat the
+# budget as a target, not a hard ceiling.
+_CHARS_PER_TOKEN = 4
+
+# Per-node markdown overhead (heading + fences + blank line), in tokens.
+_NODE_OVERHEAD_TOKENS = 12
+
+# Depth 3 rather than 2 because the measurement below says the third hop is
+# nearly free on an accurately-resolved graph: on gemseo's LatticeDB index
+# the median seed reaches 2 nodes at depth 2 and still only 2 at depth 3
+# (p90: 10 -> 11), for 8ms of traversal. Depth 2 would leave that recall on
+# the table for no saving. The token budget, not the depth, is what bounds
+# the bundle.
+DEFAULT_DEPTH = 3
+DEFAULT_TOKEN_BUDGET = 12_000
+
+# Skip expanding *through* a node with more than this many edges in the
+# direction being followed; the node itself is still returned as a result.
+#
+# Measured, not guessed: perfo/benchmark_fanout.py over seeds sampled from
+# gemseo's 11,416 Function nodes (2,103 files). Reachable-set size,
+# median / p90 / max.
+#
+# On the SQLite index (naive CallResolver, 338,072 CALLS edges, 40 seeds):
+#
+#            depth 1        depth 2          depth 3
+#   no cap   2 / 36 / 518   8 /  534 / 1083  14 / 1187 / 1664
+#   cap 20   2 / 36 / 518   4 /  118 /  727   4 /  239 /  897
+#   cap 60   2 / 36 / 518   6 /  244 /  758  14 /  593 /  946
+#   cap 150  2 / 36 / 518   6 /  264 /  758  14 /  754 /  959
+#
+# On the LatticeDB index (import-aware resolution, ~22x fewer and far more
+# accurate CALLS edges, 20 seeds):
+#
+#            depth 1       depth 2       depth 3
+#   no cap   1 / 5 / 11    2 / 10 / 19   2 / 11 / 19
+#   cap 60   1 / 5 / 11    2 / 10 / 19   2 / 11 / 19   (identical -- no-op)
+#
+# What the data says, and it is not what was expected. Hub explosion is a
+# symptom of *spurious* edges, not of real code: on the accurate graph the
+# worst seed of 20 reaches 19 nodes at depth 3 and the cap never fires at
+# all. On the naive graph it fires hard -- the p90 seed reaches 1,187
+# nodes, a tenth of every function in the repo, which says nothing about
+# the seed. So the guard is kept, but as insurance for the sqlite backend
+# (and for any future corpus with genuine god-functions), not as the load-
+# bearing mechanism it was assumed to be.
+#
+# 60 rather than something tighter because a tight cap prunes ordinary
+# code, not hubs: 20 cuts the sqlite p90 from 1,187 to 239 but also guts
+# the *median* seed there, 14 -> 4. 60 leaves the median untouched at every
+# depth on both backends and still halves the p90.
+#
+# It is a threshold on fan-out in the direction being followed, not on
+# importance: a 300-caller helper like a logger is still returned when it
+# is a neighbour, it just doesn't drag its 300 callers in behind it.
+DEFAULT_HUB_DEGREE = 60
 
 
 @dataclass
@@ -41,6 +116,14 @@ class ContextNode:
     file: str
     line_number: int
     source_code: str
+    # Hops from the seed. 0 for the seed, 1 for a direct neighbour. Left at
+    # 1 by the one-hop assemblers, which only ever produce direct neighbours.
+    distance: int = 1
+    # True when the token budget ran out and `source_code` holds only the
+    # signature + first docstring line instead of the body (see
+    # _fill_sources): degrading beats truncating mid-function, which yields
+    # code an LLM will read as complete and isn't.
+    abridged: bool = False
 
 
 @dataclass
@@ -95,7 +178,11 @@ class CodeContext:
             lines.append(f"{section.title}:")
             if section.nodes:
                 for c in section.nodes:
-                    lines.append(f"    {c.name} ({c.file}:{c.line_number})")
+                    hops = f" [{c.distance} hop{'s' if c.distance != 1 else ''}]" if c.distance > 1 else ""
+                    abridged = " (signature only -- token budget)" if c.abridged else ""
+                    lines.append(
+                        f"    {c.name} ({c.file}:{c.line_number}){hops}{abridged}"
+                    )
             else:
                 lines.append("    (none)")
             if section.truncated:
@@ -112,13 +199,73 @@ class CodeContext:
 
         for section in sections:
             for c in section.nodes:
-                lines.append(f"### {c.file}::{c.name} ({section.role})")
+                suffix = section.role
+                if c.distance > 1:
+                    suffix += f", {c.distance} hops"
+                if c.abridged:
+                    suffix += ", signature only"
+                lines.append(f"### {c.file}::{c.name} ({suffix})")
                 lines.append("```python")
                 lines.append(c.source_code)
                 lines.append("```")
                 lines.append("")
 
         return "\n".join(lines)
+
+
+@dataclass
+class ReachedNode:
+    """One node found while traversing out from the seed, before ranking.
+
+    Carries only what traversal already handed us for free -- no source
+    (that's a disk read, deferred until after ranking) and no extra query.
+    """
+
+    node_id: str
+    label: str  # "Function" or "Class"
+    name: str
+    file: str
+    call_line: int
+    start_line: int
+    end_line: int
+    distance: int
+    direction: str  # "caller" (upstream) or "callee" (downstream)
+    # Fan-out of this node, filled in only if we actually expanded it (a
+    # node found at max depth is never expanded, so its degree stays 0 --
+    # see _centrality_signal for what that costs the ranking).
+    in_degree: int = 0
+    out_degree: int = 0
+    score: float = 0.0
+
+
+def _estimate_tokens(text: str) -> int:
+    """len/4, see _CHARS_PER_TOKEN."""
+    return len(text) // _CHARS_PER_TOKEN
+
+
+def _signature_of(source_code: str) -> str:
+    """Signature + first docstring line, for a node degraded by the budget.
+
+    A local re-implementation rather than an import of ingest.py's
+    _signature_text: that one exists to build BM25 text and doesn't carry
+    the docstring, and ingest.py is another module's concern. Same cheap
+    rule -- join lines until one ends in ':' -- plus the first docstring
+    line, which is usually the single most informative line for a reader
+    deciding whether to go look at the body.
+    """
+    lines = source_code.splitlines()
+    out: List[str] = []
+    for line in lines[:20]:
+        out.append(line.rstrip())
+        if line.rstrip().endswith(":"):
+            break
+    for line in lines[len(out) : len(out) + 3]:
+        stripped = line.strip()
+        if stripped.startswith(('"""', "'''", '"', "'")):
+            out.append(line.rstrip())
+            break
+    out.append("    ...  # body omitted (token budget)")
+    return "\n".join(out)
 
 
 class ContextAssembler:
@@ -446,3 +593,336 @@ class ContextAssembler:
                 )
             )
         return nodes
+
+    # ---- Multi-hop expansion ------------------------------------------
+    #
+    # Collect to `depth`, rank the whole set, then read source only for the
+    # winners. See the module docstring for why the frontier is NOT pruned
+    # level by level.
+
+    def _neighbour_id(self, file: str, name: str, start_line: int, label: str) -> str:
+        """Canonical id of a node we only know by (file, name, start_line).
+
+        get_call_edges_with_lines returns neighbours as tuples, not ids, so
+        multi-hop traversal needs an id to keep walking. Rather than pay a
+        lookup query per neighbour (which is what would make wide traversal
+        expensive), we recompute the id: it is a pure sha256 of
+        "rel_file::name::start_line" (analyzer/export_parquet.make_function_id),
+        and every writer -- generic ingest, the streaming path, the Kuzu
+        bulk loader -- goes through those same two helpers.
+
+        The hypothesis, stated because it is a real coupling: if some future
+        ingest path ever mints ids differently, expansion silently stops at
+        depth 1 (the recomputed id matches nothing) instead of erroring.
+        perfo/benchmark_fanout.py catches that -- a broken id scheme shows
+        up immediately as depth-2 sets no bigger than depth-1 ones.
+        """
+        make = make_class_id if label == "Class" else make_function_id
+        return make(file, name, start_line, self.graph.project_root)
+
+    def _edges(self, node_id: str, label: str):
+        """(callers, callees) for one node, tolerating backends whose
+        get_call_edges_with_lines predates the `label` parameter."""
+        try:
+            return self.graph.backend.get_call_edges_with_lines(node_id, label=label)
+        except TypeError:
+            if label != "Function":
+                return [], []
+            return self.graph.backend.get_call_edges_with_lines(node_id)
+        except Exception:
+            # One unreachable node shouldn't abort a bundle -- same
+            # best-effort stance as _resolve_nodes.
+            return [], []
+
+    def collect(
+        self,
+        seed_id: str,
+        seed_label: str = "Function",
+        depth: int = DEFAULT_DEPTH,
+        direction: str = "both",
+        hub_degree: int = DEFAULT_HUB_DEGREE,
+    ) -> List[ReachedNode]:
+        """Breadth-first reachable set out to `depth`, both directions.
+
+        Expansion is direction-pure: a node reached by following callers
+        only ever expands its own callers. Mixing directions mid-path would
+        return "callees of my callers" -- siblings, which are usually
+        unrelated and which multiply the frontier by in-degree x out-degree
+        per level. Keeping paths pure preserves the two things the caller
+        actually asked for: what influences the seed, and what it influences.
+
+        hub_degree caps expansion *through* a node, never its inclusion --
+        see DEFAULT_HUB_DEGREE for the measurement behind the number.
+        """
+        want_up = direction in ("both", "upstream")
+        want_down = direction in ("both", "downstream")
+
+        best: Dict[str, ReachedNode] = {}
+        seen: set = {(seed_id, "caller"), (seed_id, "callee")}
+
+        seed_callers, seed_callees = self._edges(seed_id, seed_label)
+        pending: List[tuple] = []
+        if want_up:
+            pending.extend((*row, "caller") for row in seed_callers)
+        if want_down:
+            pending.extend((*row, "callee") for row in seed_callees)
+
+        # Level by level, so `distance` is the true shortest hop count: the
+        # first time a node is seen is necessarily via a shortest path.
+        for dist in range(1, depth + 1):
+            next_pending: List[tuple] = []
+            for file, name, call_line, start_line, end_line, arrow in pending:
+                if start_line is None or end_line is None:
+                    continue  # an external-symbol endpoint: no source to show
+                node_id = self._neighbour_id(file, name, start_line, "Function")
+                if (node_id, arrow) in seen:
+                    continue
+                seen.add((node_id, arrow))
+                node = ReachedNode(
+                    node_id=node_id,
+                    label="Function",
+                    name=name,
+                    file=file,
+                    call_line=call_line if call_line is not None else start_line,
+                    start_line=start_line,
+                    end_line=end_line,
+                    distance=dist,
+                    direction=arrow,
+                )
+                # A node reachable both ways (mutual recursion, or a helper
+                # that both calls and is called by the seed's neighbourhood)
+                # keeps whichever side found it first -- i.e. the shorter path.
+                if node_id not in best:
+                    best[node_id] = node
+                if dist >= depth:
+                    continue
+                callers, callees = self._edges(node_id, "Function")
+                node.in_degree = len(callers)
+                node.out_degree = len(callees)
+                rows = callers if arrow == "caller" else callees
+                fan_out = node.in_degree if arrow == "caller" else node.out_degree
+                if hub_degree and fan_out > hub_degree:
+                    continue  # hub: keep the node, don't expand through it
+                next_pending.extend((*row, arrow) for row in rows)
+            pending = next_pending
+            if not pending:
+                break
+        return list(best.values())
+
+    def _bm25_scores(self, query: Optional[str], probe: int = 100) -> Dict[str, float]:
+        """{node_id: normalized BM25 score} for the query, or {} without one.
+
+        One search call, not one per node: BM25 can only tell us about the
+        nodes it ranks, so anything outside the top `probe` simply gets no
+        query signal (score 0) rather than a wrong one. `probe` is much
+        larger than the search command's own --limit on purpose -- a depth-2
+        neighbour that BM25 ranked 40th is exactly the case this is for.
+        """
+        if not query:
+            return {}
+        try:
+            hits = self.graph.backend.search_text(query, limit=probe)
+        except Exception:
+            # No FTS engine (Kuzu) or no index built -- expansion still
+            # works, it just ranks on graph signals alone.
+            return {}
+        if not hits:
+            return {}
+        top = max(h.score for h in hits) or 1.0
+        return {h.node_id: max(h.score, 0.0) / top for h in hits}
+
+    @staticmethod
+    def _centrality_signal(in_degree: int) -> float:
+        """log-scaled in-degree, 0..1, saturating around 20 callers.
+
+        Deliberately a small term in the score. In-degree is an ambiguous
+        signal: a function several places call is more likely to matter to
+        a reader than one nothing calls, but at the extreme it inverts --
+        everything calls log(), and log() tells you nothing about the seed.
+        That inverted end is handled structurally by the hub cap rather
+        than by the score, so this stays a gentle nudge. Nodes we never
+        expanded have in_degree 0 and get nothing here: that under-rates
+        the deepest level, which is acceptable since distance already ranks
+        it last anyway.
+        """
+        return min(math.log1p(in_degree) / math.log1p(20), 1.0)
+
+    def rank(
+        self, nodes: List[ReachedNode], query: Optional[str] = None
+    ) -> List[ReachedNode]:
+        """Score the whole collected set at once and sort it, best first.
+
+        score = 1/(1+distance) + 0.6*bm25 + 0.15*centrality
+
+        Weights are a judgement call, not a fit. Distance dominates (a
+        direct neighbour beats a two-hop one, all else equal) but 0.6 of
+        BM25 is enough for a strong query match at depth 2 (1/3 + 0.6 =
+        0.93) to outrank a depth-1 node with no query signal (0.5) -- which
+        is the entire point of collecting first and ranking after. Weighted
+        below ~0.34, no depth-2 node could ever overtake a depth-1 one and
+        this would be beam search with extra steps.
+
+        Not used, and worth stating: CALLS edges carry only call_line today
+        (graph/ingest.py), so edge confidence / resolution_method are not
+        available to this ranking without a backend change.
+        """
+        bm25 = self._bm25_scores(query)
+        for node in nodes:
+            node.score = (
+                1.0 / (1 + node.distance)
+                + 0.6 * bm25.get(node.node_id, 0.0)
+                + 0.15 * self._centrality_signal(node.in_degree)
+            )
+        return sorted(nodes, key=lambda n: (-n.score, n.distance, n.file, n.name))
+
+    def _fill_sources(self, ranked: List[ReachedNode], token_budget: int):
+        """Read source for as many ranked nodes as the budget allows.
+
+        The only place this walk touches disk, and it walks in rank order,
+        so the expensive operation is paid for winners only -- the cost
+        asymmetry the whole design rests on (see the module docstring).
+
+        Degrade, don't truncate: once a node's full source doesn't fit, it
+        and everything after it are rendered as signature + docstring line.
+        A mid-function cut would hand an LLM code that reads as complete and
+        isn't. Stops entirely when even a signature no longer fits.
+
+        Returns (kept, dropped) where kept is [(node, source, abridged)].
+        """
+        kept: List[Tuple[ReachedNode, str, bool]] = []
+        spent = 0
+        degraded = False
+        for i, node in enumerate(ranked):
+            try:
+                source = self.source_provider.get_range(
+                    node.file, node.start_line, node.end_line
+                )
+            except (ValueError, FileNotFoundError) as e:
+                source = f"(could not read source: {e})"
+            cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
+            if degraded or spent + cost > token_budget:
+                degraded = True
+                source = _signature_of(source)
+                cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
+                if spent + cost > token_budget:
+                    return kept, len(ranked) - i
+            spent += cost
+            kept.append((node, source, degraded))
+        return kept, 0
+
+    def expand(
+        self,
+        file: str,
+        name: str,
+        node_type: str = "Function",
+        depth: int = DEFAULT_DEPTH,
+        token_budget: int = DEFAULT_TOKEN_BUDGET,
+        query: Optional[str] = None,
+        direction: str = "both",
+        hub_degree: int = DEFAULT_HUB_DEGREE,
+    ) -> CodeContext:
+        """Collect to `depth`, rank, and render under `token_budget`.
+
+        The single expansion engine behind both `search` (which finds the
+        seed first) and `impact` (which is handed one). `query`, when the
+        seed came from a search, feeds BM25 relevance into the ranking.
+
+        A Class seed delegates to assemble_class_context: its
+        neighbourhoods are structural (methods, bases, subclasses), so
+        "two hops away" isn't a defined thing there. The token budget is
+        applied to that bundle too.
+
+        Raises:
+            ValueError: if the seed isn't in the index.
+            FileNotFoundError: if the seed's file can't be read from disk.
+        """
+        if node_type == "Class":
+            return self._apply_budget(
+                self.assemble_class_context(file, name), token_budget
+            )
+
+        rel_file = self.graph._to_relative_path(file)
+        rows = self.graph.backend.query(
+            "MATCH (f:Function {file: $file, name: $name}) "
+            "RETURN f.id AS id, f.start_line AS start_line, f.end_line AS end_line "
+            "ORDER BY f.start_line ASC LIMIT 1",
+            {"file": rel_file, "name": name},
+        )
+        if not rows:
+            raise ValueError(f"Function not found: {file}::{name}")
+        seed_row = rows[0]
+        seed = ContextNode(
+            name=name,
+            file=rel_file,
+            line_number=seed_row["start_line"],
+            source_code=self.source_provider.get_range(
+                rel_file, seed_row["start_line"], seed_row["end_line"]
+            )
+            or "",
+            distance=0,
+        )
+
+        reached = self.collect(
+            seed_row["id"],
+            "Function",
+            depth=depth,
+            direction=direction,
+            hub_degree=hub_degree,
+        )
+        ranked = self.rank(reached, query=query)
+        # The seed's own source is never negotiable -- it is the thing being
+        # asked about -- so it comes off the budget before anything else.
+        remaining = max(token_budget - _estimate_tokens(seed.source_code), 0)
+        kept, dropped = self._fill_sources(ranked, remaining)
+
+        up: List[ContextNode] = []
+        down: List[ContextNode] = []
+        for node, source, abridged in kept:
+            ctx_node = ContextNode(
+                name=node.name,
+                file=node.file,
+                line_number=node.call_line,
+                source_code=source,
+                distance=node.distance,
+                abridged=abridged,
+            )
+            (up if node.direction == "caller" else down).append(ctx_node)
+
+        dropped_nodes = ranked[len(kept):]
+        n_up_dropped = sum(1 for n in dropped_nodes if n.direction == "caller")
+        sections = [
+            ContextSection(
+                f"Upstream -- what calls this (<= {depth} hops)",
+                "caller",
+                up,
+                n_up_dropped,
+            ),
+            ContextSection(
+                f"Downstream -- what this calls (<= {depth} hops)",
+                "callee",
+                down,
+                len(dropped_nodes) - n_up_dropped,
+            ),
+        ]
+        return CodeContext(seed=seed, callers=up, callees=down, sections=sections)
+
+    def _apply_budget(self, ctx: CodeContext, token_budget: int) -> CodeContext:
+        """Degrade an already-assembled bundle's nodes to signatures once the
+        budget runs out.
+
+        Used for the Class path, whose sections come from structural queries
+        rather than from rank order, so there is nothing to rank and the
+        source has already been read. Same degrade-don't-truncate rule.
+        """
+        spent = _estimate_tokens(ctx.seed.source_code)
+        degraded = False
+        for section in ctx.resolved_sections():
+            for node in section.nodes:
+                cost = _estimate_tokens(node.source_code) + _NODE_OVERHEAD_TOKENS
+                if degraded or spent + cost > token_budget:
+                    degraded = True
+                    node.source_code = _signature_of(node.source_code)
+                    node.abridged = True
+                    cost = _estimate_tokens(node.source_code) + _NODE_OVERHEAD_TOKENS
+                spent += cost
+        return ctx

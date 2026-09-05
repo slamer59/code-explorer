@@ -7,9 +7,11 @@ Run locally with:
 
 Parses DIR (defaults to this repo's own src/code_explorer), ingests into a
 fresh KuzuBackend, picks the most-called function as the seed (same pattern
-as perfo/index_with_lattice.py and perfo/benchmark_backends.py), times
-ContextAssembler.assemble_context(), and prints the rendered markdown so the
-actual output quality can be inspected, not just a timing number.
+as perfo/index_with_lattice.py and perfo/benchmark_backends.py), times both
+the one-hop assemble_context() and the collect-then-rank expand(), and
+prints the rendered markdown so the actual output quality can be inspected,
+not just a timing number. See perfo/benchmark_fanout.py for the traversal
+cost and reachable-set curve that expand()'s depth/hub defaults come from.
 """
 
 import sys
@@ -20,7 +22,12 @@ from rich.console import Console
 
 from code_explorer.analyzer.base_analyzer import CodeAnalyzer
 from code_explorer.analyzer.call_resolver import CallResolver
-from code_explorer.context import ContextAssembler
+from code_explorer.context import (
+    DEFAULT_DEPTH,
+    DEFAULT_TOKEN_BUDGET,
+    ContextAssembler,
+    _estimate_tokens,
+)
 from code_explorer.graph.backends.kuzu_backend import KuzuBackend
 from code_explorer.graph.graph import DependencyGraph
 
@@ -62,17 +69,34 @@ def main() -> None:
         return
     seed = rows[0]
 
+    assembler = ContextAssembler(graph)
+
     t0 = time.perf_counter()
-    ctx = ContextAssembler(graph).assemble_context(seed["file"], seed["name"], max_nodes=20)
+    ctx = assembler.assemble_context(seed["file"], seed["name"], max_nodes=20)
     elapsed = (time.perf_counter() - t0) * 1000
 
     console.print(
-        f"[cyan]assemble_context[/cyan] for {seed['name']} ({seed['file']}): "
-        f"{elapsed:.1f}ms -- {1 + len(ctx.callers) + len(ctx.callees)} node(s), "
-        f"{ctx.callers_truncated + ctx.callees_truncated} truncated"
+        f"[cyan]assemble_context[/cyan] (one hop, 20-node cap) for {seed['name']} "
+        f"({seed['file']}): {elapsed:.1f}ms -- "
+        f"{1 + len(ctx.callers) + len(ctx.callees)} node(s), "
+        f"{ctx.callers_truncated + ctx.callees_truncated} truncated, "
+        f"~{_estimate_tokens(ctx.to_markdown())} tokens"
+    )
+
+    # The same seed through the collect-then-rank engine, for the comparison
+    # that actually matters: not "is it slower" (it collects more) but "what
+    # does the extra traversal buy inside the same token budget".
+    t0 = time.perf_counter()
+    wide = assembler.expand(seed["file"], seed["name"])
+    elapsed = (time.perf_counter() - t0) * 1000
+    n_wide = sum(len(s.nodes) for s in wide.resolved_sections())
+    console.print(
+        f"[cyan]expand[/cyan] (depth {DEFAULT_DEPTH}, {DEFAULT_TOKEN_BUDGET:,}-token "
+        f"budget): {elapsed:.1f}ms -- {1 + n_wide} node(s), "
+        f"~{_estimate_tokens(wide.to_markdown())} tokens"
     )
     console.print()
-    console.print(ctx.to_markdown())
+    console.print(wide.to_markdown())
 
     graph.backend.close()
 

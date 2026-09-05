@@ -185,6 +185,6 @@ def test_class_context_respects_the_node_budget(temp_dir):
     methods_section = next(s for s in ctx.resolved_sections() if s.title == "Methods")
     assert len(methods_section.nodes) == 1
     assert methods_section.truncated == 5  # 6 methods - 1 kept
-    assert "... 5 more not shown (node budget)" in ctx.to_markdown()
+    assert "... 5 more not shown (budget)" in ctx.to_markdown()
 
     graph.backend.close()

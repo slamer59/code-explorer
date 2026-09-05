@@ -47,11 +47,16 @@ from .source_provider import FilesystemSourceProvider, SourceProvider
 _SUBCLASS_PROBE_LIMIT = 25
 
 # Rough token estimate: ~4 characters per token. Deliberately not a real
-# tokenizer -- adding tiktoken/transformers as a dependency to budget a
-# code bundle isn't worth it. What this can get wrong: dense code with many
-# short symbols tokenizes worse than 4 chars/token, so a bundle sized at
-# the budget can overshoot by roughly 10-25% on code-heavy input. Treat the
-# budget as a target, not a hard ceiling.
+# tokenizer -- adding tiktoken/transformers as a dependency just to budget
+# a code bundle isn't worth it.
+#
+# What it gets wrong, measured: the budget covers per-node source plus
+# _NODE_OVERHEAD_TOKENS, but not the bundle's own listing header, so a
+# rendered bundle runs slightly over. On this repo's own index
+# (perfo/benchmark_context.py) a 12,000-token budget produced a bundle
+# estimated at 12,822 -- about +7%. Dense code with many short symbols also
+# tokenizes worse than 4 chars/token. Treat the budget as a target with
+# ~10% slack, not a hard ceiling.
 _CHARS_PER_TOKEN = 4
 
 # Per-node markdown overhead (heading + fences + blank line), in tokens.
@@ -186,7 +191,7 @@ class CodeContext:
             else:
                 lines.append("    (none)")
             if section.truncated:
-                lines.append(f"    ... {section.truncated} more not shown (node budget)")
+                lines.append(f"    ... {section.truncated} more not shown (budget)")
             lines.append("")
 
         lines.append("---")

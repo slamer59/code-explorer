@@ -117,8 +117,8 @@ code-explorer impact src/module.py:my_function
 # Find what this function calls (downstream dependencies)
 code-explorer impact src/module.py:my_function --downstream
 
-# Limit search depth for focused analysis
-code-explorer impact src/module.py:my_function --max-depth 3
+# Limit expansion depth for a focused, cheaper bundle
+code-explorer impact src/module.py:my_function --depth 2
 ```
 
 **Step 4: Trace Variable Data Flow**
@@ -221,7 +221,7 @@ code-explorer analyze ./src --db-path /path/to/custom/db
 
 # All subsequent commands must use the same path
 code-explorer stats --db-path /path/to/custom/db
-code-explorer impact src/module.py:func --db-path /path/to/custom/db
+# (impact reads the `search` index instead, under <path>/.code-explorer/)
 ```
 
 ### How to Use Read-Only Mode
@@ -329,25 +329,38 @@ code-explorer stats
 code-explorer stats --top 25
 ```
 
-#### `code-explorer impact <file:function>`
+#### `code-explorer impact <file:function> [path]`
 
-Finds function dependencies and impact analysis.
+Expands one named function into a context bundle: what calls it, what it
+calls, with source attached. Same engine as `search` -- `search` finds the
+seed from a query, `impact` is handed the seed.
+
+Reads the index `search` builds (`.code-explorer/graph.lattice`), building
+or updating it as needed. `trace`, `stats` and `visualize` still read
+`analyze`'s separate Kuzu graph.
 
 **Options:**
-- `--downstream` - Show what function calls (default: upstream/callers)
-- `--max-depth N` - Limit traversal depth (default: 5)
-- `--db-path PATH` - Custom database location
+- `--downstream` / `--upstream` - one direction only (default: both)
+- `--depth N` - hops to collect before ranking (default: 3)
+- `--budget N` - token budget for the bundle (default: 12,000); nodes past
+  it degrade to signatures rather than being cut mid-function
+- `--names-only` - list the ranked neighbourhood without reading source
+- `--backend {lattice,sqlite}` - which search index to use
+- `--reindex` - force a fresh index
 
 **Examples:**
 ```bash
-# Find who calls this function
+# What calls this, and what it calls
 code-explorer impact services/auth.py:validate_user
 
-# Find what this function calls
+# Only what this function calls
 code-explorer impact utils/helpers.py:process_data --downstream
 
-# Shallow search for immediate dependencies
-code-explorer impact main.py:run --max-depth 2
+# Tighter, cheaper bundle
+code-explorer impact main.py:run --depth 2 --budget 4000
+
+# Just the names -- no source reads at all
+code-explorer impact main.py:run --names-only
 ```
 
 #### `code-explorer trace <file:line> --variable <name>`
@@ -563,7 +576,7 @@ For runtime behavior analysis, complement Code Explorer with profiling tools.
 
 ```bash
 # Step 1: Find all usages before making changes
-code-explorer impact old_module.py:legacy_function --max-depth 10
+code-explorer impact old_module.py:legacy_function --depth 3
 
 # Step 2: Visualize the impact scope
 code-explorer visualize old_module.py --function legacy_function

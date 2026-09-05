@@ -139,8 +139,10 @@ def cli() -> None:
       code-explorer stats
       code-explorer visualize module.py --output graph.md
 
-    Example output (`search "refresh token"`):
+    Example:
 
+    \b
+      $ code-explorer search "refresh token" ./myproject
     \b
       +----------+---------------+---------+-------+
       | Type     | Name          | File    | Score |
@@ -282,8 +284,10 @@ def analyze(
       code-explorer analyze /path/to/project --exclude tests --exclude migrations
       code-explorer analyze ./src --refresh
 
-    Example output:
+    Example:
 
+    \b
+      $ code-explorer analyze ./myproject
     \b
       Analyzing files... ---------------------------------------- 100% 2/2
       Graph persisted to: /path/to/project/.code-explorer/graph.db
@@ -951,8 +955,10 @@ def impact(
       code-explorer impact main.py:main PATH --depth 2 --budget 4000
       code-explorer impact core/api.py:Client PATH --names-only
 
-    Example output (--names-only):
+    Example:
 
+    \b
+      $ code-explorer impact auth.py:issue_new_token ./myproject --names-only
     \b
       +----------------------------------------------------------------+
       | Impact: expanded context                                       |
@@ -1225,8 +1231,10 @@ def search(
       code-explorer search "resolve call" PATH --no-context --limit 10
       code-explorer search "parse file" PATH --depth 2 --budget 8000
 
-    Example output:
+    Example:
 
+    \b
+      $ code-explorer search "refresh token" ./myproject
     \b
       Search results for 'refresh token'
       ┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓
@@ -1459,8 +1467,10 @@ def trace(
       code-explorer trace module.py:42 --variable user_input
       code-explorer trace utils.py:15 --variable result
 
-    Example output:
+    Example:
 
+    \b
+      $ code-explorer trace module.py:42 --variable user_input
     \b
       Tracing 'user_input' from module.py:42
     \b
@@ -1600,8 +1610,10 @@ def stats(db_path: Optional[str], top: int) -> None:
       code-explorer stats --top 20
       code-explorer stats --db-path ./other/.code-explorer/graph.db
 
-    Example output:
+    Example:
 
+    \b
+      $ code-explorer stats
     \b
       +--------------- Codebase Statistics ---------------+
       |  Files            2,103                           |
@@ -1839,8 +1851,10 @@ def visualize(
       code-explorer visualize module.py --output graph.md
       code-explorer visualize utils.py --function process_data --max-depth 2
 
-    Example output:
+    Example:
 
+    \b
+      $ code-explorer visualize module.py --output graph.md
     \b
       Diagram saved to: graph.md
     \b

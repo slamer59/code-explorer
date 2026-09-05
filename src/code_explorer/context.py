@@ -800,14 +800,21 @@ class ContextAssembler:
             except (ValueError, FileNotFoundError) as e:
                 source = f"(could not read source: {e})"
             cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
+            abridged = False
             if degraded or spent + cost > token_budget:
                 degraded = True
-                source = _signature_of(source)
-                cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
+                abridged_source = _signature_of(source)
+                # A very short function can be *longer* once abridged (the
+                # "body omitted" marker outweighs a two-line body), so only
+                # take the degraded form when it actually saves something.
+                if len(abridged_source) < len(source):
+                    source = abridged_source
+                    abridged = True
+                    cost = _estimate_tokens(source) + _NODE_OVERHEAD_TOKENS
                 if spent + cost > token_budget:
                     return kept, len(ranked) - i
             spent += cost
-            kept.append((node, source, degraded))
+            kept.append((node, source, abridged))
         return kept, 0
 
     def expand(
@@ -928,8 +935,13 @@ class ContextAssembler:
                 cost = _estimate_tokens(node.source_code) + _NODE_OVERHEAD_TOKENS
                 if degraded or spent + cost > token_budget:
                     degraded = True
-                    node.source_code = _signature_of(node.source_code)
-                    node.abridged = True
-                    cost = _estimate_tokens(node.source_code) + _NODE_OVERHEAD_TOKENS
+                    abridged_source = _signature_of(node.source_code)
+                    if len(abridged_source) < len(node.source_code):
+                        node.source_code = abridged_source
+                        node.abridged = True
+                        cost = (
+                            _estimate_tokens(node.source_code)
+                            + _NODE_OVERHEAD_TOKENS
+                        )
                 spent += cost
         return ctx

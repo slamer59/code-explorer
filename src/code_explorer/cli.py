@@ -1340,6 +1340,12 @@ def trace(
     Shows where a variable is defined and how it flows through the code,
     helping track bugs and understand data dependencies.
 
+    NOTE: still reads `analyze`'s Kuzu graph (.code-explorer/graph.db), not
+    the search index. `impact` moved onto the search index (import-aware
+    call resolution, external-symbol boundaries); this command did not, so
+    the unification is deliberately partial -- do not assume the two
+    commands see the same graph.
+
     TARGET: Location in format "file.py:line_number"
 
     Examples:
@@ -1458,6 +1464,12 @@ def stats(db_path: Optional[str], top: int) -> None:
 
     Displays summary statistics including total files, functions, variables,
     and the most-called functions in the codebase.
+
+    NOTE: still reads `analyze`'s Kuzu graph (.code-explorer/graph.db), not
+    the search index. `impact` moved onto the search index (import-aware
+    call resolution, external-symbol boundaries); this command did not, so
+    the unification is deliberately partial -- do not assume the two
+    commands see the same graph.
 
     Examples:
         code-explorer stats
@@ -1667,6 +1679,12 @@ def visualize(
 
     Creates a visual representation of function dependencies in Mermaid format,
     which can be rendered in GitHub, VS Code, and other tools.
+
+    NOTE: still reads `analyze`'s Kuzu graph (.code-explorer/graph.db), not
+    the search index. `impact` moved onto the search index (import-aware
+    call resolution, external-symbol boundaries); this command did not, so
+    the unification is deliberately partial -- do not assume the two
+    commands see the same graph.
 
     TARGET: File to visualize (e.g., "module.py")
 

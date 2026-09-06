@@ -5,10 +5,10 @@
  "k": 10,
  "n_queries": 150,
  "expands": true,
- "index_ms": 15403.6,
+ "index_ms": 15669.5,
  "provenance": {
-  "utc": "2026-09-06T10:47:55+00:00",
-  "tool_sha": "1d81f6b8",
+  "utc": "2026-09-06T11:11:39+00:00",
+  "tool_sha": "4e12dfa2",
   "tool_dirty": true,
   "corpus_sha": "b3f4d83a",
   "host": "fedora5.home",
@@ -24,7 +24,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 2203,
-   "wall_ms": 446.8,
+   "wall_ms": 457.7,
    "mode": "BM25",
    "error": null
   },
@@ -35,7 +35,7 @@
    "n_seed": 4,
    "n_bundle": 1,
    "tokens": 80,
-   "wall_ms": 443.9,
+   "wall_ms": 448.3,
    "mode": "BM25",
    "error": null
   },
@@ -46,7 +46,7 @@
    "n_seed": 3,
    "n_bundle": 1,
    "tokens": 355,
-   "wall_ms": 453.4,
+   "wall_ms": 459.8,
    "mode": "BM25",
    "error": null
   },
@@ -57,7 +57,7 @@
    "n_seed": 2,
    "n_bundle": 7,
    "tokens": 4201,
-   "wall_ms": 450.6,
+   "wall_ms": 455.3,
    "mode": "BM25",
    "error": null
   },
@@ -68,7 +68,7 @@
    "n_seed": 8,
    "n_bundle": 1,
    "tokens": 363,
-   "wall_ms": 460.3,
+   "wall_ms": 467.4,
    "mode": "BM25",
    "error": null
   },
@@ -79,7 +79,7 @@
    "n_seed": 5,
    "n_bundle": 6,
    "tokens": 4193,
-   "wall_ms": 455.2,
+   "wall_ms": 466.4,
    "mode": "BM25",
    "error": null
   },
@@ -90,7 +90,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 4260,
-   "wall_ms": 455.5,
+   "wall_ms": 460.9,
    "mode": "BM25",
    "error": null
   },
@@ -101,7 +101,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 606,
-   "wall_ms": 459.3,
+   "wall_ms": 465.1,
    "mode": "BM25",
    "error": null
   },
@@ -112,7 +112,7 @@
    "n_seed": 6,
    "n_bundle": 1,
    "tokens": 374,
-   "wall_ms": 454.3,
+   "wall_ms": 455.6,
    "mode": "BM25",
    "error": null
   },
@@ -123,7 +123,7 @@
    "n_seed": 8,
    "n_bundle": 15,
    "tokens": 4252,
-   "wall_ms": 446.9,
+   "wall_ms": 452.9,
    "mode": "BM25",
    "error": null
   },
@@ -134,7 +134,7 @@
    "n_seed": 7,
    "n_bundle": 4,
    "tokens": 3645,
-   "wall_ms": 452.6,
+   "wall_ms": 461.4,
    "mode": "BM25",
    "error": null
   },
@@ -145,7 +145,7 @@
    "n_seed": 4,
    "n_bundle": 1,
    "tokens": 883,
-   "wall_ms": 463.2,
+   "wall_ms": 467.3,
    "mode": "BM25",
    "error": null
   },
@@ -156,7 +156,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 912,
-   "wall_ms": 455.9,
+   "wall_ms": 473.9,
    "mode": "BM25",
    "error": null
   },
@@ -167,7 +167,7 @@
    "n_seed": 6,
    "n_bundle": 2,
    "tokens": 338,
-   "wall_ms": 460.9,
+   "wall_ms": 469.3,
    "mode": "BM25",
    "error": null
   },
@@ -178,7 +178,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 1403,
-   "wall_ms": 459.1,
+   "wall_ms": 462.1,
    "mode": "BM25",
    "error": null
   },
@@ -200,7 +200,7 @@
    "n_seed": 6,
    "n_bundle": 3,
    "tokens": 836,
-   "wall_ms": 464.2,
+   "wall_ms": 468.6,
    "mode": "BM25",
    "error": null
   },
@@ -211,7 +211,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 1012,
-   "wall_ms": 448.8,
+   "wall_ms": 458.7,
    "mode": "BM25",
    "error": null
   },
@@ -222,7 +222,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 213,
-   "wall_ms": 457.0,
+   "wall_ms": 478.2,
    "mode": "BM25",
    "error": null
   },
@@ -233,7 +233,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 816,
-   "wall_ms": 468.4,
+   "wall_ms": 465.1,
    "mode": "BM25",
    "error": null
   },
@@ -244,7 +244,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 181,
-   "wall_ms": 484.4,
+   "wall_ms": 498.6,
    "mode": "BM25",
    "error": null
   },
@@ -255,7 +255,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 329,
-   "wall_ms": 455.5,
+   "wall_ms": 459.8,
    "mode": "BM25",
    "error": null
   },
@@ -266,7 +266,7 @@
    "n_seed": 9,
    "n_bundle": 12,
    "tokens": 4315,
-   "wall_ms": 451.8,
+   "wall_ms": 459.0,
    "mode": "BM25",
    "error": null
   },
@@ -277,7 +277,7 @@
    "n_seed": 9,
    "n_bundle": 4,
    "tokens": 1845,
-   "wall_ms": 452.5,
+   "wall_ms": 463.1,
    "mode": "BM25",
    "error": null
   },
@@ -288,7 +288,7 @@
    "n_seed": 7,
    "n_bundle": 17,
    "tokens": 4257,
-   "wall_ms": 449.5,
+   "wall_ms": 450.9,
    "mode": "BM25",
    "error": null
   },
@@ -299,7 +299,7 @@
    "n_seed": 6,
    "n_bundle": 5,
    "tokens": 3782,
-   "wall_ms": 456.5,
+   "wall_ms": 455.6,
    "mode": "BM25",
    "error": null
   },
@@ -310,7 +310,7 @@
    "n_seed": 8,
    "n_bundle": 6,
    "tokens": 1883,
-   "wall_ms": 471.0,
+   "wall_ms": 455.1,
    "mode": "BM25",
    "error": null
   },
@@ -321,7 +321,7 @@
    "n_seed": 3,
    "n_bundle": 6,
    "tokens": 4150,
-   "wall_ms": 460.3,
+   "wall_ms": 476.8,
    "mode": "BM25",
    "error": null
   },
@@ -332,7 +332,7 @@
    "n_seed": 6,
    "n_bundle": 5,
    "tokens": 3204,
-   "wall_ms": 452.4,
+   "wall_ms": 463.8,
    "mode": "BM25",
    "error": null
   },
@@ -343,7 +343,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 410,
-   "wall_ms": 453.8,
+   "wall_ms": 454.8,
    "mode": "BM25",
    "error": null
   },
@@ -354,7 +354,7 @@
    "n_seed": 10,
    "n_bundle": 5,
    "tokens": 2307,
-   "wall_ms": 461.4,
+   "wall_ms": 456.5,
    "mode": "BM25",
    "error": null
   },
@@ -365,7 +365,7 @@
    "n_seed": 6,
    "n_bundle": 20,
    "tokens": 4352,
-   "wall_ms": 462.6,
+   "wall_ms": 466.8,
    "mode": "BM25",
    "error": null
   },
@@ -376,7 +376,7 @@
    "n_seed": 9,
    "n_bundle": 4,
    "tokens": 1530,
-   "wall_ms": 453.9,
+   "wall_ms": 459.1,
    "mode": "BM25",
    "error": null
   },
@@ -387,7 +387,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 2596,
-   "wall_ms": 453.1,
+   "wall_ms": 463.2,
    "mode": "BM25",
    "error": null
   },
@@ -398,7 +398,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 403,
-   "wall_ms": 454.2,
+   "wall_ms": 464.0,
    "mode": "BM25",
    "error": null
   },
@@ -409,7 +409,7 @@
    "n_seed": 6,
    "n_bundle": 2,
    "tokens": 4491,
-   "wall_ms": 455.6,
+   "wall_ms": 457.0,
    "mode": "BM25",
    "error": null
   },
@@ -420,7 +420,7 @@
    "n_seed": 4,
    "n_bundle": 1,
    "tokens": 721,
-   "wall_ms": 457.2,
+   "wall_ms": 449.9,
    "mode": "BM25",
    "error": null
   },
@@ -431,7 +431,7 @@
    "n_seed": 8,
    "n_bundle": 1,
    "tokens": 124,
-   "wall_ms": 453.6,
+   "wall_ms": 456.9,
    "mode": "BM25",
    "error": null
   },
@@ -442,7 +442,7 @@
    "n_seed": 2,
    "n_bundle": 3,
    "tokens": 857,
-   "wall_ms": 448.2,
+   "wall_ms": 465.5,
    "mode": "BM25",
    "error": null
   },
@@ -453,7 +453,7 @@
    "n_seed": 10,
    "n_bundle": 6,
    "tokens": 2267,
-   "wall_ms": 467.7,
+   "wall_ms": 462.3,
    "mode": "BM25",
    "error": null
   },
@@ -464,7 +464,7 @@
    "n_seed": 9,
    "n_bundle": 2,
    "tokens": 373,
-   "wall_ms": 455.0,
+   "wall_ms": 453.4,
    "mode": "BM25",
    "error": null
   },
@@ -475,7 +475,7 @@
    "n_seed": 4,
    "n_bundle": 5,
    "tokens": 4554,
-   "wall_ms": 475.9,
+   "wall_ms": 476.6,
    "mode": "BM25",
    "error": null
   },
@@ -486,7 +486,7 @@
    "n_seed": 10,
    "n_bundle": 4,
    "tokens": 1376,
-   "wall_ms": 467.5,
+   "wall_ms": 467.7,
    "mode": "BM25",
    "error": null
   },
@@ -497,7 +497,7 @@
    "n_seed": 8,
    "n_bundle": 3,
    "tokens": 565,
-   "wall_ms": 489.2,
+   "wall_ms": 486.5,
    "mode": "BM25",
    "error": null
   },
@@ -508,7 +508,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 466,
-   "wall_ms": 447.9,
+   "wall_ms": 454.9,
    "mode": "BM25",
    "error": null
   },
@@ -519,7 +519,7 @@
    "n_seed": 8,
    "n_bundle": 6,
    "tokens": 1181,
-   "wall_ms": 478.8,
+   "wall_ms": 464.4,
    "mode": "BM25",
    "error": null
   },
@@ -530,7 +530,7 @@
    "n_seed": 6,
    "n_bundle": 2,
    "tokens": 2865,
-   "wall_ms": 468.1,
+   "wall_ms": 473.7,
    "mode": "BM25",
    "error": null
   },
@@ -541,7 +541,7 @@
    "n_seed": 5,
    "n_bundle": 4,
    "tokens": 909,
-   "wall_ms": 468.9,
+   "wall_ms": 462.9,
    "mode": "BM25",
    "error": null
   },
@@ -552,7 +552,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 815,
-   "wall_ms": 462.9,
+   "wall_ms": 457.9,
    "mode": "BM25",
    "error": null
   },
@@ -563,7 +563,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 1181,
-   "wall_ms": 456.4,
+   "wall_ms": 463.6,
    "mode": "BM25",
    "error": null
   },
@@ -574,7 +574,7 @@
    "n_seed": 5,
    "n_bundle": 6,
    "tokens": 1181,
-   "wall_ms": 453.3,
+   "wall_ms": 456.9,
    "mode": "BM25",
    "error": null
   },
@@ -585,7 +585,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 1506,
-   "wall_ms": 453.7,
+   "wall_ms": 471.4,
    "mode": "BM25",
    "error": null
   },
@@ -596,7 +596,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 621,
-   "wall_ms": 448.2,
+   "wall_ms": 464.5,
    "mode": "BM25",
    "error": null
   },
@@ -607,7 +607,7 @@
    "n_seed": 8,
    "n_bundle": 1,
    "tokens": 123,
-   "wall_ms": 452.4,
+   "wall_ms": 455.5,
    "mode": "BM25",
    "error": null
   },
@@ -618,7 +618,7 @@
    "n_seed": 7,
    "n_bundle": 5,
    "tokens": 2686,
-   "wall_ms": 448.8,
+   "wall_ms": 465.2,
    "mode": "BM25",
    "error": null
   },
@@ -629,7 +629,7 @@
    "n_seed": 5,
    "n_bundle": 3,
    "tokens": 1270,
-   "wall_ms": 456.5,
+   "wall_ms": 460.1,
    "mode": "BM25",
    "error": null
   },
@@ -640,7 +640,7 @@
    "n_seed": 8,
    "n_bundle": 2,
    "tokens": 125,
-   "wall_ms": 448.4,
+   "wall_ms": 460.1,
    "mode": "BM25",
    "error": null
   },
@@ -651,7 +651,7 @@
    "n_seed": 4,
    "n_bundle": 3,
    "tokens": 4049,
-   "wall_ms": 446.5,
+   "wall_ms": 463.0,
    "mode": "BM25",
    "error": null
   },
@@ -662,7 +662,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 918,
-   "wall_ms": 442.1,
+   "wall_ms": 467.7,
    "mode": "BM25",
    "error": null
   },
@@ -673,7 +673,7 @@
    "n_seed": 4,
    "n_bundle": 8,
    "tokens": 4200,
-   "wall_ms": 454.4,
+   "wall_ms": 463.1,
    "mode": "BM25",
    "error": null
   },
@@ -684,7 +684,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 644,
-   "wall_ms": 451.3,
+   "wall_ms": 463.2,
    "mode": "BM25",
    "error": null
   },
@@ -695,7 +695,7 @@
    "n_seed": 10,
    "n_bundle": 2,
    "tokens": 3877,
-   "wall_ms": 489.5,
+   "wall_ms": 492.5,
    "mode": "BM25",
    "error": null
   },
@@ -706,7 +706,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 92,
-   "wall_ms": 456.1,
+   "wall_ms": 468.8,
    "mode": "BM25",
    "error": null
   },
@@ -717,7 +717,7 @@
    "n_seed": 7,
    "n_bundle": 11,
    "tokens": 4149,
-   "wall_ms": 470.1,
+   "wall_ms": 480.4,
    "mode": "BM25",
    "error": null
   },
@@ -728,7 +728,7 @@
    "n_seed": 6,
    "n_bundle": 3,
    "tokens": 867,
-   "wall_ms": 463.7,
+   "wall_ms": 476.2,
    "mode": "BM25",
    "error": null
   },
@@ -739,7 +739,7 @@
    "n_seed": 5,
    "n_bundle": 14,
    "tokens": 4341,
-   "wall_ms": 464.2,
+   "wall_ms": 458.7,
    "mode": "BM25",
    "error": null
   },
@@ -750,7 +750,7 @@
    "n_seed": 6,
    "n_bundle": 9,
    "tokens": 3811,
-   "wall_ms": 460.5,
+   "wall_ms": 458.9,
    "mode": "BM25",
    "error": null
   },
@@ -761,7 +761,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 2259,
-   "wall_ms": 464.5,
+   "wall_ms": 476.2,
    "mode": "BM25",
    "error": null
   },
@@ -772,7 +772,7 @@
    "n_seed": 6,
    "n_bundle": 4,
    "tokens": 1069,
-   "wall_ms": 450.6,
+   "wall_ms": 460.1,
    "mode": "BM25",
    "error": null
   },
@@ -783,7 +783,7 @@
    "n_seed": 5,
    "n_bundle": 4,
    "tokens": 2191,
-   "wall_ms": 450.8,
+   "wall_ms": 455.2,
    "mode": "BM25",
    "error": null
   },
@@ -794,7 +794,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 1979,
-   "wall_ms": 451.4,
+   "wall_ms": 459.6,
    "mode": "BM25",
    "error": null
   },
@@ -805,7 +805,7 @@
    "n_seed": 6,
    "n_bundle": 5,
    "tokens": 3969,
-   "wall_ms": 447.0,
+   "wall_ms": 454.8,
    "mode": "BM25",
    "error": null
   },
@@ -816,7 +816,7 @@
    "n_seed": 6,
    "n_bundle": 3,
    "tokens": 4064,
-   "wall_ms": 451.4,
+   "wall_ms": 450.3,
    "mode": "BM25",
    "error": null
   },
@@ -827,7 +827,7 @@
    "n_seed": 6,
    "n_bundle": 1,
    "tokens": 754,
-   "wall_ms": 450.6,
+   "wall_ms": 447.3,
    "mode": "BM25",
    "error": null
   },
@@ -838,7 +838,7 @@
    "n_seed": 2,
    "n_bundle": 1,
    "tokens": 328,
-   "wall_ms": 444.4,
+   "wall_ms": 454.5,
    "mode": "BM25",
    "error": null
   },
@@ -849,7 +849,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 209,
-   "wall_ms": 454.0,
+   "wall_ms": 454.4,
    "mode": "BM25",
    "error": null
   },
@@ -860,7 +860,7 @@
    "n_seed": 9,
    "n_bundle": 5,
    "tokens": 3204,
-   "wall_ms": 450.2,
+   "wall_ms": 463.0,
    "mode": "BM25",
    "error": null
   },
@@ -871,7 +871,7 @@
    "n_seed": 10,
    "n_bundle": 4,
    "tokens": 412,
-   "wall_ms": 438.1,
+   "wall_ms": 448.9,
    "mode": "BM25",
    "error": null
   },
@@ -882,7 +882,7 @@
    "n_seed": 9,
    "n_bundle": 7,
    "tokens": 3956,
-   "wall_ms": 451.0,
+   "wall_ms": 449.1,
    "mode": "BM25",
    "error": null
   },
@@ -893,7 +893,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 78,
-   "wall_ms": 434.0,
+   "wall_ms": 453.0,
    "mode": "BM25",
    "error": null
   },
@@ -904,7 +904,7 @@
    "n_seed": 5,
    "n_bundle": 6,
    "tokens": 2352,
-   "wall_ms": 453.0,
+   "wall_ms": 455.5,
    "mode": "BM25",
    "error": null
   },
@@ -915,7 +915,7 @@
    "n_seed": 8,
    "n_bundle": 3,
    "tokens": 701,
-   "wall_ms": 445.2,
+   "wall_ms": 455.5,
    "mode": "BM25",
    "error": null
   },
@@ -926,7 +926,7 @@
    "n_seed": 10,
    "n_bundle": 1,
    "tokens": 121,
-   "wall_ms": 450.9,
+   "wall_ms": 457.3,
    "mode": "BM25",
    "error": null
   },
@@ -937,7 +937,7 @@
    "n_seed": 8,
    "n_bundle": 4,
    "tokens": 909,
-   "wall_ms": 470.6,
+   "wall_ms": 471.5,
    "mode": "BM25",
    "error": null
   },
@@ -948,7 +948,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 512,
-   "wall_ms": 451.5,
+   "wall_ms": 458.7,
    "mode": "BM25",
    "error": null
   },
@@ -959,7 +959,7 @@
    "n_seed": 7,
    "n_bundle": 17,
    "tokens": 4257,
-   "wall_ms": 450.9,
+   "wall_ms": 443.7,
    "mode": "BM25",
    "error": null
   },
@@ -970,7 +970,7 @@
    "n_seed": 3,
    "n_bundle": 1,
    "tokens": 4163,
-   "wall_ms": 460.2,
+   "wall_ms": 479.4,
    "mode": "BM25",
    "error": null
   },
@@ -981,7 +981,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 128,
-   "wall_ms": 455.3,
+   "wall_ms": 463.1,
    "mode": "BM25",
    "error": null
   },
@@ -992,7 +992,7 @@
    "n_seed": 5,
    "n_bundle": 3,
    "tokens": 4311,
-   "wall_ms": 455.4,
+   "wall_ms": 475.9,
    "mode": "BM25",
    "error": null
   },
@@ -1003,7 +1003,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 878,
-   "wall_ms": 452.2,
+   "wall_ms": 467.9,
    "mode": "BM25",
    "error": null
   },
@@ -1014,7 +1014,7 @@
    "n_seed": 3,
    "n_bundle": 2,
    "tokens": 878,
-   "wall_ms": 443.6,
+   "wall_ms": 451.5,
    "mode": "BM25",
    "error": null
   },
@@ -1025,7 +1025,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 2539,
-   "wall_ms": 451.8,
+   "wall_ms": 459.7,
    "mode": "BM25",
    "error": null
   },
@@ -1036,7 +1036,7 @@
    "n_seed": 9,
    "n_bundle": 3,
    "tokens": 3923,
-   "wall_ms": 466.8,
+   "wall_ms": 474.9,
    "mode": "BM25",
    "error": null
   },
@@ -1047,7 +1047,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 4187,
-   "wall_ms": 452.8,
+   "wall_ms": 471.7,
    "mode": "BM25",
    "error": null
   },
@@ -1058,7 +1058,7 @@
    "n_seed": 8,
    "n_bundle": 6,
    "tokens": 4360,
-   "wall_ms": 456.5,
+   "wall_ms": 464.8,
    "mode": "BM25",
    "error": null
   },
@@ -1069,7 +1069,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 433,
-   "wall_ms": 438.5,
+   "wall_ms": 458.2,
    "mode": "BM25",
    "error": null
   },
@@ -1080,7 +1080,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 878,
-   "wall_ms": 452.7,
+   "wall_ms": 459.9,
    "mode": "BM25",
    "error": null
   },
@@ -1091,7 +1091,7 @@
    "n_seed": 5,
    "n_bundle": 2,
    "tokens": 878,
-   "wall_ms": 449.2,
+   "wall_ms": 455.5,
    "mode": "BM25",
    "error": null
   },
@@ -1102,7 +1102,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 78,
-   "wall_ms": 448.8,
+   "wall_ms": 442.2,
    "mode": "BM25",
    "error": null
   },
@@ -1113,7 +1113,7 @@
    "n_seed": 8,
    "n_bundle": 1,
    "tokens": 480,
-   "wall_ms": 449.6,
+   "wall_ms": 464.9,
    "mode": "BM25",
    "error": null
   },
@@ -1124,7 +1124,7 @@
    "n_seed": 8,
    "n_bundle": 6,
    "tokens": 4244,
-   "wall_ms": 451.7,
+   "wall_ms": 465.4,
    "mode": "BM25",
    "error": null
   },
@@ -1135,7 +1135,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 156,
-   "wall_ms": 439.3,
+   "wall_ms": 452.8,
    "mode": "BM25",
    "error": null
   },
@@ -1146,7 +1146,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 144,
-   "wall_ms": 483.6,
+   "wall_ms": 497.9,
    "mode": "BM25",
    "error": null
   },
@@ -1157,7 +1157,7 @@
    "n_seed": 5,
    "n_bundle": 3,
    "tokens": 4187,
-   "wall_ms": 456.7,
+   "wall_ms": 464.2,
    "mode": "BM25",
    "error": null
   },
@@ -1168,7 +1168,7 @@
    "n_seed": 1,
    "n_bundle": 2,
    "tokens": 3709,
-   "wall_ms": 452.9,
+   "wall_ms": 466.6,
    "mode": "BM25",
    "error": null
   },
@@ -1179,7 +1179,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 4503,
-   "wall_ms": 452.4,
+   "wall_ms": 458.8,
    "mode": "BM25",
    "error": null
   },
@@ -1190,7 +1190,7 @@
    "n_seed": 7,
    "n_bundle": 4,
    "tokens": 789,
-   "wall_ms": 477.3,
+   "wall_ms": 488.9,
    "mode": "BM25",
    "error": null
   },
@@ -1201,7 +1201,7 @@
    "n_seed": 9,
    "n_bundle": 6,
    "tokens": 1979,
-   "wall_ms": 452.3,
+   "wall_ms": 470.4,
    "mode": "BM25",
    "error": null
   },
@@ -1212,7 +1212,7 @@
    "n_seed": 5,
    "n_bundle": 6,
    "tokens": 1979,
-   "wall_ms": 459.9,
+   "wall_ms": 469.9,
    "mode": "BM25",
    "error": null
   },
@@ -1223,7 +1223,7 @@
    "n_seed": 8,
    "n_bundle": 5,
    "tokens": 2131,
-   "wall_ms": 454.9,
+   "wall_ms": 464.8,
    "mode": "BM25",
    "error": null
   },
@@ -1234,7 +1234,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 78,
-   "wall_ms": 468.2,
+   "wall_ms": 484.3,
    "mode": "BM25",
    "error": null
   },
@@ -1245,7 +1245,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 906,
-   "wall_ms": 446.3,
+   "wall_ms": 469.6,
    "mode": "BM25",
    "error": null
   },
@@ -1256,7 +1256,7 @@
    "n_seed": 6,
    "n_bundle": 1,
    "tokens": 173,
-   "wall_ms": 453.1,
+   "wall_ms": 467.3,
    "mode": "BM25",
    "error": null
   },
@@ -1267,7 +1267,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 1152,
-   "wall_ms": 442.1,
+   "wall_ms": 459.1,
    "mode": "BM25",
    "error": null
   },
@@ -1278,7 +1278,7 @@
    "n_seed": 8,
    "n_bundle": 5,
    "tokens": 4203,
-   "wall_ms": 445.3,
+   "wall_ms": 461.2,
    "mode": "BM25",
    "error": null
   },
@@ -1289,7 +1289,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 338,
-   "wall_ms": 453.2,
+   "wall_ms": 450.7,
    "mode": "BM25",
    "error": null
   },
@@ -1300,7 +1300,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 1186,
-   "wall_ms": 444.5,
+   "wall_ms": 460.7,
    "mode": "BM25",
    "error": null
   },
@@ -1311,7 +1311,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 151,
-   "wall_ms": 449.4,
+   "wall_ms": 449.7,
    "mode": "BM25",
    "error": null
   },
@@ -1322,7 +1322,7 @@
    "n_seed": 7,
    "n_bundle": 3,
    "tokens": 809,
-   "wall_ms": 459.0,
+   "wall_ms": 462.6,
    "mode": "BM25",
    "error": null
   },
@@ -1333,7 +1333,7 @@
    "n_seed": 5,
    "n_bundle": 2,
    "tokens": 463,
-   "wall_ms": 446.4,
+   "wall_ms": 445.9,
    "mode": "BM25",
    "error": null
   },
@@ -1344,7 +1344,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 75,
-   "wall_ms": 451.7,
+   "wall_ms": 448.8,
    "mode": "BM25",
    "error": null
   },
@@ -1355,7 +1355,7 @@
    "n_seed": 9,
    "n_bundle": 5,
    "tokens": 4554,
-   "wall_ms": 491.2,
+   "wall_ms": 504.4,
    "mode": "BM25",
    "error": null
   },
@@ -1366,7 +1366,7 @@
    "n_seed": 3,
    "n_bundle": 2,
    "tokens": 593,
-   "wall_ms": 449.4,
+   "wall_ms": 458.0,
    "mode": "BM25",
    "error": null
   },
@@ -1377,7 +1377,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 2047,
-   "wall_ms": 457.8,
+   "wall_ms": 472.0,
    "mode": "BM25",
    "error": null
   },
@@ -1388,7 +1388,7 @@
    "n_seed": 7,
    "n_bundle": 4,
    "tokens": 3559,
-   "wall_ms": 459.5,
+   "wall_ms": 466.6,
    "mode": "BM25",
    "error": null
   },
@@ -1399,7 +1399,7 @@
    "n_seed": 4,
    "n_bundle": 2,
    "tokens": 2865,
-   "wall_ms": 452.9,
+   "wall_ms": 455.6,
    "mode": "BM25",
    "error": null
   },
@@ -1410,7 +1410,7 @@
    "n_seed": 8,
    "n_bundle": 1,
    "tokens": 391,
-   "wall_ms": 451.3,
+   "wall_ms": 457.5,
    "mode": "BM25",
    "error": null
   },
@@ -1421,7 +1421,7 @@
    "n_seed": 7,
    "n_bundle": 2,
    "tokens": 569,
-   "wall_ms": 447.9,
+   "wall_ms": 461.8,
    "mode": "BM25",
    "error": null
   },
@@ -1432,7 +1432,7 @@
    "n_seed": 8,
    "n_bundle": 6,
    "tokens": 3618,
-   "wall_ms": 450.8,
+   "wall_ms": 458.5,
    "mode": "BM25",
    "error": null
   },
@@ -1443,7 +1443,7 @@
    "n_seed": 8,
    "n_bundle": 5,
    "tokens": 4249,
-   "wall_ms": 456.4,
+   "wall_ms": 465.9,
    "mode": "BM25",
    "error": null
   },
@@ -1454,7 +1454,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 90,
-   "wall_ms": 477.6,
+   "wall_ms": 491.0,
    "mode": "BM25",
    "error": null
   },
@@ -1465,7 +1465,7 @@
    "n_seed": 7,
    "n_bundle": 1,
    "tokens": 98,
-   "wall_ms": 449.3,
+   "wall_ms": 459.2,
    "mode": "BM25",
    "error": null
   },
@@ -1476,7 +1476,7 @@
    "n_seed": 6,
    "n_bundle": 17,
    "tokens": 4257,
-   "wall_ms": 437.8,
+   "wall_ms": 454.2,
    "mode": "BM25",
    "error": null
   },
@@ -1487,7 +1487,7 @@
    "n_seed": 8,
    "n_bundle": 3,
    "tokens": 1374,
-   "wall_ms": 448.5,
+   "wall_ms": 459.3,
    "mode": "BM25",
    "error": null
   },
@@ -1498,7 +1498,7 @@
    "n_seed": 10,
    "n_bundle": 2,
    "tokens": 455,
-   "wall_ms": 450.1,
+   "wall_ms": 456.5,
    "mode": "BM25",
    "error": null
   },
@@ -1509,7 +1509,7 @@
    "n_seed": 3,
    "n_bundle": 8,
    "tokens": 1415,
-   "wall_ms": 452.4,
+   "wall_ms": 461.4,
    "mode": "BM25",
    "error": null
   },
@@ -1520,7 +1520,7 @@
    "n_seed": 8,
    "n_bundle": 3,
    "tokens": 1666,
-   "wall_ms": 454.1,
+   "wall_ms": 465.5,
    "mode": "BM25",
    "error": null
   },
@@ -1531,7 +1531,7 @@
    "n_seed": 4,
    "n_bundle": 1,
    "tokens": 1738,
-   "wall_ms": 463.5,
+   "wall_ms": 464.1,
    "mode": "BM25",
    "error": null
   },
@@ -1542,7 +1542,7 @@
    "n_seed": 8,
    "n_bundle": 7,
    "tokens": 3948,
-   "wall_ms": 455.1,
+   "wall_ms": 469.3,
    "mode": "BM25",
    "error": null
   },
@@ -1553,7 +1553,7 @@
    "n_seed": 8,
    "n_bundle": 4,
    "tokens": 3510,
-   "wall_ms": 461.1,
+   "wall_ms": 461.7,
    "mode": "BM25",
    "error": null
   },
@@ -1564,7 +1564,7 @@
    "n_seed": 5,
    "n_bundle": 3,
    "tokens": 2005,
-   "wall_ms": 502.2,
+   "wall_ms": 457.2,
    "mode": "BM25",
    "error": null
   },
@@ -1575,7 +1575,7 @@
    "n_seed": 9,
    "n_bundle": 1,
    "tokens": 3136,
-   "wall_ms": 537.5,
+   "wall_ms": 458.1,
    "mode": "BM25",
    "error": null
   },
@@ -1586,7 +1586,7 @@
    "n_seed": 4,
    "n_bundle": 17,
    "tokens": 4643,
-   "wall_ms": 509.6,
+   "wall_ms": 493.1,
    "mode": "BM25",
    "error": null
   },
@@ -1597,7 +1597,7 @@
    "n_seed": 5,
    "n_bundle": 1,
    "tokens": 185,
-   "wall_ms": 445.2,
+   "wall_ms": 454.1,
    "mode": "BM25",
    "error": null
   },
@@ -1608,7 +1608,7 @@
    "n_seed": 6,
    "n_bundle": 1,
    "tokens": 102,
-   "wall_ms": 463.4,
+   "wall_ms": 465.2,
    "mode": "BM25",
    "error": null
   },
@@ -1619,7 +1619,7 @@
    "n_seed": 4,
    "n_bundle": 1,
    "tokens": 305,
-   "wall_ms": 452.4,
+   "wall_ms": 458.0,
    "mode": "BM25",
    "error": null
   },
@@ -1630,7 +1630,7 @@
    "n_seed": 6,
    "n_bundle": 2,
    "tokens": 1242,
-   "wall_ms": 482.8,
+   "wall_ms": 457.7,
    "mode": "BM25",
    "error": null
   },
@@ -1641,7 +1641,7 @@
    "n_seed": 7,
    "n_bundle": 4,
    "tokens": 1900,
-   "wall_ms": 458.4,
+   "wall_ms": 457.0,
    "mode": "BM25",
    "error": null
   },
@@ -1652,7 +1652,7 @@
    "n_seed": 2,
    "n_bundle": 3,
    "tokens": 911,
-   "wall_ms": 484.9,
+   "wall_ms": 490.7,
    "mode": "BM25",
    "error": null
   },
@@ -1663,7 +1663,7 @@
    "n_seed": 8,
    "n_bundle": 9,
    "tokens": 1764,
-   "wall_ms": 476.3,
+   "wall_ms": 467.6,
    "mode": "BM25",
    "error": null
   }

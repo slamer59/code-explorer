@@ -1,6 +1,6 @@
-# zg on django
+# zg-full on django
 
-Generated 2026-09-06T11:22:33+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
+Generated 2026-09-06T11:28:29+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
 Tool at `6f9f364c` (dirty), corpus at `b3f4d83a`.
 
 
@@ -19,4 +19,4 @@ This tool has no expansion step, so `bundle` repeats `seed` -- that is the corre
 
 | queries | errors | median latency | mean tokens | recall@10 per 1k tokens |
 |---|---|---|---|---|
-| 150 | 0 | 1171 ms | 344 | 1.827 |
+| 150 | 0 | 1165 ms | 4056 | 0.155 |

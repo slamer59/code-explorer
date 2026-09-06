@@ -1668,7 +1668,7 @@
    "error": null
   }
  ],
- "kind": "seed",
+ "kind": "delivered",
  "run": {
   "026b005f3dc43a98557ce5a546b5e4938d06fed1": {
    "django/utils/deprecation.py": 0.029907,
@@ -1689,7 +1689,13 @@
    "django/contrib/gis/db/models/lookups.py": 0.026876
   },
   "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6": {
-   "django/core/serializers/xml_serializer.py": 0.032018
+   "django/core/serializers/xml_serializer.py": 0.032018,
+   "django/contrib/gis/serializers/geojson.py": 0.030017999999999996,
+   "django/core/serializers/pyyaml.py": 0.029018,
+   "django/core/serializers/json.py": 0.028017999999999998,
+   "django/core/serializers/jsonl.py": 0.027017999999999997,
+   "django/core/serializers/python.py": 0.026018,
+   "tests/serializers/tests.py": 0.025018
   },
   "8d1c673466bcabff500edc6c7724e5a20f6df3de": {
    "django/db/models/base.py": 0.032787,
@@ -1705,7 +1711,11 @@
    "django/db/models/fields/related_descriptors.py": 0.032258,
    "django/contrib/contenttypes/fields.py": 0.028612,
    "django/contrib/contenttypes/prefetch.py": 0.024935,
-   "django/db/models/query.py": 0.023823
+   "django/db/models/query.py": 0.023823,
+   "django/db/models/fields/mixins.py": 0.020823,
+   "django/db/models/sql/query.py": 0.019823,
+   "django/db/models/manager.py": 0.018823,
+   "django/db/models/fields/reverse_related.py": 0.017823
   },
   "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4": {
    "django/db/migrations/state.py": 0.016393,
@@ -1713,7 +1723,9 @@
    "django/db/models/sql/where.py": 0.015152,
    "django/db/models/expressions.py": 0.013333,
    "tests/filtered_relation/tests.py": 0.010847,
-   "tests/aggregation/tests.py": 0.006452
+   "tests/aggregation/tests.py": 0.006452,
+   "django/db/migrations/autodetector.py": 0.004452,
+   "tests/migrations/test_autodetector.py": 0.003452
   },
   "fdfbb711e3dd52683ae633f568761efe2735d5f0": {
    "django/views/generic/__init__.py": 0.026754,
@@ -1761,7 +1773,10 @@
   "99d56e5cf15839995f62f24294584f1e2976b1ea": {
    "django/utils/html.py": 0.014925,
    "django/utils/safestring.py": 0.014286,
-   "tests/forms_tests/tests/test_media.py": 0.012907
+   "tests/forms_tests/tests/test_media.py": 0.012907,
+   "django/template/defaultfilters.py": 0.010907,
+   "tests/utils_tests/test_safestring.py": 0.009907,
+   "tests/template_tests/filter_tests/test_escapejs.py": 0.007907
   },
   "c6be0bf3bb744d234947cefd6def9f31d9655800": {
    "django/db/models/fields/generated.py": 0.016393,
@@ -1771,27 +1786,31 @@
    "django/db/models/fields/related.py": 0.014493,
    "django/db/models/fields/reverse_related.py": 0.012987,
    "tests/model_fields/test_manytomanyfield.py": 0.006557,
-   "tests/admin_views/models.py": 0.006452
+   "tests/admin_views/models.py": 0.006452,
+   "django/db/models/sql/query.py": 0.004452
   },
   "082b3df4067c3899dd4d57e8c2eca5baea9d07bb": {
    "tests/admin_changelist/tests.py": 0.013115,
    "tests/modeladmin/test_checks.py": 0.010844,
    "tests/admin_changelist/admin.py": 0.01025,
-   "tests/admin_views/admin.py": 0.006452
+   "tests/admin_views/admin.py": 0.006452,
+   "django/test/testcases.py": 0.004452
   },
   "6df8fe3bc1879265958b8e59c637a4145995e93c": {
    "tests/admin_views/tests.py": 0.011557,
    "tests/admin_widgets/tests.py": 0.008929,
    "tests/null_fk/models.py": 0.006557,
    "tests/modeladmin/test_checks.py": 0.006452,
-   "tests/validation/tests.py": 0.006349
+   "tests/validation/tests.py": 0.006349,
+   "django/contrib/admin/views/main.py": 0.004349
   },
   "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9": {
    "tests/admin_views/tests.py": 0.012711,
    "tests/handlers/views.py": 0.006452,
    "tests/admin_views/admin.py": 0.006349,
    "tests/template_tests/filter_tests/test_urlize.py": 0.006061,
-   "tests/requests_tests/tests.py": 0.00597
+   "tests/requests_tests/tests.py": 0.00597,
+   "django/test/testcases.py": 0.00397
   },
   "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb": {
    "django/template/smartif.py": 0.015385,
@@ -1809,7 +1828,11 @@
    "tests/generic_inline_admin/tests.py": 0.012334,
    "django/forms/models.py": 0.011905,
    "tests/admin_views/tests.py": 0.011857,
-   "tests/admin_inlines/tests.py": 0.011203
+   "tests/admin_inlines/tests.py": 0.011203,
+   "django/db/models/query.py": 0.009203,
+   "django/test/testcases.py": 0.007202999999999999,
+   "django/db/models/sql/query.py": 0.006202999999999999,
+   "django/forms/formsets.py": 0.005202999999999999
   },
   "8f52e9199b260cdacc5ad372692cddf2dcf76558": {
    "django/db/migrations/questioner.py": 0.016393
@@ -1833,7 +1856,8 @@
    "django/db/backends/mysql/features.py": 0.0125,
    "tests/field_defaults/tests.py": 0.012308,
    "django/db/models/fields/__init__.py": 0.012195,
-   "tests/composite_pk/tests.py": 0.012047
+   "tests/composite_pk/tests.py": 0.012047,
+   "django/db/models/base.py": 0.010047
   },
   "47511a21026cdd721d8fbf8571cc079bc38bb46d": {
    "django/contrib/admin/utils.py": 0.029214,
@@ -1842,7 +1866,17 @@
    "tests/admin_views/tests.py": 0.009762,
    "tests/admin_changelist/tests.py": 0.008248,
    "tests/file_storage/test_base.py": 0.006557,
-   "tests/sitemaps_tests/urls/http.py": 0.006452
+   "tests/sitemaps_tests/urls/http.py": 0.006452,
+   "tests/postgres_tests/test_array.py": 0.003452,
+   "django/contrib/admin/helpers.py": 0.002452,
+   "django/contrib/admin/templatetags/admin_list.py": 0.0014520000000000002,
+   "django/utils/datastructures.py": 0.00045200000000000014,
+   "django/utils/html.py": -0.0005479999999999999,
+   "django/utils/hashable.py": -0.001548,
+   "django/contrib/auth/__init__.py": -0.002548000000000001,
+   "django/utils/formats.py": -0.003548,
+   "django/contrib/auth/templatetags/auth.py": -0.004547999999999999,
+   "django/utils/timezone.py": -0.005548
   },
   "27137e655e442e81095f1f8f77ff3870d9fdf169": {
    "django/utils/translation/__init__.py": 0.031778,
@@ -1851,7 +1885,10 @@
    "django/utils/translation/trans_null.py": 0.016129,
    "django/utils/timezone.py": 0.014706,
    "django/contrib/gis/db/backends/oracle/adapter.py": 0.014493,
-   "django/db/models/fields/__init__.py": 0.014085
+   "django/db/models/fields/__init__.py": 0.014085,
+   "django/utils/formats.py": 0.012085,
+   "django/views/i18n.py": 0.011085000000000001,
+   "tests/i18n/tests.py": 0.010085
   },
   "5637bec7a033d67407694316bdda74304449488e": {
    "django/utils/timezone.py": 0.015152,
@@ -1861,7 +1898,23 @@
    "tests/dbshell/test_mysql.py": 0.010332,
    "tests/backends/mysql/test_creation.py": 0.006557,
    "tests/test_client/tests.py": 0.006452,
-   "tests/backends/postgresql/tests.py": 0.006349
+   "tests/backends/postgresql/tests.py": 0.006349,
+   "django/utils/dateparse.py": 0.004349,
+   "tests/syndication_tests/feeds.py": 0.0033489999999999995,
+   "tests/model_regress/tests.py": 0.0023489999999999995,
+   "tests/template_tests/filter_tests/timezone_utils.py": 0.0013489999999999995,
+   "tests/utils_tests/test_dateformat.py": 0.0003489999999999995,
+   "tests/humanize_tests/tests.py": -0.0006510000000000005,
+   "tests/utils_tests/test_timezone.py": -0.0016510000000000006,
+   "tests/template_tests/filter_tests/test_date.py": -0.0026510000000000014,
+   "tests/template_tests/filter_tests/test_time.py": -0.0036510000000000006,
+   "tests/utils_tests/test_dateparse.py": -0.004651,
+   "tests/forms_tests/field_tests/test_datetimefield.py": -0.005651000000000001,
+   "tests/migrations/test_writer.py": -0.0066510000000000015,
+   "tests/utils_tests/test_timesince.py": -0.007651000000000001,
+   "tests/file_storage/tests.py": -0.008650999999999999,
+   "tests/utils_tests/test_feedgenerator.py": -0.009651,
+   "django/db/backends/base/base.py": -0.010651
   },
   "60121939f6b225c7a719dd561e372e1d8e5e2c4a": {
    "django/db/models/fields/__init__.py": 0.023185,
@@ -1870,7 +1923,8 @@
    "scripts/tests.py": 0.014706,
    "django/contrib/admin/templatetags/admin_urls.py": 0.013889,
    "django/forms/fields.py": 0.013514,
-   "tests/gis_tests/gdal_tests/test_ds.py": 0.013115
+   "tests/gis_tests/gdal_tests/test_ds.py": 0.013115,
+   "django/contrib/gis/gdal/field.py": 0.011115
   },
   "ea303dee45f4b703b31f73ceb235f11742d3c518": {
    "django/contrib/gis/db/backends/mysql/schema.py": 0.022403,
@@ -1889,13 +1943,20 @@
    "django/db/backends/sqlite3/operations.py": 0.015152,
    "django/db/backends/base/operations.py": 0.014925,
    "django/db/models/base.py": 0.014493,
-   "django/forms/fields.py": 0.014085
+   "django/forms/fields.py": 0.014085,
+   "django/db/backends/sqlite3/schema.py": 0.012085,
+   "django/db/backends/mysql/schema.py": 0.011085000000000001,
+   "django/db/models/sql/query.py": 0.010085
   },
   "ca14173f968cf36115f22d6c6785f738de4391ed": {
    "django/urls/utils.py": 0.032787,
    "django/utils/regex_helper.py": 0.015385,
    "django/utils/timezone.py": 0.014925,
-   "django/contrib/auth/models.py": 0.014493
+   "django/contrib/auth/models.py": 0.014493,
+   "tests/urlpatterns/tests.py": 0.012493,
+   "django/core/management/commands/listurls.py": 0.011493,
+   "django/contrib/admindocs/views.py": 0.010493,
+   "django/utils/copy.py": 0.009493000000000001
   },
   "c9ff757a55392b1f50968eb89fe775f6155168d8": {
    "django/db/models/fields/__init__.py": 0.016393,
@@ -1917,7 +1978,11 @@
    "django/db/backends/ddl_references.py": 0.0125,
    "django/db/models/deletion.py": 0.012346,
    "tests/admin_changelist/tests.py": 0.012214,
-   "tests/admin_views/models.py": 0.010503
+   "tests/admin_views/models.py": 0.010503,
+   "tests/admin_views/test_templatetags.py": 0.008503,
+   "django/utils/safestring.py": 0.007503,
+   "django/utils/translation/__init__.py": 0.006503,
+   "django/template/defaultfilters.py": 0.005503
   },
   "92470ad3742524902b29769d2c822dbe791630db": {
    "tests/admin_changelist/tests.py": 0.011103,
@@ -1925,7 +1990,8 @@
    "tests/modeladmin/test_checks.py": 0.010077,
    "tests/invalid_models_tests/test_models.py": 0.006452,
    "tests/cache/tests.py": 0.006349,
-   "tests/m2m_and_m2o/models.py": 0.006349
+   "tests/m2m_and_m2o/models.py": 0.006349,
+   "django/test/testcases.py": 0.004349
   },
   "c2517faff335f683e1cbe55d9844910b3fb40670": {
    "django/utils/http.py": 0.030478,
@@ -1935,11 +2001,15 @@
    "django/utils/timezone.py": 0.013333,
    "django/utils/text.py": 0.012821,
    "django/http/multipartparser.py": 0.0125,
-   "tests/files/tests.py": 0.011829
+   "tests/files/tests.py": 0.011829,
+   "tests/utils_tests/test_http.py": 0.009829,
+   "django/utils/copy.py": 0.007829
   },
   "8a162076e1988ddf9453edfb8329d5df1573dc38": {
    "scripts/pr_quality/check_pr.py": 0.031754,
-   "scripts/pr_quality/errors.py": 0.031099
+   "scripts/pr_quality/errors.py": 0.031099,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.029099,
+   "django/template/defaultfilters.py": 0.028099000000000002
   },
   "2a5da9d00555beef8e5f6307cfcbfc029d45491e": {
    "django/core/management/commands/inspectdb.py": 0.02439,
@@ -1950,19 +2020,32 @@
    "django/contrib/gis/geos/geometry.py": 0.013889,
    "tests/inspectdb/tests.py": 0.012907,
    "django/db/models/fields/composite.py": 0.012821,
-   "tests/inspectdb/models.py": 0.01244
+   "tests/inspectdb/models.py": 0.01244,
+   "django/template/defaultfilters.py": 0.01044,
+   "django/utils/copy.py": 0.00944
   },
   "d8cedcab5241725003eef059dd76c533f24c5430": {
    "tests/inspectdb/tests.py": 0.013009,
    "django/contrib/gis/db/backends/mysql/introspection.py": 0.012821,
    "django/db/backends/mysql/introspection.py": 0.0125,
-   "tests/introspection/tests.py": 0.012404
+   "tests/introspection/tests.py": 0.012404,
+   "django/core/management/__init__.py": 0.010404,
+   "django/contrib/gis/gdal/raster/band.py": 0.009404,
+   "django/utils/copy.py": 0.008404,
+   "django/utils/datastructures.py": 0.007404,
+   "django/core/management/base.py": 0.006404,
+   "django/apps/registry.py": 0.005404,
+   "django/template/loader_tags.py": 0.004404
   },
   "76e1bca1311ae7073a1fa4add6f9d19d709f0f09": {
    "django/contrib/gis/db/backends/postgis/schema.py": 0.032266,
    "django/contrib/gis/db/backends/mysql/schema.py": 0.031778,
    "django/contrib/gis/db/backends/oracle/schema.py": 0.031054,
-   "django/db/backends/mysql/schema.py": 0.014706
+   "django/db/backends/mysql/schema.py": 0.014706,
+   "django/template/loader_tags.py": 0.012706,
+   "django/utils/safestring.py": 0.011706000000000001,
+   "django/db/backends/base/schema.py": 0.010706,
+   "django/db/backends/utils.py": 0.009706
   },
   "274df4df0bca7fcfb5c1c1d49567f770df147eeb": {
    "django/db/models/fields/__init__.py": 0.016129,
@@ -1978,7 +2061,9 @@
   "a486b48d4ea0d34babe58cae215b2123748aacbd": {
    "django/contrib/sessions/backends/cached_db.py": 0.032266,
    "django/contrib/sessions/backends/cache.py": 0.030077,
-   "django/contrib/sessions/backends/db.py": 0.024503
+   "django/contrib/sessions/backends/db.py": 0.024503,
+   "django/template/loader_tags.py": 0.022503000000000002,
+   "django/utils/safestring.py": 0.021503
   },
   "2e48636c54910e435eb31e1b7d8a8089c84233ad": {
    "django/db/models/fields/__init__.py": 0.014706,
@@ -1988,7 +2073,11 @@
    "django/contrib/gis/gdal/srs.py": 0.013158,
    "tests/modeladmin/tests.py": 0.012907,
    "tests/deprecation/tests.py": 0.012702,
-   "django/utils/timezone.py": 0.012195
+   "django/utils/timezone.py": 0.012195,
+   "django/template/defaultfilters.py": 0.010195,
+   "django/utils/formats.py": 0.009194999999999998,
+   "django/utils/dateformat.py": 0.007194999999999999,
+   "django/utils/copy.py": 0.006194999999999999
   },
   "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c": {
    "django/db/transaction.py": 0.032522,
@@ -2006,7 +2095,14 @@
    "django/db/migrations/operations/models.py": 0.013889,
    "django/db/migrations/autodetector.py": 0.012658,
    "tests/migrations/test_autodetector.py": 0.012605,
-   "tests/migration_test_data_persistence/models.py": 0.011686
+   "tests/migration_test_data_persistence/models.py": 0.011686,
+   "django/db/models/base.py": 0.009686,
+   "tests/check_framework/test_multi_db.py": 0.008686,
+   "tests/check_framework/test_model_field_deprecation.py": 0.007686,
+   "django/contrib/admin/migrations/0003_logentry_add_action_flag_choices.py": 0.006686,
+   "django/contrib/admin/migrations/0002_logentry_remove_auto_add.py": 0.005686,
+   "django/contrib/admin/migrations/0001_initial.py": 0.004686,
+   "django/contrib/auth/migrations/0002_alter_permission_name_max_length.py": 0.003686
   },
   "7ab2d803533dd3ffe310055414ad584cfbbf0bea": {
    "django/http/multipartparser.py": 0.015873,
@@ -2016,7 +2112,8 @@
    "tests/model_fields/test_filefield.py": 0.010133,
    "tests/check_framework/test_templates.py": 0.006452,
    "tests/forms_tests/field_tests/test_filefield.py": 0.006452,
-   "tests/queries/tests.py": 0.006349
+   "tests/queries/tests.py": 0.006349,
+   "django/utils/encoding.py": 0.004349
   },
   "5d489a52c3c604018c786f11d45453eb75fa24b3": {
    "django/contrib/gis/gdal/error.py": 0.013699,
@@ -2026,7 +2123,10 @@
    "tests/auth_tests/test_checks.py": 0.010396,
    "tests/gis_tests/gdal_tests/tests.py": 0.006557,
    "tests/admin_views/tests.py": 0.006452,
-   "tests/gis_tests/gdal_tests/test_raster.py": 0.006452
+   "tests/gis_tests/gdal_tests/test_raster.py": 0.006452,
+   "django/contrib/gis/gdal/prototypes/errcheck.py": 0.004452,
+   "django/utils/dateformat.py": 0.003452,
+   "django/contrib/gis/gdal/prototypes/generation.py": 0.002452
   },
   "6ca2bbe2efce21010eff48f1f36a3f621d698ed8": {
    "django/contrib/gis/gdal/raster/source.py": 0.027778,
@@ -2035,7 +2135,8 @@
    "django/contrib/gis/geos/io.py": 0.014286,
    "django/contrib/gis/geos/geometry.py": 0.014085,
    "scripts/pr_quality/check_pr.py": 0.014085,
-   "django/contrib/gis/geos/prototypes/io.py": 0.013699
+   "django/contrib/gis/geos/prototypes/io.py": 0.013699,
+   "django/utils/encoding.py": 0.011699
   },
   "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1": {
    "django/middleware/csrf.py": 0.029644,
@@ -2046,7 +2147,11 @@
    "django/core/handlers/wsgi.py": 0.012346,
    "tests/cache/tests.py": 0.012085,
    "tests/responses/test_cookie.py": 0.012063,
-   "tests/messages_tests/test_cookie.py": 0.011288
+   "tests/messages_tests/test_cookie.py": 0.011288,
+   "django/utils/cache.py": 0.009288,
+   "django/http/response.py": 0.008288,
+   "django/template/defaultfilters.py": 0.007287999999999999,
+   "django/utils/http.py": 0.006287999999999999
   },
   "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c": {
    "django/db/models/fields/json.py": 0.014085,
@@ -2062,7 +2167,8 @@
    "django/utils/crypto.py": 0.030798,
    "django/contrib/auth/hashers.py": 0.029727,
    "django/utils/encoding.py": 0.013889,
-   "django/contrib/postgres/search.py": 0.012346
+   "django/contrib/postgres/search.py": 0.012346,
+   "tests/utils_tests/test_crypto.py": 0.009346
   },
   "d058058976496cedf3f36fa303a0327af38cdeaa": {
    "django/core/cache/backends/filebased.py": 0.032266,
@@ -2071,7 +2177,8 @@
    "django/contrib/sessions/backends/file.py": 0.02837,
    "django/core/cache/backends/db.py": 0.02683,
    "django/core/cache/backends/memcached.py": 0.026709,
-   "django/core/cache/backends/base.py": 0.026263
+   "django/core/cache/backends/base.py": 0.026263,
+   "tests/responses/test_fileresponse.py": 0.024263
   },
   "8acd000725838f73c5e6781114f11866f6674c46": {
    "django/core/cache/utils.py": 0.025019,
@@ -2090,7 +2197,11 @@
    "django/middleware/cache.py": 0.012987,
    "tests/cache/tests.py": 0.01241,
    "tests/decorators/test_vary.py": 0.011729,
-   "django/http/response.py": 0.011628
+   "django/http/response.py": 0.011628,
+   "django/middleware/csrf.py": 0.007627999999999999,
+   "django/middleware/locale.py": 0.005627999999999999,
+   "django/middleware/gzip.py": 0.004627999999999999,
+   "django/template/defaultfilters.py": 0.0026279999999999984
   },
   "56050acb96abc7ac2079d83ffdd232056732bb47": {
    "django/views/decorators/debug.py": 0.031258,
@@ -2098,7 +2209,8 @@
    "django/utils/datastructures.py": 0.016129,
    "django/contrib/auth/forms.py": 0.013514,
    "django/http/multipartparser.py": 0.013333,
-   "django/http/request.py": 0.013158
+   "django/http/request.py": 0.013158,
+   "tests/view_tests/tests/test_debug.py": 0.011158
   },
   "99a14b6be85793f3371779cd9bf6fb9d9247f475": {
    "django/core/checks/mail.py": 0.031778,
@@ -2126,7 +2238,11 @@
    "django/db/backends/base/schema.py": 0.013333,
    "tests/admin_utils/tests.py": 0.013115,
    "django/contrib/admin/sites.py": 0.0125,
-   "django/db/models/fields/__init__.py": 0.012346
+   "django/db/models/fields/__init__.py": 0.012346,
+   "django/contrib/admin/filters.py": 0.010346,
+   "django/contrib/admin/templatetags/admin_list.py": 0.009346,
+   "django/contrib/admin/helpers.py": 0.008346,
+   "django/utils/safestring.py": 0.007345999999999999
   },
   "ca5746b8680a5e7e14014d365c0610f825df1dae": {
    "django/db/models/query.py": 0.031746,
@@ -2134,7 +2250,8 @@
    "django/contrib/admin/checks.py": 0.022658,
    "django/utils/html.py": 0.013158,
    "tests/async/test_async_queryset.py": 0.013009,
-   "django/core/files/uploadedfile.py": 0.012821
+   "django/core/files/uploadedfile.py": 0.012821,
+   "django/utils/warnings.py": 0.009821
   },
   "09434486302078c3649e034dfa74cf3f102db20b": {
    "django/core/mail/backends/smtp.py": 0.014085,
@@ -2143,7 +2260,9 @@
    "django/middleware/csrf.py": 0.012987,
    "django/core/exceptions.py": 0.012658,
    "django/core/files/uploadhandler.py": 0.012346,
-   "tests/mail/test_backends.py": 0.011011
+   "tests/mail/test_backends.py": 0.011011,
+   "django/utils/encoding.py": 0.008011,
+   "django/utils/datastructures.py": 0.007011
   },
   "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c": {
    "django/db/migrations/operations/models.py": 0.032258,
@@ -2153,20 +2272,29 @@
    "tests/schema/tests.py": 0.012063,
    "tests/model_formsets/tests.py": 0.01097,
    "tests/migrations/test_operations.py": 0.010909,
-   "tests/migrations/test_autodetector.py": 0.010667
+   "tests/migrations/test_autodetector.py": 0.010667,
+   "tests/migrations/test_optimizer.py": 0.007666999999999999
   },
   "14c66825e0088b7e08fe5d108fa293bd31722c39": {
    "django/core/management/commands/sendtestemail.py": 0.028382,
    "django/core/management/utils.py": 0.013333,
    "tests/mail/test_sendtestemail.py": 0.013115,
-   "tests/auth_tests/test_management.py": 0.00597
+   "tests/auth_tests/test_management.py": 0.00597,
+   "django/core/management/base.py": 0.00397
   },
   "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e": {
    "django/contrib/admin/options.py": 0.028629,
    "django/contrib/contenttypes/admin.py": 0.028531,
    "django/views/debug.py": 0.015385,
    "django/contrib/contenttypes/forms.py": 0.013158,
-   "tests/generic_inline_admin/tests.py": 0.012711
+   "tests/generic_inline_admin/tests.py": 0.012711,
+   "django/contrib/gis/geos/mutable_list.py": 0.010711,
+   "django/forms/models.py": 0.009711000000000001,
+   "django/template/loader_tags.py": 0.008711,
+   "django/utils/translation/__init__.py": 0.007711,
+   "django/utils/text.py": 0.006711,
+   "django/contrib/admin/utils.py": 0.005711,
+   "django/utils/safestring.py": 0.004711
   },
   "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1": {
    "django/contrib/auth/backends.py": 0.029236,
@@ -2183,7 +2311,13 @@
    "django/utils/timezone.py": 0.012821,
    "django/db/migrations/loader.py": 0.012821,
    "tests/delete_regress/tests.py": 0.009879,
-   "tests/migrations/test_autodetector.py": 0.006452
+   "tests/migrations/test_autodetector.py": 0.006452,
+   "django/apps/registry.py": 0.004452,
+   "django/contrib/gis/geos/mutable_list.py": 0.002452,
+   "django/db/backends/base/base.py": 0.0014520000000000002,
+   "django/db/migrations/migration.py": 0.00045200000000000014,
+   "django/db/migrations/graph.py": -0.0005479999999999999,
+   "django/db/transaction.py": -0.001548
   },
   "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c": {
    "django/template/context_processors.py": 0.016393,
@@ -2198,7 +2332,14 @@
    "django/core/cache/backends/base.py": 0.014706,
    "django/core/mail/deprecation.py": 0.014706,
    "django/utils/version.py": 0.014286,
-   "django/db/models/sql/compiler.py": 0.013889
+   "django/db/models/sql/compiler.py": 0.013889,
+   "tests/utils_tests/test_warnings.py": 0.011889,
+   "django/utils/crypto.py": 0.009889,
+   "django/db/models/sql/query.py": 0.008889000000000001,
+   "django/core/signing.py": 0.007889,
+   "django/db/models/query.py": 0.006889,
+   "django/db/transaction.py": 0.004888999999999999,
+   "django/db/models/fields/json.py": 0.003889
   },
   "867c7c0451f2e67e715da5b55b5bf6696747fdc3": {
    "django/core/cache/backends/db.py": 0.030478,
@@ -2207,7 +2348,8 @@
    "django/core/cache/backends/filebased.py": 0.014706,
    "django/contrib/admin/models.py": 0.014286,
    "django/core/cache/backends/locmem.py": 0.013514,
-   "django/core/cache/backends/base.py": 0.013158
+   "django/core/cache/backends/base.py": 0.013158,
+   "django/db/backends/base/base.py": 0.011158
   },
   "46c5e76f0bcc76bfce19ad7ba07f716fc653a822": {
    "django/utils/_os.py": 0.030478,
@@ -2218,20 +2360,38 @@
    "django/template/smartif.py": 0.013889,
    "django/views/generic/dates.py": 0.013514,
    "django/utils/archive.py": 0.012346,
-   "tests/utils_tests/test_os_utils.py": 0.010588
+   "tests/utils_tests/test_os_utils.py": 0.010588,
+   "django/core/files/storage/filesystem.py": 0.007588,
+   "django/core/files/storage/memory.py": 0.005588,
+   "django/views/static.py": 0.004588,
+   "django/contrib/staticfiles/finders.py": 0.003588,
+   "django/core/management/templates.py": 0.002588,
+   "django/contrib/admindocs/views.py": 0.0015879999999999991,
+   "django/test/testcases.py": -0.00041199999999999917,
+   "django/template/backends/dummy.py": -0.001412,
+   "tests/admin_scripts/tests.py": -0.002412000000000001,
+   "tests/file_storage/tests.py": -0.003412
   },
   "142b881cecaddc334cabec139e701c0e4b9798da": {
    "django/middleware/cache.py": 0.032258,
    "django/views/decorators/cache.py": 0.030092,
    "django/utils/cache.py": 0.028958,
-   "tests/cache/tests.py": 0.01241
+   "tests/cache/tests.py": 0.01241,
+   "django/middleware/__init__.py": 0.009409999999999998
   },
   "71af23d1f4678c4bf052e051d72e8928e1697de3": {
    "django/db/backends/base/introspection.py": 0.014493,
    "tests/basic/models.py": 0.013115,
    "tests/bulk_create/models.py": 0.012599,
    "django/db/models/fields/__init__.py": 0.0125,
-   "django/db/models/fields/files.py": 0.012346
+   "django/db/models/fields/files.py": 0.012346,
+   "tests/schema/tests.py": 0.010346,
+   "tests/introspection/tests.py": 0.009346,
+   "tests/backends/sqlite/test_introspection.py": 0.008346,
+   "django/core/management/commands/inspectdb.py": 0.007345999999999999,
+   "django/db/backends/mysql/base.py": 0.006345999999999999,
+   "django/db/backends/sqlite3/base.py": 0.005345999999999999,
+   "django/db/backends/sqlite3/introspection.py": 0.004345999999999999
   },
   "a7a57a21a8cf42ecc767c204f7939ad4419ae25f": {
    "django/core/cache/backends/locmem.py": 0.030536,
@@ -2239,7 +2399,10 @@
    "django/core/cache/backends/filebased.py": 0.029762,
    "django/http/response.py": 0.013699,
    "django/db/backends/base/operations.py": 0.013514,
-   "django/db/models/sql/compiler.py": 0.012987
+   "django/db/models/sql/compiler.py": 0.012987,
+   "django/http/request.py": 0.010987,
+   "django/template/loader_tags.py": 0.009987,
+   "django/utils/safestring.py": 0.008987
   },
   "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56": {
    "django/db/backends/sqlite3/operations.py": 0.014493,
@@ -2257,7 +2420,11 @@
    "django/db/backends/sqlite3/base.py": 0.012658,
    "django/db/backends/base/base.py": 0.012346,
    "django/db/backends/mysql/base.py": 0.012048,
-   "tests/staticfiles_tests/test_storage.py": 0.011679
+   "tests/staticfiles_tests/test_storage.py": 0.011679,
+   "django/middleware/cache.py": 0.008679,
+   "django/http/response.py": 0.007679,
+   "django/template/defaultfilters.py": 0.006679,
+   "django/utils/http.py": 0.005679
   },
   "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9": {
    "django/contrib/auth/context_processors.py": 0.013699,
@@ -2272,7 +2439,9 @@
    "django/middleware/cache.py": 0.032787,
    "django/views/decorators/cache.py": 0.030835,
    "django/utils/cache.py": 0.029206,
-   "django/core/cache/backends/db.py": 0.012821
+   "django/core/cache/backends/db.py": 0.012821,
+   "tests/cache/tests.py": 0.010821,
+   "django/middleware/__init__.py": 0.009821
   },
   "df887f50198593a0e5b4638bfddbbd43a30fd276": {
    "django/core/mail/backends/smtp.py": 0.030366,
@@ -2291,7 +2460,8 @@
    "django/utils/http.py": 0.014085,
    "tests/asgi/tests.py": 0.013115,
    "django/core/handlers/asgi.py": 0.012195,
-   "tests/handlers/views.py": 0.011951
+   "tests/handlers/views.py": 0.011951,
+   "tests/responses/test_fileresponse.py": 0.009951
   },
   "22d25eff1510eb157be3ef02984869b1309ec15d": {
    "django/urls/utils.py": 0.032787,
@@ -2299,7 +2469,10 @@
    "django/utils/regex_helper.py": 0.015152,
    "tests/urlpatterns/tests.py": 0.012698,
    "tests/staticfiles_tests/test_storage.py": 0.011857,
-   "tests/raw_query/tests.py": 0.01113
+   "tests/raw_query/tests.py": 0.01113,
+   "django/core/management/commands/listurls.py": 0.008129999999999998,
+   "django/contrib/admindocs/views.py": 0.007129999999999999,
+   "django/utils/copy.py": 0.006129999999999999
   },
   "ea9742c6d02edf64fc0969f21506f2048c976051": {
    "django/utils/duration.py": 0.032018,
@@ -2311,7 +2484,10 @@
    "django/db/models/functions/datetime.py": 0.015152,
    "django/contrib/gis/db/backends/oracle/features.py": 0.014493,
    "django/http/multipartparser.py": 0.014085,
-   "django/contrib/gis/gdal/raster/band.py": 0.013699
+   "django/contrib/gis/gdal/raster/band.py": 0.013699,
+   "tests/utils_tests/test_duration.py": 0.011699,
+   "django/db/backends/sqlite3/_functions.py": 0.010699,
+   "django/db/backends/base/operations.py": 0.009699
   },
   "6e15ac8066312328de279e3e072667416c205bfc": {
    "django/http/response.py": 0.032522,
@@ -2321,7 +2497,8 @@
    "django/utils/safestring.py": 0.024812,
    "django/db/models/sql/query.py": 0.015385,
    "django/contrib/admin/filters.py": 0.014925,
-   "django/contrib/messages/storage/cookie.py": 0.013889
+   "django/contrib/messages/storage/cookie.py": 0.013889,
+   "django/utils/datastructures.py": 0.011889
   },
   "f57a90073920f1c34096d062e151a7bd79065f01": {
    "django/utils/deprecation.py": 0.014085,
@@ -2334,7 +2511,12 @@
    "django/contrib/admin/options.py": 0.015385,
    "django/contrib/admin/models.py": 0.014925,
    "django/forms/models.py": 0.014286,
-   "django/db/models/manager.py": 0.012987
+   "django/db/models/manager.py": 0.012987,
+   "django/forms/forms.py": 0.010987,
+   "tests/forms_tests/field_tests/__init__.py": 0.009987,
+   "tests/auth_tests/test_forms.py": 0.008987,
+   "tests/admin_views/forms.py": 0.007987000000000001,
+   "tests/admin_views/tests.py": 0.006987
   },
   "53645750412efa1e9013004040db328bd515e0f1": {
    "django/http/response.py": 0.031281,
@@ -2348,7 +2530,10 @@
    "tests/foreign_object/tests.py": 0.006557,
    "tests/template_tests/syntax_tests/test_partials.py": 0.006452,
    "tests/proxy_models/tests.py": 0.006349,
-   "tests/admin_views/test_actions.py": 0.00625
+   "tests/admin_views/test_actions.py": 0.00625,
+   "django/db/models/base.py": 0.00425,
+   "tests/check_framework/test_multi_db.py": 0.0032500000000000003,
+   "tests/check_framework/test_model_field_deprecation.py": 0.0022500000000000003
   },
   "e78a46a8fb291a11a31b6938b5089db1058f3925": {
    "django/contrib/auth/hashers.py": 0.028787,
@@ -2357,13 +2542,15 @@
    "django/db/backends/mysql/operations.py": 0.016129,
    "django/utils/version.py": 0.015873,
    "django/db/backends/oracle/operations.py": 0.015625,
-   "django/core/cache/backends/base.py": 0.015385
+   "django/core/cache/backends/base.py": 0.015385,
+   "tests/auth_tests/test_hashers.py": 0.013385
   },
   "20960df455fffd73d556a5ed92cdf6832c23e65f": {
    "django/db/transaction.py": 0.032522,
    "django/db/backends/base/operations.py": 0.031754,
    "django/db/backends/base/base.py": 0.03101,
-   "django/db/backends/sqlite3/base.py": 0.02901
+   "django/db/backends/sqlite3/base.py": 0.02901,
+   "tests/transactions/tests.py": 0.02701
   },
   "9b4433948714d5c43bab96b08bb6618c22512000": {
    "django/utils/timezone.py": 0.016129,
@@ -2373,7 +2560,23 @@
    "tests/managers_regress/tests.py": 0.009145,
    "tests/gis_tests/geoapp/test_regress.py": 0.008545,
    "tests/test_client_regress/tests.py": 0.006557,
-   "tests/utils_tests/test_csp.py": 0.006452
+   "tests/utils_tests/test_csp.py": 0.006452,
+   "django/utils/dateparse.py": 0.004452,
+   "tests/syndication_tests/feeds.py": 0.003452,
+   "tests/model_regress/tests.py": 0.002452,
+   "tests/template_tests/filter_tests/timezone_utils.py": 0.0014520000000000002,
+   "tests/utils_tests/test_dateformat.py": 0.00045200000000000014,
+   "tests/humanize_tests/tests.py": -0.0005479999999999999,
+   "tests/utils_tests/test_timezone.py": -0.001548,
+   "tests/template_tests/filter_tests/test_date.py": -0.002548000000000001,
+   "tests/template_tests/filter_tests/test_time.py": -0.003548,
+   "tests/utils_tests/test_dateparse.py": -0.004547999999999999,
+   "tests/forms_tests/field_tests/test_datetimefield.py": -0.005548,
+   "tests/migrations/test_writer.py": -0.006548000000000001,
+   "tests/utils_tests/test_timesince.py": -0.007548,
+   "tests/file_storage/tests.py": -0.008548,
+   "tests/utils_tests/test_feedgenerator.py": -0.009548000000000001,
+   "django/db/backends/base/base.py": -0.010548000000000002
   },
   "8fd29079ed1253f0cd88ccf330de30271a5d15e4": {
    "django/contrib/admin/options.py": 0.029762,
@@ -2386,7 +2589,10 @@
    "django/contrib/admin/templatetags/admin_modify.py": 0.025603,
    "django/contrib/auth/forms.py": 0.025333,
    "django/contrib/admin/templatetags/admin_list.py": 0.014286,
-   "django/contrib/admin/utils.py": 0.012987
+   "django/contrib/admin/utils.py": 0.012987,
+   "tests/auth_tests/test_forms.py": 0.009987,
+   "tests/admin_views/forms.py": 0.008987,
+   "tests/admin_views/tests.py": 0.007987000000000001
   },
   "fbe902d4a4b8b9dcb371509b25ba8feff3852e64": {
    "django/db/models/query.py": 0.028787,
@@ -2418,7 +2624,8 @@
    "django/http/response.py": 0.013333,
    "django/db/backends/base/schema.py": 0.013158,
    "tests/generic_views/test_base.py": 0.013009,
-   "django/contrib/admin/options.py": 0.0125
+   "django/contrib/admin/options.py": 0.0125,
+   "tests/urlpatterns_reverse/views.py": 0.009500000000000001
   },
   "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f": {
    "django/core/mail/backends/smtp.py": 0.032018,
@@ -2428,7 +2635,8 @@
    "django/core/mail/backends/filebased.py": 0.013333,
    "django/forms/fields.py": 0.012987,
    "tests/mail/test_backends.py": 0.012903,
-   "django/core/exceptions.py": 0.0125
+   "django/core/exceptions.py": 0.0125,
+   "django/core/mail/backends/base.py": 0.0105
   },
   "ed5486376989c08b34cc62e7c8ba4a07bd60047d": {
    "django/db/migrations/autodetector.py": 0.014925,
@@ -2436,14 +2644,21 @@
    "django/conf/__init__.py": 0.014493,
    "django/db/models/sql/where.py": 0.014286,
    "django/db/models/expressions.py": 0.014085,
-   "django/db/models/fields/__init__.py": 0.013889
+   "django/db/models/fields/__init__.py": 0.013889,
+   "tests/migrations/test_autodetector.py": 0.011889,
+   "django/contrib/gis/geos/mutable_list.py": 0.010889
   },
   "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e": {
    "django/db/migrations/loader.py": 0.013514,
    "django/db/migrations/graph.py": 0.012987,
    "tests/admin_views/tests.py": 0.011858,
    "tests/admin_changelist/tests.py": 0.011348,
-   "tests/modeladmin/test_checks.py": 0.011287
+   "tests/modeladmin/test_checks.py": 0.011287,
+   "django/db/migrations/executor.py": 0.009287,
+   "django/core/management/commands/makemigrations.py": 0.008287,
+   "django/core/management/commands/migrate.py": 0.007287,
+   "tests/migrations/test_loader.py": 0.006287,
+   "tests/migrations/test_executor.py": 0.005287
   },
   "335c6d0129400eda792f3bec5c71bb28af5e5d37": {
    "django/contrib/auth/password_validation.py": 0.022984,
@@ -2492,7 +2707,12 @@
    "django/db/models/sql/where.py": 0.014286,
    "django/db/models/expressions.py": 0.014085,
    "django/db/models/constraints.py": 0.013514,
-   "django/forms/fields.py": 0.013333
+   "django/forms/fields.py": 0.013333,
+   "django/template/library.py": 0.011333,
+   "django/template/base.py": 0.010332999999999998,
+   "django/contrib/admin/templatetags/base.py": 0.009333,
+   "tests/template_tests/test_custom.py": 0.008333,
+   "tests/template_tests/test_library.py": 0.007332999999999999
   },
   "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e": {
    "django/db/migrations/operations/fields.py": 0.016129,
@@ -2501,7 +2721,8 @@
    "django/db/migrations/operations/models.py": 0.014493,
    "django/db/models/fields/related.py": 0.013699,
    "django/db/models/fields/__init__.py": 0.013514,
-   "django/db/models/fields/composite.py": 0.013158
+   "django/db/models/fields/composite.py": 0.013158,
+   "tests/migrations/test_optimizer.py": 0.010158
   },
   "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe": {
    "django/forms/formsets.py": 0.016393,
@@ -2518,7 +2739,8 @@
    "django/db/migrations/autodetector.py": 0.014286,
    "django/core/mail/exceptions.py": 0.013514,
    "django/core/checks/translation.py": 0.013333,
-   "tests/mail/test_backends.py": 0.013115
+   "tests/mail/test_backends.py": 0.013115,
+   "tests/check_framework/test_files.py": 0.011115
   },
   "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd": {
    "django/contrib/auth/hashers.py": 0.030478,
@@ -2528,7 +2750,8 @@
   "75bb46cc454fdef0585f0a460f36f579b59f0356": {
    "scripts/pr_quality/check_pr.py": 0.032787,
    "scripts/pr_quality/errors.py": 0.026172,
-   "django/db/migrations/graph.py": 0.013158
+   "django/db/migrations/graph.py": 0.013158,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.011158
   },
   "57b23d15259c32dba80bb093645242f1b3b25365": {
    "django/utils/http.py": 0.016393,
@@ -2538,7 +2761,10 @@
    "django/core/cache/backends/db.py": 0.014085,
    "django/middleware/http.py": 0.013889,
    "scripts/archive_eol_stable_branches.py": 0.013158,
-   "django/db/migrations/autodetector.py": 0.012987
+   "django/db/migrations/autodetector.py": 0.012987,
+   "django/contrib/auth/views.py": 0.010987,
+   "tests/utils_tests/test_http.py": 0.009987,
+   "django/template/defaultfilters.py": 0.008987
   },
   "c79bdfc1351ef2a2ad95df36241a74c736ef20a1": {
    "django/utils/cache.py": 0.029274,
@@ -2547,7 +2773,15 @@
    "django/utils/http.py": 0.013333,
    "django/contrib/admindocs/middleware.py": 0.013158,
    "tests/cache/tests.py": 0.013009,
-   "django/db/models/expressions.py": 0.012821
+   "django/db/models/expressions.py": 0.012821,
+   "django/middleware/cache.py": 0.008821,
+   "django/middleware/gzip.py": 0.007821000000000002,
+   "django/middleware/csrf.py": 0.006821000000000001,
+   "django/contrib/sessions/middleware.py": 0.005821000000000001,
+   "django/middleware/locale.py": 0.004821000000000001,
+   "django/http/response.py": 0.0028210000000000006,
+   "django/template/defaultfilters.py": 0.0018210000000000014,
+   "tests/decorators/test_vary.py": 0.0008210000000000005
   },
   "7f6e9b55130d5158804c0acbc0b24ccb7422ed82": {
    "django/utils/cache.py": 0.028595,
@@ -2556,7 +2790,12 @@
    "django/middleware/csrf.py": 0.015385,
    "django/contrib/sessions/backends/signed_cookies.py": 0.014925,
    "django/contrib/sessions/backends/base.py": 0.013158,
-   "tests/sessions_tests/tests.py": 0.01244
+   "tests/sessions_tests/tests.py": 0.01244,
+   "tests/cache/tests.py": 0.01044,
+   "django/middleware/cache.py": 0.00944,
+   "django/http/response.py": 0.00844,
+   "django/template/defaultfilters.py": 0.0074399999999999996,
+   "django/utils/http.py": 0.0064399999999999995
   },
   "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a": {
    "django/core/signing.py": 0.031498,
@@ -2565,7 +2804,9 @@
    "django/db/models/functions/text.py": 0.014925,
    "django/db/backends/sqlite3/_functions.py": 0.014493,
    "tests/utils_tests/test_crypto.py": 0.013115,
-   "tests/signing/tests.py": 0.012903
+   "tests/signing/tests.py": 0.012903,
+   "django/utils/warnings.py": 0.008903,
+   "django/utils/encoding.py": 0.007903
   },
   "920b43eb5b40190bb2dbee00773e17307bc699d8": {
    "django/utils/deprecation.py": 0.015385,
@@ -2581,7 +2822,8 @@
    "django/contrib/auth/password_validation.py": 0.014085,
    "django/forms/models.py": 0.012987,
    "django/db/models/query_utils.py": 0.012821,
-   "django/db/models/constraints.py": 0.012658
+   "django/db/models/constraints.py": 0.012658,
+   "tests/auth_tests/test_remote_user.py": 0.010658
   },
   "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f": {
    "django/db/backends/postgresql/base.py": 0.029572,
@@ -2603,7 +2845,10 @@
    "django/db/models/fields/__init__.py": 0.030622,
    "django/forms/fields.py": 0.030536,
    "django/utils/choices.py": 0.015873,
-   "django/db/models/query_utils.py": 0.014925
+   "django/db/models/query_utils.py": 0.014925,
+   "tests/model_fields/test_filepathfield.py": 0.012925,
+   "django/contrib/gis/gdal/field.py": 0.011925000000000002,
+   "tests/model_fields/tests.py": 0.009925
   },
   "60a9c70496e5d7b971928ce3da5b47c8836a4def": {
    "django/contrib/flatpages/forms.py": 0.032002,
@@ -2629,14 +2874,18 @@
    "django/contrib/gis/gdal/field.py": 0.013889,
    "django/template/base.py": 0.013699,
    "django/contrib/gis/gdal/prototypes/srs.py": 0.013158,
-   "django/contrib/gis/gdal/prototypes/generation.py": 0.0125
+   "django/contrib/gis/gdal/prototypes/generation.py": 0.0125,
+   "django/template/loader_tags.py": 0.0105,
+   "django/utils/safestring.py": 0.0085
   },
   "fb292a549371a7c011c25b1a10fe5d25c579814a": {
    "django/db/models/query_utils.py": 0.031025,
    "tests/queries/test_q.py": 0.013115,
    "django/db/migrations/autodetector.py": 0.012987,
    "tests/aggregation_regress/tests.py": 0.006452,
-   "tests/composite_pk/test_create.py": 0.00625
+   "tests/composite_pk/test_create.py": 0.00625,
+   "django/template/loader_tags.py": 0.00425,
+   "django/utils/safestring.py": 0.0032500000000000003
   },
   "c63591d4da533944af31ccb46a77eb221dbdba0a": {
    "django/contrib/auth/__init__.py": 0.032787,
@@ -2671,7 +2920,8 @@
    "tests/constraints/tests.py": 0.012146,
    "tests/invalid_models_tests/test_models.py": 0.011353,
    "tests/schema/tests.py": 0.010572,
-   "tests/auth_tests/models/with_unique_constraint.py": 0.006557
+   "tests/auth_tests/models/with_unique_constraint.py": 0.006557,
+   "tests/auth_tests/test_checks.py": 0.004557
   },
   "dc467fdc3b5744cec71fab876c23a14013e2510b": {
    "django/http/request.py": 0.031498,
@@ -2679,7 +2929,13 @@
    "django/http/response.py": 0.015385,
    "django/contrib/admin/options.py": 0.014925,
    "django/contrib/contenttypes/fields.py": 0.014085,
-   "tests/httpwrappers/tests.py": 0.012618
+   "tests/httpwrappers/tests.py": 0.012618,
+   "django/core/handlers/asgi.py": 0.010618,
+   "django/core/handlers/wsgi.py": 0.009618000000000002,
+   "django/utils/http.py": 0.008618,
+   "django/template/defaultfilters.py": 0.007618000000000001,
+   "django/utils/copy.py": 0.006618000000000001,
+   "django/contrib/admin/utils.py": 0.005618000000000001
   },
   "84db026228413dda4cd195464554d51c0b208e32": {
    "django/contrib/admin/options.py": 0.02904,
@@ -2688,7 +2944,9 @@
    "django/contrib/admindocs/views.py": 0.013699,
    "django/db/models/deletion.py": 0.013333,
    "tests/admin_views/tests.py": 0.013115,
-   "django/forms/models.py": 0.012987
+   "django/forms/models.py": 0.012987,
+   "django/contrib/auth/__init__.py": 0.010987,
+   "django/forms/formsets.py": 0.008987
   },
   "673fa46d8063577c92cfab3a73a28e9406372e33": {
    "scripts/pr_quality/check_pr.py": 0.032522,
@@ -2720,7 +2978,8 @@
    "django/utils/html.py": 0.013699,
    "django/db/models/query.py": 0.013158,
    "django/utils/regex_helper.py": 0.0125,
-   "django/contrib/admin/utils.py": 0.012346
+   "django/contrib/admin/utils.py": 0.012346,
+   "django/contrib/gis/geos/mutable_list.py": 0.009346
   },
   "3157285e27a426530ef571855e0e29c317e210df": {
    "django/core/files/base.py": 0.016393,
@@ -2753,7 +3012,9 @@
    "django/contrib/gis/db/backends/oracle/adapter.py": 0.016129,
    "django/db/models/fields/__init__.py": 0.015385,
    "django/db/migrations/autodetector.py": 0.014925,
-   "django/utils/translation/reloader.py": 0.013889
+   "django/utils/translation/reloader.py": 0.013889,
+   "tests/file_uploads/tests.py": 0.011889,
+   "tests/requests_tests/tests.py": 0.010889
   },
   "6afe7ce93964f56e33a29d477c269436f9b60cbf": {
    "django/contrib/admin/exceptions.py": 0.015873,
@@ -2763,7 +3024,9 @@
    "tests/modeladmin/test_checks.py": 0.006557,
    "tests/admin_changelist/models.py": 0.006557,
    "tests/admin_changelist/admin.py": 0.006452,
-   "tests/auth_tests/test_management.py": 0.006349
+   "tests/auth_tests/test_management.py": 0.006349,
+   "django/contrib/admin/views/main.py": 0.004349,
+   "django/core/exceptions.py": 0.0033489999999999995
   },
   "caf90a971f09323775ed0cacf94eadaf39d040e0": {
    "django/core/handlers/asgi.py": 0.028612,
@@ -2772,10 +3035,17 @@
    "tests/asgi/tests.py": 0.013115,
    "django/http/request.py": 0.012821,
    "tests/servers/test_basehttp.py": 0.012605,
-   "django/contrib/gis/db/backends/oracle/adapter.py": 0.012195
+   "django/contrib/gis/db/backends/oracle/adapter.py": 0.012195,
+   "django/test/client.py": 0.010195
   },
   "33bfc66add643f49d466c5a646989ad91677753d": {
-   "django/core/serializers/xml_serializer.py": 0.031746
+   "django/core/serializers/xml_serializer.py": 0.031746,
+   "django/contrib/gis/serializers/geojson.py": 0.029746,
+   "django/core/serializers/pyyaml.py": 0.028746000000000004,
+   "django/core/serializers/json.py": 0.027746000000000003,
+   "django/core/serializers/jsonl.py": 0.026746000000000002,
+   "django/core/serializers/python.py": 0.025746000000000005,
+   "tests/serializers/tests.py": 0.024746000000000004
   },
   "3b161e60964aff99eddcd2627a486d81c1836b3a": {
    "django/db/models/sql/query.py": 0.014706,
@@ -2784,7 +3054,9 @@
    "django/core/management/base.py": 0.012987,
    "django/contrib/gis/geos/geometry.py": 0.011765,
    "tests/dates/tests.py": 0.011683,
-   "tests/queries/tests.py": 0.011313
+   "tests/queries/tests.py": 0.011313,
+   "django/db/models/query_utils.py": 0.009313,
+   "django/db/models/query.py": 0.008313000000000001
   },
   "fcf916884d25ed430bd7cedaea2b10035c2aa3b6": {
    "django/db/models/fields/related.py": 0.032787,
@@ -2807,7 +3079,8 @@
    "django/forms/models.py": 0.0272,
    "django/views/generic/detail.py": 0.025344,
    "django/views/generic/list.py": 0.015873,
-   "django/contrib/admin/views/main.py": 0.013158
+   "django/contrib/admin/views/main.py": 0.013158,
+   "django/db/models/expressions.py": 0.011158
   },
   "8b7ea2bcdd7297941ca6beb72d93b9568e187349": {
    "django/forms/models.py": 0.015873,
@@ -2815,7 +3088,9 @@
    "django/db/models/constraints.py": 0.014085,
    "django/contrib/auth/management/commands/createsuperuser.py": 0.013514,
    "django/db/migrations/graph.py": 0.013158,
-   "tests/forms_tests/field_tests/test_multiplechoicefield.py": 0.012903
+   "tests/forms_tests/field_tests/test_multiplechoicefield.py": 0.012903,
+   "django/forms/forms.py": 0.010903,
+   "django/contrib/gis/geos/mutable_list.py": 0.009902999999999999
   },
   "386257b33eb2a925cecc1a12ba5e7dd694617186": {
    "django/db/models/expressions.py": 0.016129,
@@ -2829,7 +3104,21 @@
    "django/utils/log.py": 0.027118,
    "scripts/pr_quality/check_pr.py": 0.014493,
    "tests/logging_tests/tests.py": 0.013115,
-   "django/test/signals.py": 0.012124
+   "django/test/signals.py": 0.012124,
+   "django/__init__.py": 0.009124,
+   "django/utils/module_loading.py": 0.008124,
+   "django/core/asgi.py": 0.006123999999999999,
+   "tests/apps/tests.py": 0.005123999999999999,
+   "django/core/wsgi.py": 0.004123999999999999,
+   "tests/runtests.py": 0.0031239999999999983,
+   "django/core/management/__init__.py": 0.002123999999999999,
+   "django/core/management/templates.py": 0.001124,
+   "django/test/runner.py": 0.0001239999999999991,
+   "scripts/check_migrations.py": -0.0008760000000000018,
+   "scripts/manage_translations.py": -0.001876000000000001,
+   "django/core/servers/basehttp.py": -0.002876,
+   "tests/asgi/tests.py": -0.003876000000000001,
+   "tests/wsgi/tests.py": -0.004876000000000002
   },
   "5146449a38222dc74f8f1ba88a7a7ef681e93101": {
    "django/db/backends/postgresql/features.py": 0.016393,
@@ -2847,7 +3136,15 @@
    "tests/admin_changelist/tests.py": 0.013115,
    "tests/admin_views/tests.py": 0.01222,
    "tests/admin_checks/tests.py": 0.010848,
-   "tests/admin_utils/tests.py": 0.010753
+   "tests/admin_utils/tests.py": 0.010753,
+   "django/contrib/admin/utils.py": 0.008753,
+   "django/contrib/admin/helpers.py": 0.007753,
+   "django/utils/html.py": 0.006753,
+   "django/templatetags/static.py": 0.005753,
+   "django/contrib/admin/options.py": 0.0037530000000000003,
+   "django/contrib/admin/templatetags/admin_filters.py": 0.0027530000000000002,
+   "tests/postgres_tests/test_array.py": 0.0007530000000000002,
+   "django/utils/safestring.py": -0.00024699999999999896
   },
   "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3": {
    "django/db/models/fields/__init__.py": 0.032787,
@@ -2870,7 +3167,8 @@
   },
   "6c95af5c9d294a20d09f080d7c144e3b7362d65f": {
    "django/db/backends/oracle/base.py": 0.015152,
-   "tests/test_client/tests.py": 0.013115
+   "tests/test_client/tests.py": 0.013115,
+   "django/http/request.py": 0.011115
   },
   "7cb2221e9267dec3f1cf7c88b8686d38fd956639": {
    "django/utils/inspect.py": 0.027118,
@@ -2881,7 +3179,15 @@
    "django/db/models/query.py": 0.013889,
    "django/db/backends/ddl_references.py": 0.012987,
    "django/contrib/messages/api.py": 0.012821,
-   "django/contrib/sessions/backends/base.py": 0.012821
+   "django/contrib/sessions/backends/base.py": 0.012821,
+   "tests/utils_tests/test_inspect.py": 0.010821,
+   "django/tasks/backends/base.py": 0.009821,
+   "django/tasks/backends/dummy.py": 0.008821,
+   "django/tasks/backends/immediate.py": 0.007821000000000002,
+   "django/tasks/base.py": 0.006821000000000001,
+   "tests/tasks/test_custom_backend.py": 0.005821000000000001,
+   "tests/tasks/test_dummy_backend.py": 0.004821000000000001,
+   "tests/tasks/test_immediate_backend.py": 0.0038209999999999997
   }
  }
 }

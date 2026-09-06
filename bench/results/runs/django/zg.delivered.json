@@ -1668,7 +1668,7 @@
    "error": null
   }
  ],
- "kind": "seed",
+ "kind": "delivered",
  "run": {
   "026b005f3dc43a98557ce5a546b5e4938d06fed1": {
    "django/utils/deprecation.py": 1.0,

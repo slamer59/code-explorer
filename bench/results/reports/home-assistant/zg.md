@@ -1,7 +1,7 @@
-# zg on django
+# zg on home-assistant
 
-Generated 2026-09-06T12:53:48+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
-Tool at `d98d1d8d` (dirty), corpus at `b3f4d83a`.
+Generated 2026-09-06T14:13:37+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
+Tool at `a0d3b948` (dirty), corpus at `932838840b3`.
 
 
 ## Retrieval quality (file level)
@@ -11,12 +11,12 @@ This tool has no expansion step, so `bundle` repeats `seed` -- that is the corre
 
 | run | recall@1 | recall@5 | recall@10 | mrr@10 | ndcg@10 |
 |---|---|---|---|---|---|
-| delivered | 0.257 | 0.597 | 0.629 | 0.691 | 0.578 |
-| seed | 0.257 | 0.597 | 0.629 | 0.691 | 0.578 |
-| bundle | 0.257 | 0.597 | 0.629 | 0.691 | 0.578 |
+| delivered | 0.176 | 0.433 | 0.527 | 0.500 | 0.434 |
+| seed | 0.176 | 0.433 | 0.527 | 0.500 | 0.434 |
+| bundle | 0.176 | 0.433 | 0.527 | 0.500 | 0.434 |
 
 ## Cost
 
 | queries | errors | median latency | mean tokens | recall@10 per 1k tokens |
 |---|---|---|---|---|
-| 150 | 0 | 1165 ms | 344 | 1.825 |
+| 200 | 0 | 5838 ms | 387 | 1.364 |

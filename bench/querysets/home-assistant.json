@@ -1,0 +1,4878 @@
+{
+ "repo": "home-assistant",
+ "scanned": 4000,
+ "cases": [
+  {
+   "sha": "e37a8cfa98262b67ffcff6cdfc70f148b4d2a188",
+   "query": "Leave Powerwall gateway host blank when discovery fails",
+   "answers": [
+    {
+     "file": "homeassistant/components/teslemetry/config_flow.py",
+     "symbols": [
+      "EnergySiteSubentryFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/teslemetry/test_config_flow.py",
+     "symbols": [
+      "_credentials_host_default",
+      "_credentials_host_is_blank",
+      "test_add_flow_aborts_when_entry_not_loaded",
+      "test_gateway_discovery_empty_leaves_host_blank",
+      "test_gateway_discovery_failure_leaves_host_blank",
+      "test_gateway_discovery_failure_proceeds_without_host"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "e1efb35a971d0396200553bf46a83a3ccb96b4dd",
+   "query": "Split Teslemetry local-control abort into two reasons",
+   "answers": [
+    {
+     "file": "homeassistant/components/teslemetry/config_flow.py",
+     "symbols": [
+      "EnergySiteSubentryFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/teslemetry/test_config_flow.py",
+     "symbols": [
+      "test_add_flow_aborts_when_all_sites_added",
+      "test_add_flow_aborts_when_no_powerwall"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "81e0a244f8701086aa8a73e48f59c8c226e2607b",
+   "query": "Fix Teslemetry energy-site setup crash on encrypted RSA key",
+   "answers": [
+    {
+     "file": "homeassistant/components/teslemetry/__init__.py",
+     "symbols": [
+      "_async_get_rsa_key_pem"
+     ]
+    },
+    {
+     "file": "homeassistant/components/teslemetry/config_flow.py",
+     "symbols": [
+      "EnergySiteSubentryFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/teslemetry/test_config_flow.py",
+     "symbols": [
+      "test_pair_step_second_lookup_errors"
+     ]
+    },
+    {
+     "file": "tests/components/teslemetry/test_init.py",
+     "symbols": [
+      "test_local_control_encrypted_key_falls_back_to_cloud",
+      "test_local_control_failure_falls_back_to_cloud",
+      "test_local_control_unexpected_typeerror_is_not_swallowed"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 4
+  },
+  {
+   "sha": "0828053500c96ea5b91af4861fbef0a49d7fa202",
+   "query": "Allow non-admins to subscribe to conditions over the websocket",
+   "answers": [
+    {
+     "file": "homeassistant/components/websocket_api/commands.py",
+     "symbols": [
+      "handle_test_condition"
+     ]
+    },
+    {
+     "file": "tests/components/websocket_api/test_commands.py",
+     "symbols": [
+      "test_subscribe_condition",
+      "test_subscribe_condition_non_admin",
+      "test_test_condition",
+      "test_test_condition_requires_admin"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "a933a32d552b69d4da66590447c05a1795397897",
+   "query": "Handle Tradfri devices without a firmware version",
+   "answers": [
+    {
+     "file": "homeassistant/components/tradfri/entity.py",
+     "symbols": [
+      "TradfriBaseEntity"
+     ]
+    },
+    {
+     "file": "tests/components/tradfri/test_sensor.py",
+     "symbols": [
+      "remote_control",
+      "remote_control_without_firmware",
+      "test_battery_sensor",
+      "test_battery_sensor_without_firmware_version"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "a31d81b963cdb24349d35795b29070fe2b50ce1b",
+   "query": "Fix Synology DSM backup share step losing its input",
+   "answers": [
+    {
+     "file": "homeassistant/components/synology_dsm/config_flow.py",
+     "symbols": [
+      "SynologyDSMFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/synology_dsm/test_config_flow.py",
+     "symbols": [
+      "test_backup_share_form_reopened",
+      "test_backup_share_requires_a_path",
+      "test_user_with_filestation"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "7f6b995473478f2177bbaac694e1e29c551ec5be",
+   "query": "Add the air outlet, DHW and indoor unit sensors to WeHeat",
+   "answers": [
+    {
+     "file": "homeassistant/components/weheat/sensor.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/weheat/conftest.py",
+     "symbols": [
+      "mock_weheat_heat_pump_instance"
+     ]
+    },
+    {
+     "file": "tests/components/weheat/test_sensor.py",
+     "symbols": [
+      "test_all_entities",
+      "test_an_unknown_dhw_control_method_keeps_the_sensor",
+      "test_create_entities",
+      "test_dhw_target_temperature"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "f501eaed55998011933722dbc892249d2df1d793",
+   "query": "Allow empty motionEye usernames",
+   "answers": [
+    {
+     "file": "homeassistant/components/motioneye/config_flow.py",
+     "symbols": [
+      "MotionEyeConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/motioneye/test_config_flow.py",
+     "symbols": [
+      "test_user_success"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "bafc126de8f3fff62c3710a771ba96dfde400dfc",
+   "query": "WeHeat - Diagnostics",
+   "answers": [
+    {
+     "file": "homeassistant/components/weheat/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/weheat/conftest.py",
+     "symbols": [
+      "mock_weheat_heat_pump_instance"
+     ]
+    },
+    {
+     "file": "tests/components/weheat/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics",
+      "test_diagnostics_without_data"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "dbf135a2ef40cb10afeb65515ae4ded5681f929d",
+   "query": "Reject Hot Spring Spa Network Adapter (SNA) in config flow (hotfix)",
+   "answers": [
+    {
+     "file": "homeassistant/components/hotspring/config_flow.py",
+     "symbols": [
+      "HotSpringConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/hotspring/test_config_flow.py",
+     "symbols": [
+      "test_form_cannot_connect",
+      "test_form_errors",
+      "test_full_zeroconf_flow_implementation",
+      "test_user_device_exists_abort",
+      "test_zeroconf_connection_error",
+      "test_zeroconf_error"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "357c6f56162a0269e86a36aa1ad66d6af222c282",
+   "query": "Fix EnergyZero market price regression",
+   "answers": [
+    {
+     "file": "homeassistant/components/energyzero/coordinator.py",
+     "symbols": [
+      "EnergyZeroDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/energyzero/test_init.py",
+     "symbols": [
+      "test_coordinator_requests_market_prices_with_vat"
+     ]
+    },
+    {
+     "file": "tests/components/energyzero/test_sensor.py",
+     "symbols": [
+      "test_sensor"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "cca93dec22d3d3523e530c5cfecd9af8e1c9ccf1",
+   "query": "Fix Besen config flow schema serialization",
+   "answers": [
+    {
+     "file": "homeassistant/components/besen/config_flow.py",
+     "symbols": [
+      "_async_validate_input",
+      "_normalize_address"
+     ]
+    },
+    {
+     "file": "tests/components/besen/test_config_flow.py",
+     "symbols": [
+      "test_bluetooth_step_sets_discovered_context",
+      "test_user_step_rejects_invalid_pin",
+      "test_user_step_success"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "5643c2ba66cf98a84daf4ab10c92a8ed12d65b9f",
+   "query": "Rename service registration method in google_assistant and shopping_list",
+   "answers": [
+    {
+     "file": "homeassistant/components/google_assistant/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/google_assistant/services.py",
+     "symbols": [
+      "async_setup_services"
+     ]
+    },
+    {
+     "file": "homeassistant/components/shopping_list/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/shopping_list/services.py",
+     "symbols": [
+      "async_setup_services"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 4
+  },
+  {
+   "sha": "3aae3b4ea795270f7627553b06419892789d8c02",
+   "query": "Drop translations from the Sofar coordinator errors",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/coordinator.py",
+     "symbols": [
+      "SofarDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_init.py",
+     "symbols": [
+      "test_every_component_failing_recovers_on_a_later_poll"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "c6219719b55b4b1f58e926684ba7504c42a93199",
+   "query": "Add the Sofar active power limit binary sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/binary_sensor.py",
+     "symbols": [
+      "SofarFaultBinarySensor",
+      "SofarFlagBinarySensor",
+      "SofarFlagBinarySensorDescription",
+      "async_setup_entry",
+      "is_on"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_binary_sensor.py",
+     "symbols": [
+      "test_active_power_limit_enabled_follows_its_bit",
+      "test_enabled_by_default_excludes_commercial_hardware"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "38df1695f212133864d57d9bc034e46dfa06a51f",
+   "query": "Purge unreachable deleted devices on device registry load",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/device_registry.py",
+     "symbols": [
+      "DeviceRegistry"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_device_registry.py",
+     "symbols": [
+      "_deleted_device",
+      "test_loading_child_device_with_missing_parent",
+      "test_loading_drops_empty_deleted_devices"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "3c46bcb85a7ca70cd0d962362a0c38d531dd0c09",
+   "query": "Fix host override ignored in UniFi Protect public-only mode",
+   "answers": [
+    {
+     "file": "homeassistant/components/unifiprotect/utils.py",
+     "symbols": [
+      "async_create_api_client"
+     ]
+    },
+    {
+     "file": "tests/components/unifiprotect/test_utils.py",
+     "symbols": [
+      "test_host_override_reaches_the_client",
+      "test_session_client_none_without_credentials"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "5a80328b1df9fc3e197c97912f69887377a407a7",
+   "query": "Handle already_in_progress centrally",
+   "answers": [
+    {
+     "file": "homeassistant/config_entries.py",
+     "symbols": [
+      "ConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/test_config_entries.py",
+     "symbols": [
+      "test_default_discovery_in_progress"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "763981324741b073a17fa9ecbfd7c03e823c30fc",
+   "query": "Add Imou diagnostics for config entries",
+   "answers": [
+    {
+     "file": "homeassistant/components/imou/diagnostics.py",
+     "symbols": [
+      "_serialize_device",
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/imou/test_diagnostics.py",
+     "symbols": [
+      "test_config_entry_diagnostics"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "b3f43dea4a923e41de7a42b75d3fa50289aec0dd",
+   "query": "Rename services module in switchbot_cloud",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/switchbot_cloud/services.py",
+     "symbols": [
+      "async_setup_services",
+      "handle_upload_image"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "298249854cfdb6ff84b2d2fbbe33ec049e62665e",
+   "query": "Align service registration method in services module",
+   "answers": [
+    {
+     "file": "homeassistant/components/backup/services.py",
+     "symbols": [
+      "_async_handle_create_automatic_service"
+     ]
+    },
+    {
+     "file": "homeassistant/components/evohome/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/evohome/services.py",
+     "symbols": [
+      "_validate_set_system_mode_params",
+      "async_setup_services",
+      "setup_service_functions"
+     ]
+    },
+    {
+     "file": "homeassistant/components/geniushub/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/geniushub/services.py",
+     "symbols": [
+      "async_setup_services"
+     ]
+    },
+    {
+     "file": "homeassistant/components/green_planet_energy/services.py",
+     "symbols": [
+      "get_prices"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 6
+  },
+  {
+   "sha": "ac2ee023f39bcb3faed657bfaf420c33e07459bb",
+   "query": "Use discovery result in Midea for reconfigure flow",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/config_flow.py",
+     "symbols": [
+      "MideaConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_config_flow.py",
+     "symbols": [
+      "_assert_reconfigure_success"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "a6a5a49dbbc9260c010003a74ffc52f70aadd0fc",
+   "query": "Rename services module in ihc",
+   "answers": [
+    {
+     "file": "homeassistant/components/ihc/__init__.py",
+     "symbols": [
+      "ihc_setup",
+      "setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/ihc/services.py",
+     "symbols": [
+      "setup_services"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "df4808f629ffec2be76f0adb2d7329f56407ce17",
+   "query": "Add missing husqvarna_automower error keys",
+   "answers": [
+    {
+     "file": "tests/components/husqvarna_automower/test_event.py",
+     "symbols": [
+      "fake_register_websocket_response",
+      "test_event",
+      "test_event_destination_blocked"
+     ]
+    },
+    {
+     "file": "tests/components/husqvarna_automower/test_sensor.py",
+     "symbols": [
+      "test_error_sensor"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "c9d17c6c158ea5b5a3a44aa97e1b734d78b1ac83",
+   "query": "Fix HomeKit power control for Daikin zone climates",
+   "answers": [
+    {
+     "file": "homeassistant/components/daikin/climate.py",
+     "symbols": [
+      "DaikinZoneClimate"
+     ]
+    },
+    {
+     "file": "tests/components/daikin/test_zone_climate.py",
+     "symbols": [
+      "test_zone_climate_hvac_modes_read_only",
+      "test_zone_climate_parameters_unavailable",
+      "test_zone_climate_power_controls",
+      "test_zone_climate_properties",
+      "test_zone_climate_rejects_main_mode_change",
+      "test_zone_climate_target_temperature_inactive_mode",
+      "test_zone_switch_updates_zone_climate"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "8d48785e4fbd2253298fdea0eec25fef19e38ef1",
+   "query": "Deprecate passing a target to homeassistant.reload_config_entry",
+   "answers": [
+    {
+     "file": "homeassistant/components/homeassistant/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "tests/components/homeassistant/test_init.py",
+     "symbols": [
+      "test_reload_config_entry_by_entity_id",
+      "test_reload_config_entry_by_entry_id"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "a98e9c25bb220aea04dc565500f9de4031067c82",
+   "query": "Use sentence-style capitalization for built-in integration names",
+   "answers": [
+    {
+     "file": "homeassistant/components/recovery_mode/__init__.py",
+     "symbols": [
+      "async_setup"
+     ]
+    },
+    {
+     "file": "homeassistant/components/shopping_list/__init__.py",
+     "symbols": [
+      "_async_setup"
+     ]
+    },
+    {
+     "file": "tests/components/conversation/test_trace.py",
+     "symbols": [
+      "test_converation_trace"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "10eb0bb61c5e1c20e13f263e107fd88d6a7a783a",
+   "query": "Add coroutines to MELCloud Home's coordinator",
+   "answers": [
+    {
+     "file": "homeassistant/components/melcloud_home/coordinator.py",
+     "symbols": [
+      "MelCloudHomeEnergyCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/melcloud_home/test_init.py",
+     "symbols": [
+      "test_energy_update_cycle_fails"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "5c5073dd3ae42e844a5711ec93de8e9c43338209",
+   "query": "Type the lookin UDP manager with a HassKey",
+   "answers": [
+    {
+     "file": "homeassistant/components/lookin/__init__.py",
+     "symbols": [
+      "LookinUDPManager",
+      "async_setup_entry",
+      "async_unload_entry"
+     ]
+    },
+    {
+     "file": "tests/components/lookin/test_init.py",
+     "symbols": [
+      "test_controlled_device_links_to_lookin_device",
+      "test_udp_manager_outlives_the_config_entry"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "f04652b3242039e40b076743f887df6107e0ac5f",
+   "query": "Deprecate modbus get_hub in favour of async_get_unit",
+   "answers": [
+    {
+     "file": "homeassistant/components/modbus/__init__.py",
+     "symbols": [
+      "get_hub"
+     ]
+    },
+    {
+     "file": "tests/components/modbus/test_deprecation.py",
+     "symbols": [
+      "_caller_in",
+      "hub_fixture",
+      "test_a_caller_outside_any_integration_is_not_warned",
+      "test_a_core_integration_is_not_warned",
+      "test_a_custom_integration_is_warned"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "d0ebb31684ee4c49407480da71a3b537d3b12751",
+   "query": "Update Lutron light state without waiting for the controller",
+   "answers": [
+    {
+     "file": "homeassistant/components/lutron/light.py",
+     "symbols": [
+      "LutronLight",
+      "_publish_level"
+     ]
+    },
+    {
+     "file": "tests/components/lutron/conftest.py",
+     "symbols": [
+      "_set_level",
+      "mock_lutron"
+     ]
+    },
+    {
+     "file": "tests/components/lutron/test_light.py",
+     "symbols": [
+      "test_a_later_report_wins_over_the_commanded_value",
+      "test_light_brightness_restore",
+      "test_light_state_published_without_waiting_for_a_report"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "34f617da9e7f3ec5bddfbc039f0189e86954a83a",
+   "query": "Expose Zooz ZSE43 vibration sensor as vibration, not tampering",
+   "answers": [
+    {
+     "file": "homeassistant/components/zwave_js/binary_sensor.py",
+     "symbols": [
+      "ZWaveNotificationBinarySensor"
+     ]
+    },
+    {
+     "file": "tests/components/zwave_js/conftest.py",
+     "symbols": [
+      "switch_zooz_zen72_fixture",
+      "switch_zooz_zen72_state_fixture",
+      "zooz_zse43_fixture",
+      "zooz_zse43_state_fixture"
+     ]
+    },
+    {
+     "file": "tests/components/zwave_js/test_binary_sensor.py",
+     "symbols": [
+      "test_legacy_door_open_state_stale_repair_issue_cleaned_up",
+      "test_zooz_zse43_vibration_sensor"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "487f863245f53b116ae83ddc6a7ee735b6c33493",
+   "query": "Fire a Lutron single press when the button reports only a release",
+   "answers": [
+    {
+     "file": "homeassistant/components/lutron/event.py",
+     "symbols": [
+      "LutronEventEntity"
+     ]
+    },
+    {
+     "file": "tests/components/lutron/test_event.py",
+     "symbols": [
+      "test_event_press_release",
+      "test_event_release_only_button"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "23af6097cebad1c8551795bb49fdc07c5ec492b2",
+   "query": "Fix SMTP attaching valid images as files when content sniffing fails",
+   "answers": [
+    {
+     "file": "homeassistant/components/smtp/helpers.py",
+     "symbols": [
+      "_attach_file"
+     ]
+    },
+    {
+     "file": "tests/components/smtp/test_notify.py",
+     "symbols": [
+      "test_deprecated_legacy_notify_action",
+      "test_legacy_notify_image_attachment"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "00d7c71f507bb8005feedb78c37b87a48e9577e6",
+   "query": "Use dhcp discovery to update midea device IP",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/config_flow.py",
+     "symbols": [
+      "MideaConfigFlow",
+      "async_step_dhcp"
+     ]
+    },
+    {
+     "file": "tests/components/midea/conftest.py",
+     "symbols": [
+      "mock_config_entry"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_config_flow.py",
+     "symbols": [
+      "test_auth_method_preset_login_failed",
+      "test_dhcp_discovery_no_match",
+      "test_dhcp_discovery_same_host",
+      "test_dhcp_discovery_updates_host"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "c5fae71f7064751e5a48174c13045a18ae6d25aa",
+   "query": "Fix potential deadlock in receive_file backup util",
+   "answers": [
+    {
+     "file": "homeassistant/components/backup/util.py",
+     "symbols": [
+      "receive_file"
+     ]
+    },
+    {
+     "file": "tests/components/backup/test_util.py",
+     "symbols": [
+      "_blocking_stream",
+      "_stream_chunks",
+      "test_receive_file",
+      "test_receive_file_cancelled",
+      "test_receive_file_stream_error",
+      "test_receive_file_writer_error",
+      "test_suggested_filename"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "e78b25429227fb23e44b6c0eecd27b73a34606fd",
+   "query": "Ignore static add-on devices when attributing serial ports",
+   "answers": [
+    {
+     "file": "homeassistant/components/usb/consumers.py",
+     "symbols": [
+      "_async_get_app_consumers",
+      "_async_get_config_entry_consumers",
+      "_iter_option_device_paths",
+      "async_get_serial_port_consumers"
+     ]
+    },
+    {
+     "file": "tests/components/usb/test_consumers.py",
+     "symbols": [
+      "test_app_consumers",
+      "test_multiple_consumers"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "72a982b33bff70ed7cd4a9623b209a6586fb8a7a",
+   "query": "Fix offline devices being removed in Xbox integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/xbox/__init__.py",
+     "symbols": [
+      "async_remove_config_entry_device",
+      "async_unload_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/xbox/coordinator.py",
+     "symbols": [
+      "XboxConsolesCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/xbox/test_init.py",
+     "symbols": [
+      "test_dynamic_devices"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "a34ee857a0cd1441d8322fe4b4856a110d7aa2dd",
+   "query": "Media selector to retain metadata for presentation",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/selector.py",
+     "symbols": [
+      "MediaSelector",
+      "__call__"
+     ]
+    },
+    {
+     "file": "tests/components/collection_image/test_config_flow.py",
+     "symbols": [
+      "_data_from_uri",
+      "test_config_flow_error"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_selector.py",
+     "symbols": [
+      "ensure_list",
+      "test_media_selector_schema",
+      "test_media_selector_schema_multiple"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "a293744b78142abe5ec346be60dcd4030162bb96",
+   "query": "Use iter_chunked for STT audio stream to prevent LineTooLong",
+   "answers": [
+    {
+     "file": "homeassistant/components/stt/__init__.py",
+     "symbols": [
+      "SpeechToTextView"
+     ]
+    },
+    {
+     "file": "tests/components/stt/test_init.py",
+     "symbols": [
+      "test_audio_processing_custom",
+      "test_stream_audio_large_no_newline_block"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "2afe6fed10db10a2f73dad84ef93591a6a68e569",
+   "query": "Update default timeout to 60s in SMTP integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/smtp/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/smtp/config_flow.py",
+     "symbols": [
+      "validate_input"
+     ]
+    },
+    {
+     "file": "tests/components/smtp/test_config_flow.py",
+     "symbols": [
+      "test_form"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "8f1391e15f99e012074f69913d3e5e3bacb5201d",
+   "query": "Fix swallowed exceptions in roomba action handlers",
+   "answers": [
+    {
+     "file": "homeassistant/components/roomba/vacuum.py",
+     "symbols": [
+      "BraavaJet",
+      "RoombaVacuumCarpetBoost"
+     ]
+    },
+    {
+     "file": "tests/components/roomba/test_vacuum.py",
+     "symbols": [
+      "_setup",
+      "test_braava_set_fan_speed_invalid",
+      "test_carpet_boost_set_fan_speed_invalid",
+      "test_carpet_boost_set_fan_speed_valid",
+      "test_vacuum_activity"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "13b9ef09f2c1f19c32529894e1a14d59f8ca8bba",
+   "query": "Change range for getting all columns in Google Sheets",
+   "answers": [
+    {
+     "file": "homeassistant/components/google_sheets/services.py",
+     "symbols": [
+      "_append_to_sheet"
+     ]
+    },
+    {
+     "file": "tests/components/google_sheets/test_init.py",
+     "symbols": [
+      "test_append_sheet_created_column_uses_configured_time_zone"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "8061e0d349bbcfa12a1ae016ee4813752d837dfd",
+   "query": "Use async_config_entry_first_refresh in Subaru setup",
+   "answers": [
+    {
+     "file": "homeassistant/components/subaru/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/subaru/test_button.py",
+     "symbols": [
+      "test_button_unavailable_on_fetch_failure"
+     ]
+    },
+    {
+     "file": "tests/components/subaru/test_init.py",
+     "symbols": [
+      "test_fetch_failed"
+     ]
+    },
+    {
+     "file": "tests/components/subaru/test_lock.py",
+     "symbols": [
+      "test_lock_unavailable_on_fetch_failure"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 4
+  },
+  {
+   "sha": "1a0baa3f36e8dd6992f19172a6b267300c7f6be9",
+   "query": "Filter cancelled events out of remote_calendar",
+   "answers": [
+    {
+     "file": "homeassistant/components/remote_calendar/calendar.py",
+     "symbols": [
+      "RemoteCalendarEntity",
+      "_is_cancelled"
+     ]
+    },
+    {
+     "file": "tests/components/remote_calendar/test_calendar.py",
+     "symbols": [
+      "test_api_date_event",
+      "test_cancelled_event_does_not_turn_the_entity_on",
+      "test_cancelled_event_is_not_returned",
+      "test_cancelled_occurrence_of_a_series_is_not_returned"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "1c79a02b4703531f4db23dc6f234ee3fa3cb5f21",
+   "query": "Raise ServiceValidationError for missing code in arming actions for Satel Integra",
+   "answers": [
+    {
+     "file": "homeassistant/components/satel_integra/alarm_control_panel.py",
+     "symbols": [
+      "SatelIntegraAlarmPanel"
+     ]
+    },
+    {
+     "file": "tests/components/satel_integra/test_alarm_control_panel.py",
+     "symbols": [
+      "test_alarm_control_panel_disarming",
+      "test_alarm_control_panel_disarming_requires_code"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "7bddee43e85bc13ea3218be8b34848c77ade4969",
+   "query": "Add Flexit binary sensors and change default baud rate",
+   "answers": [
+    {
+     "file": "homeassistant/components/flexit/binary_sensor.py",
+     "symbols": [
+      "FlexitBinarySensor",
+      "FlexitBinarySensorEntityDescription",
+      "__init__",
+      "async_setup_entry",
+      "is_on"
+     ]
+    },
+    {
+     "file": "tests/components/flexit/test_binary_sensor.py",
+     "symbols": [
+      "test_binary_sensors"
+     ]
+    },
+    {
+     "file": "tests/components/flexit/test_climate.py",
+     "symbols": [
+      "test_climate_entity"
+     ]
+    },
+    {
+     "file": "tests/components/flexit/test_config_flow.py",
+     "symbols": [
+      "test_full_flow_serial"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "f3a8fd917c38111f4b0103b47fc3fe0fd9d91f4c",
+   "query": "Drop the DC claim from the Fronius MPPT energy sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/fronius/coordinator.py",
+     "symbols": [
+      "FroniusModbusInverterUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "homeassistant/components/fronius/sensor.py",
+     "symbols": [
+      "_modbus_mppt_descriptions"
+     ]
+    },
+    {
+     "file": "tests/components/fronius/test_modbus.py",
+     "symbols": [
+      "test_gen24_storage_mppt",
+      "test_not_implemented_values"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "5de41160ed4a6266c60c719e3ef6dfa8d1fda41a",
+   "query": "Finish recorder purge without an extra cycle on partial statistics batches",
+   "answers": [
+    {
+     "file": "homeassistant/components/recorder/purge.py",
+     "symbols": [
+      "_select_short_term_statistics_to_purge",
+      "_select_statistics_runs_to_purge",
+      "purge_old_data"
+     ]
+    },
+    {
+     "file": "tests/components/recorder/test_purge.py",
+     "symbols": [
+      "test_purge_old_short_term_statistics_full_batch",
+      "test_purge_old_statistics_runs",
+      "test_purge_old_statistics_runs_full_batch"
+     ]
+    },
+    {
+     "file": "tests/components/recorder/test_purge_v32_schema.py",
+     "symbols": [
+      "test_purge_old_statistics_runs"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "94188f87b4d8de63ca1e1ea3338df85c2fa7ba58",
+   "query": "Handle no_devices_found centrally",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/config_entry_flow.py",
+     "symbols": [
+      "DiscoveryFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_config_entry_flow.py",
+     "symbols": [
+      "test_user_no_devices_found"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "4c66a9c589c1b732a3516132888f82005b7c8bf7",
+   "query": "Add reconfigure flow to Zonneplan",
+   "answers": [
+    {
+     "file": "homeassistant/components/zonneplan/config_flow.py",
+     "symbols": [
+      "ZonneplanConfigFlow",
+      "async_step_reconfigure",
+      "async_step_reconfigure_confirm"
+     ]
+    },
+    {
+     "file": "tests/components/zonneplan/test_config_flow.py",
+     "symbols": [
+      "test_reauth_wrong_account",
+      "test_reconfigure_confirm_exceptions",
+      "test_reconfigure_flow",
+      "test_reconfigure_wrong_account"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "f874e62fa3bf2279fe51eefe28c1b3b01a4b883d",
+   "query": "Add AC buttons to LG Infrared",
+   "answers": [
+    {
+     "file": "homeassistant/components/lg_infrared/button.py",
+     "symbols": [
+      "LgIrButton",
+      "LgIrButtonEntityDescription",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/lg_infrared/test_button.py",
+     "symbols": [
+      "platforms",
+      "test_ac_button_press_sends_correct_code",
+      "test_ac_buttons_disabled_by_default",
+      "test_button_availability_follows_ir_entity"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "8d9a9b07757b51dedb0b1320e957a8237b26362a",
+   "query": "Start Imou reauthentication when the cloud rejects the credentials",
+   "answers": [
+    {
+     "file": "homeassistant/components/imou/coordinator.py",
+     "symbols": [
+      "ImouDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/imou/test_init.py",
+     "symbols": [
+      "test_setup_and_unload_entry",
+      "test_setup_entry_exceptions",
+      "test_setup_entry_failed_on_refresh"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "bb35e5e184fd9e23ffc9ba86cdb7ffa72666eca7",
+   "query": "Keep Duco filter time pollable after missing result",
+   "answers": [
+    {
+     "file": "homeassistant/components/duco/coordinator.py",
+     "symbols": [
+      "DucoCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/duco/test_sensor.py",
+     "symbols": [
+      "test_lan_info_failures_keep_node_entities_available",
+      "test_time_filter_remaining_missing_is_retried",
+      "test_time_filter_remaining_missing_skips_sensor_creation"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "76a38d446f74fbd67961c65b66ef3b8f2c6b9392",
+   "query": "Add panel information to diagnostics for Satel Integra",
+   "answers": [
+    {
+     "file": "homeassistant/components/satel_integra/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/satel_integra/coordinator.py",
+     "symbols": [
+      "SatelIntegraData"
+     ]
+    },
+    {
+     "file": "homeassistant/components/satel_integra/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/satel_integra/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics",
+      "test_diagnostics_without_panel_info"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 4
+  },
+  {
+   "sha": "45c2434230ad39916c962f0d96bff1f27bded9d1",
+   "query": "Add reauthentication flow to the Imou integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/imou/config_flow.py",
+     "symbols": [
+      "ImouConfigFlow",
+      "_validate_input",
+      "async_step_reauth",
+      "async_step_reauth_confirm"
+     ]
+    },
+    {
+     "file": "tests/components/imou/test_config_flow.py",
+     "symbols": [
+      "test_dhcp_discovery_invalid_auth",
+      "test_reauth_flow_exception_then_recover",
+      "test_reauth_flow_success",
+      "test_reauth_unique_id_mismatch"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "6540e013f3bf7620b3a71284b345607c216bd4b4",
+   "query": "Fix Music Assistant shared player icons",
+   "answers": [
+    {
+     "file": "homeassistant/components/music_assistant/media_player.py",
+     "symbols": [
+      "MusicAssistantPlayer",
+      "_get_mdi_icon"
+     ]
+    },
+    {
+     "file": "tests/components/music_assistant/test_media_player.py",
+     "symbols": [
+      "test_player_icon"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "b188ff431580a8333d45038b9b273704390a269f",
+   "query": "Populate Satel Integra model and firmware",
+   "answers": [
+    {
+     "file": "homeassistant/components/satel_integra/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/satel_integra/conftest.py",
+     "symbols": [
+      "mock_satel"
+     ]
+    },
+    {
+     "file": "tests/components/satel_integra/test_init.py",
+     "symbols": [
+      "test_panel_info_read_error",
+      "test_parent_device_exists"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "c194c3b77111e8f25bb1f15054853a5ac4147c56",
+   "query": "Delegate Duco bypass target policy to the library",
+   "answers": [
+    {
+     "file": "homeassistant/components/duco/number.py",
+     "symbols": [
+      "DucoBypassSupplyTemperatureTargetNumber"
+     ]
+    },
+    {
+     "file": "tests/components/duco/conftest.py",
+     "symbols": [
+      "mock_duco_client",
+      "set_bypass_supply_temperature_target"
+     ]
+    },
+    {
+     "file": "tests/components/duco/test_number.py",
+     "symbols": [
+      "test_set_bypass_supply_temperature_target",
+      "test_set_bypass_supply_temperature_target_honors_increment_metadata",
+      "test_set_bypass_supply_temperature_target_in_fahrenheit_units",
+      "test_set_bypass_supply_temperature_target_stays_within_maximum"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "8f7a82c7b3f1fed8e6a69bb767007d689dbba947",
+   "query": "Add diagnostics to Zonneplan",
+   "answers": [
+    {
+     "file": "homeassistant/components/zonneplan/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/zonneplan/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "6cd5e225334ccda9729a8f9d628deade45d07ed3",
+   "query": "Remove Subaru unique_id migration for HA<=2022.10",
+   "answers": [
+    {
+     "file": "homeassistant/components/subaru/sensor.py",
+     "symbols": [
+      "SubaruSensor",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/subaru/test_sensor.py",
+     "symbols": [
+      "test_sensors_missing_vin_data"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "bc893b074ca19070d2872680afafa11e600d8ab1",
+   "query": "Restore Husqvarna Automower work area sensors and gate by WorkAreaTyp\u2026",
+   "answers": [
+    {
+     "file": "tests/components/husqvarna_automower/test_init.py",
+     "symbols": [
+      "test_add_and_remove_work_area"
+     ]
+    },
+    {
+     "file": "tests/components/husqvarna_automower/test_sensor.py",
+     "symbols": [
+      "test_work_area_sensor",
+      "test_work_area_sensor_creation"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "876ab37064d50252e6a55a69c709b819acc1cdb5",
+   "query": "Add kPa as a valid unit of measurement for pressure in weather entity",
+   "answers": [
+    {
+     "file": "homeassistant/components/weather/significant_change.py",
+     "symbols": [
+      "async_check_significant_change"
+     ]
+    },
+    {
+     "file": "tests/components/weather/test_significant_change.py",
+     "symbols": [
+      "test_significant_state_change"
+     ]
+    },
+    {
+     "file": "tests/components/weather/test_websocket_api.py",
+     "symbols": [
+      "test_device_class_units"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 3
+  },
+  {
+   "sha": "4a0594e5435fd210f8971f8f5f3598a9e3eada25",
+   "query": "Deprecate Configurator integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/configurator/__init__.py",
+     "symbols": [
+      "_async_request_config",
+      "_report_deprecation",
+      "async_request_config",
+      "request_config"
+     ]
+    },
+    {
+     "file": "tests/components/configurator/test_init.py",
+     "symbols": [
+      "_async_request_config",
+      "_sync_request_config",
+      "test_configure_service_requires_admin",
+      "test_request_config_deprecated"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "9889cfcf66a93577ba4a8ff714217eef088fb5e2",
+   "query": "Add atmospheres (atm) as a pressure unit",
+   "answers": [
+    {
+     "file": "homeassistant/const.py",
+     "symbols": [
+      "UnitOfPressure"
+     ]
+    },
+    {
+     "file": "homeassistant/util/unit_conversion.py",
+     "symbols": [
+      "PressureConverter"
+     ]
+    },
+    {
+     "file": "tests/components/sensor/test_recorder.py",
+     "symbols": [
+      "async_record_states",
+      "test_validate_statistics_unit_ignore_device_class"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "68b5fcb9025da331891888c6c788e10040b56510",
+   "query": "Move common platform setup code into entity.py",
+   "answers": [
+    {
+     "file": "homeassistant/components/rest/binary_sensor.py",
+     "symbols": [
+      "async_setup_platform"
+     ]
+    },
+    {
+     "file": "homeassistant/components/rest/entity.py",
+     "symbols": [
+      "RestEntity",
+      "async_get_config_rest_data_and_coordinator",
+      "async_get_trigger_entity_config"
+     ]
+    },
+    {
+     "file": "homeassistant/components/rest/sensor.py",
+     "symbols": [
+      "async_setup_platform"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "4fb7c04ba366a2199d5bbd06a9d4d81431829885",
+   "query": "Use NEWEST_FIRST replay for Matter BLE commissioning",
+   "answers": [
+    {
+     "file": "homeassistant/components/matter/ble_proxy.py",
+     "symbols": [
+      "HaBluetoothScanSource"
+     ]
+    },
+    {
+     "file": "tests/components/matter/test_ble_proxy.py",
+     "symbols": [
+      "fake_register",
+      "test_scan_source_callback_forwards_advertisement",
+      "test_scan_source_callback_swallows_exceptions",
+      "test_scan_source_drops_replayed_history",
+      "test_scan_source_start_registers_passive_callback"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "93cf9c8d8d001bcbb35798881500474ec75bd66f",
+   "query": "Remove the Sofar waiting-ends sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/__init__.py",
+     "symbols": [
+      "_async_remove_stale_waiting_time",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/sofar/sensor.py",
+     "symbols": [
+      "SofarSensor",
+      "_sensor_class"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_init.py",
+     "symbols": [
+      "test_setup_and_unload_entry",
+      "test_setup_removes_the_stale_waiting_time_entity"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_sensor.py",
+     "symbols": [
+      "test_sensor_entities_created_and_state",
+      "test_total_sensor_total_increasing_uses_corrected_value"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 4
+  },
+  {
+   "sha": "a3975e9047cb9dee611ba7c1e2304868af98d2b0",
+   "query": "Stop the Hikvision event stream on Home Assistant shutdown",
+   "answers": [
+    {
+     "file": "homeassistant/components/hikvision/__init__.py",
+     "symbols": [
+      "_async_stop_stream",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/hikvision/test_init.py",
+     "symbols": [
+      "test_setup_and_unload_entry",
+      "test_stream_stopped_on_shutdown",
+      "test_stream_stopped_when_shutdown_starts_during_setup"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "c01aac0ec8c88d8e185996827846ce5f9d10f566",
+   "query": "Add a reconfigure flow to the Sofar integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/config_flow.py",
+     "symbols": [
+      "SofarConfigFlow",
+      "_async_probe",
+      "async_step_reconfigure"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_config_flow.py",
+     "symbols": [
+      "test_reconfigure_errors",
+      "test_reconfigure_rejects_a_different_serial",
+      "test_reconfigure_updates_the_entry",
+      "test_user_step_already_configured"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "342c9d4858efc54427ab03284d10e18d9c00a660",
+   "query": "Remove homeassistant auth legacy mode",
+   "answers": [
+    {
+     "file": "homeassistant/auth/providers/homeassistant.py",
+     "symbols": [
+      "Data",
+      "normalize_username"
+     ]
+    },
+    {
+     "file": "tests/auth/providers/test_homeassistant.py",
+     "symbols": [
+      "data",
+      "test_change_username",
+      "test_change_username_not_normalized",
+      "test_get_or_create_credentials"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "cc126abfb2c1ac27b7aeb7f9d66aac523d5ec61a",
+   "query": "Fix swallowed exceptions in action handlers for Pushover",
+   "answers": [
+    {
+     "file": "homeassistant/components/pushover/notify.py",
+     "symbols": [
+      "PushoverNotificationService"
+     ]
+    },
+    {
+     "file": "tests/components/pushover/test_notify.py",
+     "symbols": [
+      "test_send_message",
+      "test_send_message_attachment_error",
+      "test_send_message_with_attachment"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "8281b2faff83c39b1e60d91b1b1492aa593608a0",
+   "query": "Add diagnostics support for Sofar",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics",
+      "test_diagnostics_redacts_serial_number"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "4016b01b89eaebe72eb8f204fa58a837ce6ee7d4",
+   "query": "Report an uncalibrated Shelly roller by its last direction",
+   "answers": [
+    {
+     "file": "homeassistant/components/shelly/cover.py",
+     "symbols": [
+      "BlockShellyCover",
+      "current_cover_position",
+      "is_closed"
+     ]
+    },
+    {
+     "file": "tests/components/shelly/test_cover.py",
+     "symbols": [
+      "test_block_device_roller_without_positioning",
+      "test_block_device_roller_without_positioning_stopped",
+      "test_block_device_update"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "ae9c2c80176dd8605c4cfb2cbb89b9f825e82811",
+   "query": "Correctly display sn and mac in Midea device page",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/__init__.py",
+     "symbols": [
+      "_create_device"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_init.py",
+     "symbols": [
+      "test_migrate_entry_drops_empty_mac_connection",
+      "test_migrate_entry_without_discovery_result"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "29223d390832796524df1f9207a0265ff2fef871",
+   "query": "Stop reporting max_volume in Lyngdorf diagnostics",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyngdorf/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/conftest.py",
+     "symbols": [
+      "mock_receiver"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "a9ba568154e49f4f0366aa83780f74355409dc96",
+   "query": "Add a restart button to Modern Forms",
+   "answers": [
+    {
+     "file": "homeassistant/components/modern_forms/button.py",
+     "symbols": [
+      "ModernFormsRestartButton",
+      "__init__",
+      "async_press",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/modern_forms/test_button.py",
+     "symbols": [
+      "test_restart_button",
+      "test_restart_button_gen4",
+      "test_restart_button_press"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "968e26a092d8b00661eccc1885db208e6dcf2bfb",
+   "query": "Fix mangled model names in Google Generative AI options",
+   "answers": [
+    {
+     "file": "homeassistant/components/google_generative_ai_conversation/config_flow.py",
+     "symbols": [
+      "google_generative_ai_config_option_schema"
+     ]
+    },
+    {
+     "file": "tests/components/google_generative_ai_conversation/test_config_flow.py",
+     "symbols": [
+      "get_models_pager",
+      "get_prefix_collision_models_pager",
+      "models_pager",
+      "test_reconfigure_conversation_subentry_llm_api_schema",
+      "test_subentry_chat_model_labels_keep_the_full_model_id"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "644f6212c1688d18119848f8794a7c05caf25431",
+   "query": "Add color temperature support for Modern Forms Gen4 light fixtures",
+   "answers": [
+    {
+     "file": "homeassistant/components/modern_forms/light.py",
+     "symbols": [
+      "ModernFormsLightEntity",
+      "color_temp_kelvin"
+     ]
+    },
+    {
+     "file": "tests/components/modern_forms/test_light.py",
+     "symbols": [
+      "missing_bounds_mock",
+      "test_clear_light_sleep_timer_not_supported_gen4",
+      "test_light_color_temp_gen4",
+      "test_light_color_temp_missing_bounds_gen4",
+      "test_light_no_color_temp_on_legacy"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "1bee69c5c36e010c83782003657a663390f6e247",
+   "query": "Migrate nextbus to config entry runtime data",
+   "answers": [
+    {
+     "file": "homeassistant/components/nextbus/__init__.py",
+     "symbols": [
+      "async_setup_entry",
+      "async_unload_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/nextbus/sensor.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/nextbus/test_sensor.py",
+     "symbols": [
+      "test_concurrent_setup_shares_coordinator",
+      "test_prediction_exceptions",
+      "test_unload_entry",
+      "test_unload_final_entry_cleans_up_shared_coordinator",
+      "test_verify_throttle"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 3
+  },
+  {
+   "sha": "1b547efd6a3b395662b4d1c4760567d6517ed62e",
+   "query": "Use JSON fixture helpers in tests",
+   "answers": [
+    {
+     "file": "tests/components/monarch_money/conftest.py",
+     "symbols": [
+      "mock_config_api"
+     ]
+    },
+    {
+     "file": "tests/components/tplink/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "386833e918b84c9f1f338a5c101c5c0e6192f9eb",
+   "query": "Allow Apple TV pairing PIN to accept leading zeroes",
+   "answers": [
+    {
+     "file": "homeassistant/components/apple_tv/config_flow.py",
+     "symbols": [
+      "AppleTVConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/apple_tv/conftest.py",
+     "symbols": [
+      "pairing"
+     ]
+    },
+    {
+     "file": "tests/components/apple_tv/test_config_flow.py",
+     "symbols": [
+      "test_user_adds_full_device",
+      "test_user_pair_leading_zero_pin",
+      "test_user_pair_non_numeric_pin"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "9145c009f834befcf4a1021f2f7079afa323ec2b",
+   "query": "Use SmartThings custom setpoint bounds for air conditioners",
+   "answers": [
+    {
+     "file": "homeassistant/components/smartthings/climate.py",
+     "symbols": [
+      "SmartThingsAirConditioner",
+      "_get_custom_setpoint"
+     ]
+    },
+    {
+     "file": "tests/components/smartthings/test_climate.py",
+     "symbols": [
+      "test_ac_custom_setpoint_bounds",
+      "test_ac_custom_setpoint_bounds_unavailable",
+      "test_ac_setpoint_range_converted_to_device_unit",
+      "test_ac_setpoint_range_takes_precedence",
+      "test_ac_setpoint_range_update"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "f5d961ed84c0797848b5d3a9e9fbf7b76aa65988",
+   "query": "Vistapool entity device class",
+   "answers": [
+    {
+     "file": "homeassistant/components/vistapool/switch.py",
+     "symbols": [
+      "VistapoolSwitch"
+     ]
+    },
+    {
+     "file": "tests/components/vistapool/test_sensor.py",
+     "symbols": [
+      "_only_sensor_platform",
+      "test_all_entities"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "0c76ebf31039d00b022bd28201c6d0bf2907512b",
+   "query": "Fix Trafikverket Ferry no time",
+   "answers": [
+    {
+     "file": "homeassistant/components/trafikverket_ferry/config_flow.py",
+     "symbols": [
+      "TVFerryConfigFlow"
+     ]
+    },
+    {
+     "file": "homeassistant/components/trafikverket_ferry/coordinator.py",
+     "symbols": [
+      "TVDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/trafikverket_ferry/test_config_flow.py",
+     "symbols": [
+      "test_form",
+      "test_no_time"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "f417ad86e51c52f88cf4445de259e9a5ec1f098c",
+   "query": "Abort the Silla Prism config flow when MQTT is unavailable",
+   "answers": [
+    {
+     "file": "homeassistant/components/silla_prism/config_flow.py",
+     "symbols": [
+      "PrismConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/silla_prism/test_config_flow.py",
+     "symbols": [
+      "test_user_flow_invalid_base_topic",
+      "test_user_flow_mqtt_unavailable",
+      "test_user_flow_no_device"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "616fb5a6e896cdd213293930908001ffcf743a9a",
+   "query": "Continue the flow these config flow tests already opened",
+   "answers": [
+    {
+     "file": "tests/components/amberelectric/test_config_flow.py",
+     "symbols": [
+      "test_invalid_key",
+      "test_single_pending_site",
+      "test_single_site",
+      "test_single_site_rejoin",
+      "test_unknown_error"
+     ]
+    },
+    {
+     "file": "tests/components/meteoclimatic/test_config_flow.py",
+     "symbols": [
+      "test_user"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "13b0bf04bb80b81a27bfb8d8311cda1d2016d870",
+   "query": "Migrate the Lyngdorf select platform to the lyngdorf 2.0 API",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyngdorf/select.py",
+     "symbols": [
+      "LyngdorfSelect",
+      "LyngdorfSelectEntityDescription"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/conftest.py",
+     "symbols": [
+      "mock_receiver"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/test_select.py",
+     "symbols": [
+      "test_room_perfect_select_option",
+      "test_select_option_awaits_an_awaitable_setter",
+      "test_voicing_select_option"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "235a9b3e005a39f2235395f71f2ad5a36df4d2c4",
+   "query": "Migrate the Lyngdorf sensor platform to the lyngdorf 2.0 API",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyngdorf/sensor.py",
+     "symbols": [
+      "LyngdorfSensor",
+      "LyngdorfSensorEntityDescription"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/conftest.py",
+     "symbols": [
+      "mock_receiver"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/test_sensor.py",
+     "symbols": [
+      "test_enum_options_follow_the_device",
+      "test_enum_sensor_ignores_unknown_device_value",
+      "test_sensors_read_the_current_lists_not_the_deprecated_aliases",
+      "test_zone_b_sensors_read_the_zone_object"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "c3e93446818a8d13962bccb7606ad6e68f1551bd",
+   "query": "Migrate Lyngdorf diagnostics to the lyngdorf 2.0 API",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyngdorf/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/conftest.py",
+     "symbols": [
+      "mock_receiver"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics",
+      "test_lipsync_range_reported_before_the_device_reports_a_value"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "1654e96ed725823fb98d403a1abd7e0ceab0afc5",
+   "query": "Fix Prana fan percentage rounding so displayed values map to the same step",
+   "answers": [
+    {
+     "file": "homeassistant/components/prana/fan.py",
+     "symbols": [
+      "PranaFan"
+     ]
+    },
+    {
+     "file": "tests/components/prana/test_fan.py",
+     "symbols": [
+      "test_fans_percentage_maps_to_nearest_step",
+      "test_fans_set_percentage"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "ea7c98a0608be58dda635acecd3adc257ba7d1c6",
+   "query": "Seed Sofar total sensors' high-water marks before the first poll",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/__init__.py",
+     "symbols": [
+      "_async_read_identity",
+      "_async_seed_high_water_marks",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_init.py",
+     "symbols": [
+      "test_only_wired_battery_packs_become_devices",
+      "test_total_survives_a_torn_first_poll_after_reload"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "96f517cd261b27006fb51ded58facd260002c33e",
+   "query": "Let LG ThinQ unload when the network is down",
+   "answers": [
+    {
+     "file": "homeassistant/components/lg_thinq/mqtt.py",
+     "symbols": [
+      "ThinQMQTT"
+     ]
+    },
+    {
+     "file": "tests/components/lg_thinq/test_init.py",
+     "symbols": [
+      "test_load_unload_entry",
+      "test_unload_entry_with_failing_disconnect"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "af6ddab93a143fdc58d22d057beaa4e565b009b1",
+   "query": "Add Elgato power-on behavior select",
+   "answers": [
+    {
+     "file": "homeassistant/components/elgato/select.py",
+     "symbols": [
+      "ElgatoSelectEntity",
+      "ElgatoSelectEntityDescription",
+      "__init__",
+      "async_select_option",
+      "async_setup_entry",
+      "current_option"
+     ]
+    },
+    {
+     "file": "tests/components/elgato/test_select.py",
+     "symbols": [
+      "test_power_on_behavior"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "9b368640e494768ac23d34a0bc69e42f5e6a3a9b",
+   "query": "Move the Elgato color temperature range out of the light entity",
+   "answers": [
+    {
+     "file": "homeassistant/components/elgato/helpers.py",
+     "symbols": [
+      "color_temperature_range",
+      "supports_color"
+     ]
+    },
+    {
+     "file": "homeassistant/components/elgato/light.py",
+     "symbols": [
+      "ElgatoLight"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "bc788883b8bdcc9ce59499602949f497257e2213",
+   "query": "Do not crash the Synology DSM options on an unloaded entry",
+   "answers": [
+    {
+     "file": "homeassistant/components/synology_dsm/config_flow.py",
+     "symbols": [
+      "SynologyDSMOptionsFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/synology_dsm/test_config_flow.py",
+     "symbols": [
+      "test_options_flow",
+      "test_options_flow_entry_not_loaded"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "b74ee8cc20ffd94e6abd8d804c50c261bbf82278",
+   "query": "Authorize a Peblar charge session",
+   "answers": [
+    {
+     "file": "homeassistant/components/peblar/services.py",
+     "symbols": [
+      "_get_authorizing_api",
+      "_get_rfid_peblar",
+      "_handle_authorize_charge_session",
+      "async_setup_services"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/test_services.py",
+     "symbols": [
+      "test_authorize_charge_session",
+      "test_authorize_charge_session_is_refused",
+      "test_authorize_charge_session_needs_exactly_one_token",
+      "test_autocharge_needs_power_line_communication"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "26f6b47c31b7e1d118dc7f12c78bd52dce7e2544",
+   "query": "Ask Google for the calendar access the entry is set to",
+   "answers": [
+    {
+     "file": "homeassistant/components/google/config_flow.py",
+     "symbols": [
+      "OAuth2FlowHandler",
+      "_calendar_access"
+     ]
+    },
+    {
+     "file": "tests/components/google/test_config_flow.py",
+     "symbols": [
+      "test_web_auth_compatibility",
+      "test_web_reauth_flow_asks_for_configured_access"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6f9d55229b8ae75ce93c1a9574e5167f34ae674d",
+   "query": "Add DALI line status diagnostic sensor to lunatone",
+   "answers": [
+    {
+     "file": "homeassistant/components/lunatone/sensor.py",
+     "symbols": [
+      "LunatoneDALILineStatusSensor",
+      "LunatoneSensor",
+      "__init__",
+      "async_setup_entry",
+      "native_value"
+     ]
+    },
+    {
+     "file": "tests/components/lunatone/test_sensor.py",
+     "symbols": [
+      "fake_update",
+      "test_dali_line_status_value_update",
+      "test_sensor_value_update"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "8a89fa80162bac35e2073d218bcf1b6d87fcb1a9",
+   "query": "Give a sleeping printer time to wake up",
+   "answers": [
+    {
+     "file": "homeassistant/components/ipp/config_flow.py",
+     "symbols": [
+      "validate_input"
+     ]
+    },
+    {
+     "file": "homeassistant/components/ipp/coordinator.py",
+     "symbols": [
+      "IPPDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/ipp/test_init.py",
+     "symbols": [
+      "test_load_unload_config_entry",
+      "test_request_timeout"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "2f50531be1f2855b5e84eda0088ded479b6a5880",
+   "query": "Scan every supported wireless interface in Mikrotik",
+   "answers": [
+    {
+     "file": "homeassistant/components/mikrotik/coordinator.py",
+     "symbols": [
+      "MikrotikData"
+     ]
+    },
+    {
+     "file": "tests/components/mikrotik/test_device_tracker.py",
+     "symbols": [
+      "test_hub_wifi",
+      "test_hub_wireless_and_wifi"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "99192f5b9eaf1512092c37f0c761428a9e0aa30c",
+   "query": "Add serial number to Roborock devices",
+   "answers": [
+    {
+     "file": "homeassistant/components/roborock/models.py",
+     "symbols": [
+      "get_device_info"
+     ]
+    },
+    {
+     "file": "tests/components/roborock/test_init.py",
+     "symbols": [
+      "test_device_serial_number",
+      "test_stale_device"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "52adc20f85b79ebb9218b8ed4753d20bf07cc63e",
+   "query": "Add Priority Status sensor to Lyric integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyric/sensor.py",
+     "symbols": [
+      "LyricAccessorySensor",
+      "LyricPriorityStatusSensor",
+      "__init__",
+      "async_setup_entry",
+      "native_value"
+     ]
+    },
+    {
+     "file": "tests/components/lyric/conftest.py",
+     "symbols": [
+      "mock_lyric_api"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "1273fd566fce03aa1c3874e93be8603686fef041",
+   "query": "Fix Growatt V1 total output power",
+   "answers": [
+    {
+     "file": "homeassistant/components/growatt_server/coordinator.py",
+     "symbols": [
+      "GrowattCoordinator",
+      "_latest_power_value"
+     ]
+    },
+    {
+     "file": "tests/components/growatt_server/conftest.py",
+     "symbols": [
+      "mock_growatt_v1_api"
+     ]
+    },
+    {
+     "file": "tests/components/growatt_server/test_sensor.py",
+     "symbols": [
+      "test_sensor_coordinator_updates",
+      "test_v1_total_output_power_falls_back_on_power_api_error",
+      "test_v1_total_output_power_uses_recent_plant_power"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "99ae47aa40d020cb23bb5fd93ad52296771ed253",
+   "query": "Fix swallowed exceptions in action handlers for MJPEG IP Camera",
+   "answers": [
+    {
+     "file": "homeassistant/components/mjpeg/camera.py",
+     "symbols": [
+      "MjpegCamera"
+     ]
+    },
+    {
+     "file": "tests/components/mjpeg/test_camera.py",
+     "symbols": [
+      "mock_digest_config_entry",
+      "test_camera_image",
+      "test_camera_image_error",
+      "test_digest_camera_image_error"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "037d2cfa16ddcc99a013722c6f7fe5dc6c98342d",
+   "query": "warmup loader caches to remove blocking listdir calls",
+   "answers": [
+    {
+     "file": "homeassistant/components/aws_s3/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/aws_s3/config_flow.py",
+     "symbols": [
+      "S3ConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/aws_s3/test_config_flow.py",
+     "symbols": [
+      "test_flow"
+     ]
+    },
+    {
+     "file": "tests/components/aws_s3/test_init.py",
+     "symbols": [
+      "test_setup_entry_head_bucket_error",
+      "test_setup_entry_warms_loader_caches"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 4
+  },
+  {
+   "sha": "eac53b5dc3b0f21cb3d7e3e0cbba5d4fc642172b",
+   "query": "Add support for priority to SMTP integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/smtp/notify.py",
+     "symbols": [
+      "MailNotifyEntity"
+     ]
+    },
+    {
+     "file": "tests/components/smtp/test_notify.py",
+     "symbols": [
+      "test_smtp_send_message"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "8094598c2fe8f6ea13322d4ceb294841ee85f2f0",
+   "query": "Use Home Assistant's shared aiohttp session in Lyngdorf",
+   "answers": [
+    {
+     "file": "homeassistant/components/lyngdorf/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/lyngdorf/config_flow.py",
+     "symbols": [
+      "LyngdorfFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/conftest.py",
+     "symbols": [
+      "mock_create_receiver",
+      "mock_receiver",
+      "mock_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/test_config_flow.py",
+     "symbols": [
+      "test_user_flow"
+     ]
+    },
+    {
+     "file": "tests/components/lyngdorf/test_init.py",
+     "symbols": [
+      "test_unload_entry",
+      "test_uses_the_home_assistant_websession"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 5
+  },
+  {
+   "sha": "129ff239a35998727c47207ae8ba91f4ba36d2b3",
+   "query": "Handle malformed ViCare payloads as an update failure",
+   "answers": [
+    {
+     "file": "homeassistant/components/vicare/coordinator.py",
+     "symbols": [
+      "ViCareCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/vicare/test_init.py",
+     "symbols": [
+      "test_coordinator_handles_invalid_data",
+      "test_coordinator_recovers_after_transient_failure"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "325bc5f91fa44b9a387faa3a53cdbd0b7bdba723",
+   "query": "FIx airflow and power rate availability for Midea",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/select.py",
+     "symbols": [
+      "MideaSelect",
+      "MideaSelectEntityDescription",
+      "available"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_select.py",
+     "symbols": [
+      "test_ac_angle_and_rate_selects",
+      "test_ac_selects_unavailable_when_power_off"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "92983e4022f6552990dc1141b6ae7916eb4f5093",
+   "query": "Fix SmartThings AC temperature range unit conversion",
+   "answers": [
+    {
+     "file": "homeassistant/components/smartthings/climate.py",
+     "symbols": [
+      "SmartThingsAirConditioner",
+      "_setpoint_range_unit"
+     ]
+    },
+    {
+     "file": "tests/components/smartthings/test_climate.py",
+     "symbols": [
+      "test_ac_default_temperature_range_in_device_unit",
+      "test_ac_setpoint_range_converted_to_device_unit",
+      "test_ac_setpoint_range_update"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "6b0e63568a293f047239504407819ad446b9ff61",
+   "query": "Ask MCP authorization servers for a refresh token",
+   "answers": [
+    {
+     "file": "homeassistant/components/mcp/config_flow.py",
+     "symbols": [
+      "ModelContextProtocolConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/mcp/test_config_flow.py",
+     "symbols": [
+      "perform_oauth_flow"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "754691c5d6ad421d3d13efdbe8a9bf517032797b",
+   "query": "Gate the Sofar waiting-ends sensor on an active countdown",
+   "answers": [
+    {
+     "file": "homeassistant/components/sofar/sensor.py",
+     "symbols": [
+      "SofarCountdownSensor"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_sensor.py",
+     "symbols": [
+      "test_countdown_holds_its_deadline_until_it_restarts",
+      "test_countdown_ignores_a_stale_register_while_grid_connected",
+      "test_countdown_restarting_after_idle_gets_a_new_deadline"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6a5d0472eb6442a018049f19890e4e1f040dc687",
+   "query": "Add diagnostics to SolarEdge Modbus",
+   "answers": [
+    {
+     "file": "homeassistant/components/solaredge_modbus/diagnostics.py",
+     "symbols": [
+      "_component_data",
+      "_poll_data",
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/solaredge_modbus/test_diagnostics.py",
+     "symbols": [
+      "test_diagnostics"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "1963268a0346a51aac1a28935b3c5739cddb3e2a",
+   "query": "Improve Monzo API errors, icon, and test coverage",
+   "answers": [
+    {
+     "file": "homeassistant/components/monzo/coordinator.py",
+     "symbols": [
+      "MonzoCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/monzo/test_helpers.py",
+     "symbols": [
+      "test_account_name_ignores_malformed_owner",
+      "test_authenticated_owner_name_without_user_id"
+     ]
+    },
+    {
+     "file": "tests/components/monzo/test_sensor.py",
+     "symbols": [
+      "test_all_entities",
+      "test_update_failed"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "f5041217f647d1042364348069e4e7a7f8175bb4",
+   "query": "Add DNS response code sensor to Gatus integration",
+   "answers": [
+    {
+     "file": "homeassistant/components/gatus/sensor.py",
+     "symbols": [
+      "GatusSensorEntityDescription",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/gatus/conftest.py",
+     "symbols": [
+      "mock_gatus_client"
+     ]
+    },
+    {
+     "file": "tests/components/gatus/test_sensor.py",
+     "symbols": [
+      "_to_endpoint_statuses",
+      "test_sensor_missing_certificate_expiration",
+      "test_sensor_missing_dns_rcode"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 3
+  },
+  {
+   "sha": "1cf82bdea3332fb56d2c3e79d6f547e00e05b5be",
+   "query": "Validate the target of a service description registered in code",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/service.py",
+     "symbols": [
+      "async_set_service_schema"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_service.py",
+     "symbols": [
+      "test_async_get_descriptions_with_placeholders",
+      "test_set_service_schema_invalid_target",
+      "test_set_service_schema_target"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "b0b8c3d45d9cd5d16bd606118fafb23c1c935d29",
+   "query": "Poll the myStrom motion sensor readings",
+   "answers": [
+    {
+     "file": "homeassistant/components/mystrom/sensor.py",
+     "symbols": [
+      "MyStromSensor",
+      "MyStromSensorEntityDescription",
+      "async_update"
+     ]
+    },
+    {
+     "file": "tests/components/mystrom/test_sensor.py",
+     "symbols": [
+      "test_pir_sensors_are_polled"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "036cebbf06d179444d5567ce2e5b7e50b51af0c6",
+   "query": "Only offer smart charging modes the Peblar accepts",
+   "answers": [
+    {
+     "file": "homeassistant/components/peblar/select.py",
+     "symbols": [
+      "PeblarSelectEntity",
+      "PeblarSelectEntityDescription",
+      "_smart_charging_options",
+      "options"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/test_select.py",
+     "symbols": [
+      "test_hw_entity_absent_when_hw_flag_false",
+      "test_smart_charging_options_follow_the_charger"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "6b453881ca6483ba1cb8ba7a98795a384bcc78a3",
+   "query": "Skip Bluesound players whose config entry is not loaded",
+   "answers": [
+    {
+     "file": "homeassistant/components/bluesound/media_player.py",
+     "symbols": [
+      "BluesoundPlayer"
+     ]
+    },
+    {
+     "file": "tests/components/bluesound/test_media_player.py",
+     "symbols": [
+      "test_attr_bluesound_group",
+      "test_attr_bluesound_group_skips_an_entry_that_is_not_loaded"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "0cdbba4eadc0842bc692a2f7727f8d603917c2bc",
+   "query": "Keep a SwitchBot Cloud entry loading when the cloud goes away",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/__init__.py",
+     "symbols": [
+      "_async_get_webhook_url",
+      "_async_initialize_webhook",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot_cloud/test_init.py",
+     "symbols": [
+      "test_setup_creates_cloudhook_when_cloud_active",
+      "test_setup_survives_the_cloud_going_away"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "3da5869857aaf934597be5ea7db56023397a89bd",
+   "query": "Translate the Peblar setup exceptions",
+   "answers": [
+    {
+     "file": "homeassistant/components/peblar/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/test_init.py",
+     "symbols": [
+      "test_config_entry_authentication_failed",
+      "test_config_entry_not_ready",
+      "test_load_unload_config_entry"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "dc189b94e16d6634776f7b8b85a6f745c23a2e4a",
+   "query": "Fix the Peblar charge limit maximum",
+   "answers": [
+    {
+     "file": "homeassistant/components/peblar/number.py",
+     "symbols": [
+      "PeblarChargeCurrentLimitNumberEntity"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/conftest.py",
+     "symbols": [
+      "mock_peblar"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/test_number.py",
+     "symbols": [
+      "test_charge_limit_can_be_raised_again",
+      "test_charge_limit_maximum",
+      "test_restore_state"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "4e16893496d8c8e5f2755cb4e3bd87616a2f16ca",
+   "query": "Pass the config entry to the ProgettiHWSW coordinators",
+   "answers": [
+    {
+     "file": "homeassistant/components/progettihwsw/binary_sensor.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/progettihwsw/switch.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "b39b8acb8b94911080856b2886590887b1e29f76",
+   "query": "Guard the Hydrawise zone and sensor of an entity like its controller",
+   "answers": [
+    {
+     "file": "homeassistant/components/hydrawise/entity.py",
+     "symbols": [
+      "HydrawiseEntity"
+     ]
+    },
+    {
+     "file": "tests/components/hydrawise/test_init.py",
+     "symbols": [
+      "test_auto_remove_devices",
+      "test_zones_of_one_controller_go_missing"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "9113c1e83ac73e0cf0233151faadc99c3c27686b",
+   "query": "Leave a SwitchBot air purifier without a preset it does not report",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/fan.py",
+     "symbols": [
+      "SwitchBotAirPurifierEntity",
+      "SwitchBotCloudFan"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot_cloud/test_fan.py",
+     "symbols": [
+      "test_air_purifier",
+      "test_air_purifier_unknown_mode"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "322e5d141073561f390cf39cf8e2779692240867",
+   "query": "Address review feedback on Matter fan PercentSetting fix",
+   "answers": [
+    {
+     "file": "homeassistant/components/matter/fan.py",
+     "symbols": [
+      "MatterFan"
+     ]
+    },
+    {
+     "file": "tests/components/matter/test_fan.py",
+     "symbols": [
+      "test_fan_turn_on_replays_last_known_percentage",
+      "test_fan_turn_on_with_percentage"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "fac772eb803aea48043a998b640d82102958dfa2",
+   "query": "Report every SwitchBot Cloud lock state",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/lock.py",
+     "symbols": [
+      "SwitchBotCloudLock",
+      "_write_optimistic_state"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot_cloud/test_lock.py",
+     "symbols": [
+      "test_command_replaces_a_jam",
+      "test_lock_open",
+      "test_lock_states"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "907943ed6807d0d1df56560b06d937bb718bab77",
+   "query": "Restore Plex recovery from a changed plex.direct certificate",
+   "answers": [
+    {
+     "file": "homeassistant/components/plex/server.py",
+     "symbols": [
+      "PlexServer"
+     ]
+    },
+    {
+     "file": "tests/components/plex/test_init.py",
+     "symbols": [
+      "test_setup_when_certificate_changed"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "317e87d130721cc9a8225223b8530d2b4ff728db",
+   "query": "Follow the requested mode when setting a SwitchBot Cloud AC temperature",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/climate.py",
+     "symbols": [
+      "SwitchBotCloudAirConditioner",
+      "_get_mode"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot_cloud/test_climate.py",
+     "symbols": [
+      "test_air_conditioner_set_temperature",
+      "test_air_conditioner_set_temperature_unsupported_hvac_mode",
+      "test_air_conditioner_set_temperature_while_off"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "91ba35fd1e600ed42ecc2aafc42d30f493c46e6e",
+   "query": "Report the original error when removing an entity fails",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/entity.py",
+     "symbols": [
+      "Entity"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_entity.py",
+     "symbols": [
+      "MockEntityFailingRemoval",
+      "async_will_remove_from_hass",
+      "test_async_remove_reports_the_original_error",
+      "test_async_remove_runs_callbacks"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "b8b5aa204a2780ff11e0d4845feb02444c6cf4a3",
+   "query": "Keep an LG soundbar on when it never reports a power status",
+   "answers": [
+    {
+     "file": "homeassistant/components/lg_soundbar/media_player.py",
+     "symbols": [
+      "LGDevice"
+     ]
+    },
+    {
+     "file": "tests/components/lg_soundbar/test_media_player.py",
+     "symbols": [
+      "send_play_info",
+      "send_power_status",
+      "test_selecting_a_source_the_device_does_not_offer",
+      "test_state_follows_a_reported_power_status",
+      "test_state_stays_on_without_a_reported_power_status"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "010a9519666a7bd27441ca7cc2e4b9426d0d063b",
+   "query": "Restore a SwitchBot Cloud AC temperature in the unit it was published in",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot_cloud/climate.py",
+     "symbols": [
+      "SwitchBotCloudAirConditioner"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot_cloud/test_climate.py",
+     "symbols": [
+      "test_air_conditioner_restore_state",
+      "test_air_conditioner_restore_state_in_fahrenheit"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "380352879ccfbebaa78d2d20d437e3d951b8cb1a",
+   "query": "Say so when Abode reauthentication uses a different account",
+   "answers": [
+    {
+     "file": "homeassistant/components/abode/config_flow.py",
+     "symbols": [
+      "AbodeFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/abode/test_config_flow.py",
+     "symbols": [
+      "test_step_mfa",
+      "test_step_reauth_with_a_different_account"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "a9346a624937ad795b6512938d8bb2972f11e75b",
+   "query": "Retry SmartThings setup when the cloud is unreachable while fetching",
+   "answers": [
+    {
+     "file": "homeassistant/components/smartthings/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/smartthings/test_init.py",
+     "symbols": [
+      "test_create_subscription_error",
+      "test_initial_fetch_connection_error"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "ef90070ace358cd36c2be6ddd32e335db4dc8c21",
+   "query": "Only add a Lutron Caseta battery sensor where there is a battery",
+   "answers": [
+    {
+     "file": "homeassistant/components/lutron_caseta/binary_sensor.py",
+     "symbols": [
+      "LutronCasetaBatterySensor",
+      "_async_reports_battery",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/lutron_caseta/test_binary_sensor.py",
+     "symbols": [
+      "factory",
+      "test_battery_sensor_kept_when_the_bridge_cannot_answer",
+      "test_battery_sensor_removed_when_the_shade_has_no_battery",
+      "test_battery_sensor_updates_on_schedule",
+      "test_no_battery_sensor_for_a_shade_wired_for_power"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "fec5158cbfeaef1054eafc493461645f4b7a2f74",
+   "query": "Retry Freebox setup when the router cannot be reached",
+   "answers": [
+    {
+     "file": "homeassistant/components/freebox/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/freebox/test_init.py",
+     "symbols": [
+      "test_setup",
+      "test_setup_retries_when_the_router_cannot_be_reached"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "e1190e1a32f1a48c911961e6ae7d0d6ef1865999",
+   "query": "Add hardware-conditional buzzer and LED select entities to Peblar",
+   "answers": [
+    {
+     "file": "homeassistant/components/peblar/select.py",
+     "symbols": [
+      "PeblarSelectEntityDescription",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/conftest.py",
+     "symbols": [
+      "mock_peblar",
+      "mock_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/peblar/test_select.py",
+     "symbols": [
+      "test_hw_entity_absent_when_hw_flag_false",
+      "test_select_hardware_entity",
+      "test_select_option_authentication_error"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "99fca0d2c3b4a601272bb12fec08f29ce457639a",
+   "query": "Fix Matter fan turn_on writing invalid PercentSetting=255",
+   "answers": [
+    {
+     "file": "homeassistant/components/matter/fan.py",
+     "symbols": [
+      "MatterFan"
+     ]
+    },
+    {
+     "file": "tests/components/matter/test_fan.py",
+     "symbols": [
+      "test_fan_turn_on_with_percentage"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "e1130859154f101aa564671149c14eec1aacbb2a",
+   "query": "Tell Telegram which updates the bot wants",
+   "answers": [
+    {
+     "file": "homeassistant/components/telegram_bot/polling.py",
+     "symbols": [
+      "PollBot"
+     ]
+    },
+    {
+     "file": "homeassistant/components/telegram_bot/webhooks.py",
+     "symbols": [
+      "PushBot"
+     ]
+    },
+    {
+     "file": "tests/components/telegram_bot/test_telegram_bot.py",
+     "symbols": [
+      "test_polling_platform_allowed_updates",
+      "test_webhook_endpoint_generates_telegram_attachment_event"
+     ]
+    },
+    {
+     "file": "tests/components/telegram_bot/test_webhooks.py",
+     "symbols": [
+      "test_set_webhooks",
+      "test_set_webhooks_allowed_updates"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 4
+  },
+  {
+   "sha": "e4c3e3509d1471b821a718ce27afff1811566213",
+   "query": "Set up Denon receivers that report no serial number",
+   "answers": [
+    {
+     "file": "homeassistant/components/denonavr/media_player.py",
+     "symbols": [
+      "DenonDevice"
+     ]
+    },
+    {
+     "file": "tests/components/denonavr/test_media_player.py",
+     "symbols": [
+      "client_fixture",
+      "setup_denonavr",
+      "test_setup_without_serial_number"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "553926806727c940c761ce2410cc3428633ead85",
+   "query": "Apply the hygrostat minimum cycle duration to keep-alive calls",
+   "answers": [
+    {
+     "file": "homeassistant/components/generic_hygrostat/humidifier.py",
+     "symbols": [
+      "GenericHygrostat",
+      "_min_cycle_duration_elapsed"
+     ]
+    },
+    {
+     "file": "tests/components/generic_hygrostat/test_humidifier.py",
+     "symbols": [
+      "test_humidity_change_dry_trigger_off_long_enough_3",
+      "test_humidity_change_dry_trigger_off_not_long_enough_keep_alive",
+      "test_humidity_change_dry_trigger_on_not_long_enough_keep_alive"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "72b0c4b7bcb1383f0d195df6f69abd9bde199038",
+   "query": "Honor the Modbus verify states for coils",
+   "answers": [
+    {
+     "file": "homeassistant/components/modbus/entity.py",
+     "symbols": [
+      "ModbusToggleEntity"
+     ]
+    },
+    {
+     "file": "tests/components/modbus/test_switch.py",
+     "symbols": [
+      "test_service_switch_update",
+      "test_switch_verify_coil_inverted"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "a633baf481091d7522b1769b26bcd6c81c6b8fca",
+   "query": "Block Capability and State attributes for template sensor attributes but allow `options`",
+   "answers": [
+    {
+     "file": "homeassistant/components/template/validators.py",
+     "symbols": [
+      "BlockedTemplateAttributes"
+     ]
+    },
+    {
+     "file": "tests/components/template/test_sensor.py",
+     "symbols": [
+      "test_attributes_template",
+      "test_attributes_template_with_allowed_attributes",
+      "test_attributes_template_with_blocked_attributes"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "456582ed2d6f8e13fd6c087992f15a918aef2da9",
+   "query": "Apply AiDot color when brightness is sent along with it",
+   "answers": [
+    {
+     "file": "homeassistant/components/aidot/light.py",
+     "symbols": [
+      "AidotLight"
+     ]
+    },
+    {
+     "file": "tests/components/aidot/test_light.py",
+     "symbols": [
+      "test_turn_on_with_brightness_and_color",
+      "test_turn_on_with_rgbw"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "f985fafbf5abcd121d256c619efc4df320073cfc",
+   "query": "Don't attach a device to iotawatt entities without a unique ID",
+   "answers": [
+    {
+     "file": "homeassistant/components/iotawatt/sensor.py",
+     "symbols": [
+      "IotaWattSensor"
+     ]
+    },
+    {
+     "file": "tests/components/iotawatt/test_sensor.py",
+     "symbols": [
+      "test_output_sensor_not_attached_to_device",
+      "test_sensor_type_output"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "b0ee78d517abf9a133d6ea5781630cd45e3e6e56",
+   "query": "Require admin for remaining Z-Wave lock services",
+   "answers": [
+    {
+     "file": "homeassistant/components/zwave_js/services.py",
+     "symbols": [
+      "ZWaveServices"
+     ]
+    },
+    {
+     "file": "tests/components/zwave_js/test_lock.py",
+     "symbols": [
+      "test_get_all_lock_usercodes",
+      "test_lock_management_services_require_admin"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "01c3ee0b1baa77da0fea367671a10ca6f4a019a9",
+   "query": "Use the temperature step Airzone reports",
+   "answers": [
+    {
+     "file": "homeassistant/components/airzone/climate.py",
+     "symbols": [
+      "AirzoneClimate"
+     ]
+    },
+    {
+     "file": "tests/components/airzone/test_climate.py",
+     "symbols": [
+      "test_airzone_create_climates"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "e4d7d723c72db4455ca029dea94a152f40537bc0",
+   "query": "Send the transition with the WLED segment change",
+   "answers": [
+    {
+     "file": "homeassistant/components/wled/light.py",
+     "symbols": [
+      "WLEDSegmentLight"
+     ]
+    },
+    {
+     "file": "tests/components/wled/test_light.py",
+     "symbols": [
+      "test_single_segment_behavior"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "70625db31b543d0051e23fd32e82d3de38a5426d",
+   "query": "Remove cloud config entry on logout",
+   "answers": [
+    {
+     "file": "homeassistant/components/cloud/__init__.py",
+     "symbols": [
+      "_async_remove_config_entry",
+      "async_setup"
+     ]
+    },
+    {
+     "file": "tests/components/cloud/test_init.py",
+     "symbols": [
+      "test_async_get_or_create_cloudhook",
+      "test_cloud_logout",
+      "test_logout_removes_config_entry",
+      "test_setup_removes_stale_config_entry"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "9871cc29e54b915c2b3293e55fd9877ea0504f6c",
+   "query": "Webostv screen switch capability",
+   "answers": [
+    {
+     "file": "homeassistant/components/webostv/switch.py",
+     "symbols": [
+      "LgWebOSScreenSwitchEntity",
+      "_async_set_screen_state"
+     ]
+    },
+    {
+     "file": "tests/components/webostv/test_switch.py",
+     "symbols": [
+      "test_screen_switch_command_error",
+      "test_screen_switch_commands",
+      "test_screen_switch_not_supported",
+      "test_screen_switch_setup",
+      "test_screen_switch_state_updates"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "5102b0622e8269d35dff3f306d8a11a40bc76597",
+   "query": "Keep the current hour in the SMHI hourly forecast",
+   "answers": [
+    {
+     "file": "homeassistant/components/smhi/weather.py",
+     "symbols": [
+      "SmhiWeather"
+     ]
+    },
+    {
+     "file": "tests/components/smhi/test_weather.py",
+     "symbols": [
+      "test_forecast_services"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "73a9be883adb5103853034907c4ab341b6aed81a",
+   "query": "Accept a templated PIN for the Matter lock credential",
+   "answers": [
+    {
+     "file": "homeassistant/components/matter/services.py",
+     "symbols": [
+      "async_setup_services"
+     ]
+    },
+    {
+     "file": "tests/components/matter/test_lock.py",
+     "symbols": [
+      "test_matter_error_converted_to_home_assistant_error",
+      "test_set_lock_credential_pin"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "beb87717d37c2096eecc1a19525eb2d767260e1e",
+   "query": "Retry SmartThings setup when the subscription times out",
+   "answers": [
+    {
+     "file": "homeassistant/components/smartthings/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/smartthings/test_init.py",
+     "symbols": [
+      "test_create_subscription",
+      "test_create_subscription_error",
+      "test_create_subscription_sink_error"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "7dbc17c9a0b1ff8d6c4e8366ffa51353491ae2f0",
+   "query": "Normalize the Proxmox VE guest id to an int",
+   "answers": [
+    {
+     "file": "homeassistant/components/proxmoxve/button.py",
+     "symbols": [
+      "ProxmoxContainerButtonEntity",
+      "ProxmoxVMButtonEntity"
+     ]
+    },
+    {
+     "file": "homeassistant/components/proxmoxve/config_flow.py",
+     "symbols": [
+      "_get_nodes_data"
+     ]
+    },
+    {
+     "file": "homeassistant/components/proxmoxve/entity.py",
+     "symbols": [
+      "ProxmoxContainerEntity",
+      "ProxmoxVMEntity"
+     ]
+    },
+    {
+     "file": "tests/components/proxmoxve/conftest.py",
+     "symbols": [
+      "mock_proxmox_client"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 4
+  },
+  {
+   "sha": "bef12b849b218490f7e383ed8eb941b477abd854",
+   "query": "Fix homematicip_cloud shutter group resetting slats on close",
+   "answers": [
+    {
+     "file": "homeassistant/components/homematicip_cloud/cover.py",
+     "symbols": [
+      "HomematicipCoverShutterGroup"
+     ]
+    },
+    {
+     "file": "tests/components/homematicip_cloud/test_cover.py",
+     "symbols": [
+      "test_hmip_cover_shutter_group"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "af8e6f29e8bff8fb4e0d34e47a3f9706bd528ee8",
+   "query": "Wait for the EHEIM Digital main device data before setting up",
+   "answers": [
+    {
+     "file": "homeassistant/components/eheimdigital/coordinator.py",
+     "symbols": [
+      "EheimDigitalUpdateCoordinator",
+      "_async_check_main_device_complete"
+     ]
+    },
+    {
+     "file": "tests/components/eheimdigital/test_init.py",
+     "symbols": [
+      "_announce_main_device",
+      "test_child_device_via_device",
+      "test_entry_setup_retries_on_incomplete_main_device"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "2c6815ea3fc130066ead62dd3d747773b31065ab",
+   "query": "Fix swallowed exceptions in dlna_dmr action handlers",
+   "answers": [
+    {
+     "file": "homeassistant/components/dlna_dmr/media_player.py",
+     "symbols": [
+      "DlnaDmrEntity",
+      "catch_request_errors"
+     ]
+    },
+    {
+     "file": "tests/components/dlna_dmr/test_media_player.py",
+     "symbols": [
+      "test_become_unavailable",
+      "test_generic_error"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "6b5235f352a6462d3a5ad9ceb08d3a0cf4c7825f",
+   "query": "Translate KNX device trigger configuration error",
+   "answers": [
+    {
+     "file": "homeassistant/components/knx/device_trigger.py",
+     "symbols": [
+      "async_attach_trigger"
+     ]
+    },
+    {
+     "file": "tests/components/knx/test_device_trigger.py",
+     "symbols": [
+      "test_invalid_trigger_configuration"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "a06c462c68ff99270defaee4ad65bd4f5b9599f1",
+   "query": "Use ESPHome project info for serial device manufacturer and model",
+   "answers": [
+    {
+     "file": "homeassistant/components/esphome/__init__.py",
+     "symbols": [
+      "_async_scan_serial_ports"
+     ]
+    },
+    {
+     "file": "homeassistant/components/esphome/manager.py",
+     "symbols": [
+      "ESPHomeManager",
+      "_async_setup_device_registry",
+      "async_get_manufacturer_model"
+     ]
+    },
+    {
+     "file": "tests/components/esphome/test_serial_proxy.py",
+     "symbols": [
+      "test_scan_serial_ports_defaults_manufacturer",
+      "test_scan_serial_ports_happy_path",
+      "test_scan_serial_ports_uses_project_info"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "e81abcf8cd500f99b818a54b44dd9766dcace24f",
+   "query": "Ensure gardena image goes back to unknown on render fails",
+   "answers": [
+    {
+     "file": "homeassistant/components/gardena_bluetooth/image.py",
+     "symbols": [
+      "GardenaBluetoothImage",
+      "entity_picture"
+     ]
+    },
+    {
+     "file": "tests/components/gardena_bluetooth/test_image.py",
+     "symbols": [
+      "test_contour_cleared_after_being_present",
+      "test_image_without_contour"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "4c6fba2712179d3c36105852406d704ec39adc77",
+   "query": "Fix timeout of endpoint does not crash Portainer update",
+   "answers": [
+    {
+     "file": "homeassistant/components/portainer/coordinator.py",
+     "symbols": [
+      "PortainerCoordinator",
+      "PortainerDockerDiskSpaceCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/portainer/test_binary_sensor.py",
+     "symbols": [
+      "_docker_version",
+      "test_endpoint_timeout_only_marks_that_endpoint_unavailable",
+      "test_refresh_containers_exceptions"
+     ]
+    },
+    {
+     "file": "tests/components/portainer/test_sensor.py",
+     "symbols": [
+      "_docker_system_df",
+      "test_all_entities",
+      "test_df_endpoint_timeout_only_marks_that_endpoint_unavailable"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 3
+  },
+  {
+   "sha": "c4eeb50d771e785ddc5e3a1a8319061035bb6555",
+   "query": "Report KNX group address DPT for undecodable telegrams",
+   "answers": [
+    {
+     "file": "homeassistant/components/knx/telegrams.py",
+     "symbols": [
+      "Telegrams"
+     ]
+    },
+    {
+     "file": "tests/components/knx/test_telegrams.py",
+     "symbols": [
+      "read_telegram",
+      "test_model_to_dict_resolution",
+      "test_telegram_to_dict_dpt_from_project"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "855850cd2f78803970d62b4af41ea62bd1577037",
+   "query": "Report a color mode for WiZ bulbs that send no color values",
+   "answers": [
+    {
+     "file": "homeassistant/components/wiz/light.py",
+     "symbols": [
+      "WizBulbEntity"
+     ]
+    },
+    {
+     "file": "tests/components/wiz/test_light.py",
+     "symbols": [
+      "test_light_without_any_color_state",
+      "test_old_firmware_dimmable_light"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "973b065dabbab507eb392897004047821f45f77b",
+   "query": "Disconnect the Litter-Robot account when Home Assistant stops",
+   "answers": [
+    {
+     "file": "homeassistant/components/litterrobot/__init__.py",
+     "symbols": [
+      "_async_disconnect_account",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/litterrobot/test_init.py",
+     "symbols": [
+      "_stop_during_refresh",
+      "test_shutdown_disconnects_account",
+      "test_shutdown_during_first_refresh_disconnects_account",
+      "test_unload_entry"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "f62ecb27b47b46ece95d39dfd4ef85ef7f600c57",
+   "query": "Keep UniFi Protect month browsing inside the month asked for",
+   "answers": [
+    {
+     "file": "homeassistant/components/unifiprotect/media_source.py",
+     "symbols": [
+      "ProtectMediaSource"
+     ]
+    },
+    {
+     "file": "tests/components/unifiprotect/test_media_source.py",
+     "symbols": [
+      "test_browse_media_month_before_recording_started",
+      "test_browse_media_month_without_recording_start",
+      "test_browse_media_recording_started_on_last_local_day",
+      "test_public_only_entry_skipped"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "bff05e9c1b9eab8cb53a121209c85a116eb5b6ef",
+   "query": "Drop ecobee thermostats from the action list on unload",
+   "answers": [
+    {
+     "file": "homeassistant/components/ecobee/climate.py",
+     "symbols": [
+      "_remove_thermostats",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/ecobee/test_climate.py",
+     "symbols": [
+      "test_set_sensors_used_in_climate",
+      "test_thermostats_not_duplicated_on_reload",
+      "test_thermostats_removed_from_services_on_unload"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "dc6b5711b407a1827e0e0bdb1aae0c379e6b133e",
+   "query": "Add icons, state translations and enum mapping for OpenEVSE status sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/openevse/sensor.py",
+     "symbols": [
+      "_map_status"
+     ]
+    },
+    {
+     "file": "tests/components/openevse/test_sensor.py",
+     "symbols": [
+      "test_missing_sensor_graceful_handling",
+      "test_status_sensor_mapping",
+      "test_websocket_callback_updates_entities",
+      "test_yaml_import_already_configured"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "d1cd298141255fb8d52c01ed3af2e1d15147eb27",
+   "query": "Add reconfigure flow to NeoPool",
+   "answers": [
+    {
+     "file": "homeassistant/components/neopool/config_flow.py",
+     "symbols": [
+      "NeoPoolConfigFlow",
+      "_async_probe",
+      "async_step_reconfigure"
+     ]
+    },
+    {
+     "file": "tests/components/neopool/test_config_flow.py",
+     "symbols": [
+      "test_reconfigure_flow",
+      "test_reconfigure_flow_probe_errors_recover",
+      "test_reconfigure_flow_serial_mismatch",
+      "test_user_flow_already_configured"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 2
+  },
+  {
+   "sha": "0cfc9f831befa22525c4e70b6cd71a49c3f38d5e",
+   "query": "warmup loader caches to remove blocking listdir calls",
+   "answers": [
+    {
+     "file": "homeassistant/components/cloudflare_r2/__init__.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "homeassistant/components/cloudflare_r2/config_flow.py",
+     "symbols": [
+      "R2ConfigFlow"
+     ]
+    },
+    {
+     "file": "tests/components/cloudflare_r2/test_config_flow.py",
+     "symbols": [
+      "test_flow"
+     ]
+    },
+    {
+     "file": "tests/components/cloudflare_r2/test_init.py",
+     "symbols": [
+      "test_setup_entry_head_bucket_error",
+      "test_setup_entry_warms_loader_caches"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 4
+  },
+  {
+   "sha": "0a306e1ad9a6e56827bf530162368d0187840d16",
+   "query": "Stop deriving PrusaLink job timestamps after the print ends",
+   "answers": [
+    {
+     "file": "homeassistant/components/prusalink/sensor.py",
+     "symbols": [
+      "PrusaLinkSensorEntityDescription"
+     ]
+    },
+    {
+     "file": "tests/components/prusalink/test_sensor.py",
+     "symbols": [
+      "test_job_timestamps_kept_while_paused",
+      "test_job_timestamps_not_derived_after_the_print",
+      "test_min_extrusion_temp_not_created_when_absent"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "2937c80da5b7f7ad139b22fe3350eec2a1525f3a",
+   "query": "Fix ViCare setup by passing the accessor to fetch_all_features",
+   "answers": [
+    {
+     "file": "homeassistant/components/vicare/coordinator.py",
+     "symbols": [
+      "ViCareCoordinator"
+     ]
+    },
+    {
+     "file": "tests/components/vicare/conftest.py",
+     "symbols": [
+      "MockPyViCare",
+      "MockViCareService",
+      "__init__"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "9220f9ddaba22ff7070a523707d29fbb5de86756",
+   "query": "Enhance androidtv.adb_command to return response data",
+   "answers": [
+    {
+     "file": "homeassistant/components/androidtv/media_player.py",
+     "symbols": [
+      "ADBDevice",
+      "adb_command"
+     ]
+    },
+    {
+     "file": "homeassistant/components/androidtv/services.py",
+     "symbols": [
+      "async_setup_services"
+     ]
+    },
+    {
+     "file": "tests/components/androidtv/test_media_player.py",
+     "symbols": [
+      "test_adb_command",
+      "test_adb_command_empty_response",
+      "test_adb_command_get_properties",
+      "test_adb_command_key",
+      "test_adb_command_unicode_decode_error"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 3
+  },
+  {
+   "sha": "08216dda63256b150a6e34cd24b3cc77e6bf2197",
+   "query": "Allow saving HTTP config without trusted proxies",
+   "answers": [
+    {
+     "file": "homeassistant/components/http/websocket_api.py",
+     "symbols": [
+      "_validate_trusted_proxies",
+      "websocket_get_config"
+     ]
+    },
+    {
+     "file": "tests/components/http/test_init.py",
+     "symbols": [
+      "test_pending_config_promote_cancels_revert",
+      "test_websocket_configure_without_trusted_proxies",
+      "test_websocket_http_config_invalid"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "26880d33dd6452532176f01dedcaf0728acb15a7",
+   "query": "Remove the Sofar serial number sensor",
+   "answers": [
+    {
+     "file": "tests/components/sofar/test_init.py",
+     "symbols": [
+      "test_device_versions_recover_without_a_reload",
+      "test_settings_failure_does_not_block_reading_sensors",
+      "test_settings_recover_without_a_reload"
+     ]
+    },
+    {
+     "file": "tests/components/sofar/test_sensor.py",
+     "symbols": [
+      "test_sensor_entities_created_and_state",
+      "test_settings_backed_sensor_created_and_state"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "c9ae88e3b9d6862ee35d77a120d83cf241b8ac7a",
+   "query": "Keep the Spotify source list in a stable order",
+   "answers": [
+    {
+     "file": "homeassistant/components/spotify/media_player.py",
+     "symbols": [
+      "SpotifyMediaPlayer"
+     ]
+    },
+    {
+     "file": "tests/components/spotify/test_media_player.py",
+     "symbols": [
+      "test_smart_polling_interval_handles_paused",
+      "test_source_list_is_stable"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "8a2a3da34a0db8ccceb190e098d55903be9ffc77",
+   "query": "Avoid blocking SSL context creation in the MCP SSE transport",
+   "answers": [
+    {
+     "file": "homeassistant/components/mcp/coordinator.py",
+     "symbols": [
+      "_create_sse_httpx_client",
+      "mcp_client"
+     ]
+    },
+    {
+     "file": "tests/components/mcp/test_init.py",
+     "symbols": [
+      "test_sse_client_does_not_build_ssl_context",
+      "test_tool_call_http_error"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "9f1998d10381d48ac98d6d58d46d926b40fcc9fa",
+   "query": "Add diagnostics to libreNMS",
+   "answers": [
+    {
+     "file": "homeassistant/components/librenms/diagnostics.py",
+     "symbols": [
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/librenms/test_diagnostics.py",
+     "symbols": [
+      "test_entry_diagnostics"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  },
+  {
+   "sha": "3e0d75fec42bf061af6c20f772af416726cf8b7b",
+   "query": "Proxmox refactor to use UPTIME sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/proxmoxve/sensor.py",
+     "symbols": [
+      "ProxmoxContainerSensor",
+      "ProxmoxContainerSensorEntityDescription",
+      "ProxmoxVMSensor",
+      "ProxmoxVMSensorEntityDescription",
+      "native_value"
+     ]
+    },
+    {
+     "file": "tests/components/proxmoxve/test_sensor.py",
+     "symbols": [
+      "enable_all_entities"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "b4cb769768b60d385b8060213a7e2f313b5cdb80",
+   "query": "Fix ESPHome climate target temperature handling in auto mode",
+   "answers": [
+    {
+     "file": "homeassistant/components/esphome/climate.py",
+     "symbols": [
+      "EsphomeClimateEntity"
+     ]
+    },
+    {
+     "file": "tests/components/esphome/test_climate.py",
+     "symbols": [
+      "test_climate_entity_attribute_current_temperature_unsupported",
+      "test_climate_entity_requires_two_point_keeps_range",
+      "test_climate_entity_single_setpoint_target_temp_in_auto_mode",
+      "test_climate_entity_two_point_target_temp_in_auto_mode",
+      "test_climate_entity_two_point_target_temp_in_heat_mode"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "044a9d2d5a0ce4c24c3b5a9ebf4bfa2af1387362",
+   "query": "Fix history stats missed state change during startup",
+   "answers": [
+    {
+     "file": "homeassistant/components/history_stats/coordinator.py",
+     "symbols": [
+      "HistoryStatsUpdateCoordinator",
+      "_async_poll_after_start"
+     ]
+    },
+    {
+     "file": "homeassistant/components/history_stats/data.py",
+     "symbols": [
+      "HistoryStats",
+      "async_update"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "9f1afd2e4fc0e53f736b13d6c4cba55083658266",
+   "query": "Translate shared OAuth2 abort reasons centrally",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/config_entry_oauth2_flow.py",
+     "symbols": [
+      "AbstractOAuth2FlowHandler",
+      "async_abort"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_config_entry_oauth2_flow.py",
+     "symbols": [
+      "test_abort_if_no_implementation",
+      "test_abort_if_oauth_implementation_unavailable",
+      "test_abort_reason_translation_domain_not_overridden",
+      "test_shared_abort_reasons_use_homeassistant_domain"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "1f48a2fdc6c2360e9ce6733744c6955802542aed",
+   "query": "Add Hot Water Override select entity to opentherm_gw",
+   "answers": [
+    {
+     "file": "homeassistant/components/opentherm_gw/select.py",
+     "symbols": [
+      "pyotgw_led_mode_to_ha_led_mode",
+      "set_dhw_ovrd_mode"
+     ]
+    },
+    {
+     "file": "tests/components/opentherm_gw/test_select.py",
+     "symbols": [
+      "test_select_change_value",
+      "test_select_dhw_ovrd_change_value"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "7b09dbfd13a3377b9e16c8a64691dd4e2204b1d6",
+   "query": "Add cover speed support to SwitchBot roller shades",
+   "answers": [
+    {
+     "file": "homeassistant/components/switchbot/cover.py",
+     "symbols": [
+      "SwitchBotRollerShadeEntity",
+      "_motor_mode"
+     ]
+    },
+    {
+     "file": "tests/components/switchbot/test_cover.py",
+     "symbols": [
+      "test_roller_shade_controlling",
+      "test_roller_shade_invalid_speed",
+      "test_roller_shade_speed"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "cd110c23d5957d8f36475edb68a60b23545951c3",
+   "query": "Write the google_sheets created column in the configured time zone",
+   "answers": [
+    {
+     "file": "homeassistant/components/google_sheets/services.py",
+     "symbols": [
+      "_append_to_sheet"
+     ]
+    },
+    {
+     "file": "tests/components/google_sheets/test_init.py",
+     "symbols": [
+      "test_append_sheet",
+      "test_append_sheet_created_column_uses_configured_time_zone",
+      "test_setup_oauth_transient_error"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "88607170d9e87ea66f4f81f8df9cdd351ca40ccf",
+   "query": "Expose MonarchAccount ownedByUser attribute",
+   "answers": [
+    {
+     "file": "homeassistant/components/monarch_money/sensor.py",
+     "symbols": [
+      "MonarchMoneyCashflowSensorEntityDescription",
+      "_account_owner_name",
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/monarch_money/test_sensor.py",
+     "symbols": [
+      "test_account_owner_sensor",
+      "test_all_entities"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 2
+  },
+  {
+   "sha": "81a59063ae73ba2d026cd3a495243ed7f1a09952",
+   "query": "Make config entry field required in DuckDNS  `set_txt` action",
+   "answers": [
+    {
+     "file": "homeassistant/components/duckdns/services.py",
+     "symbols": [
+      "async_setup_services",
+      "update_domain_service"
+     ]
+    },
+    {
+     "file": "tests/components/duckdns/test_init.py",
+     "symbols": [
+      "test_service_clear_txt",
+      "test_service_config_entry_not_found",
+      "test_service_exceptions",
+      "test_service_set_txt"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 2
+  },
+  {
+   "sha": "c48216b074e16b1d8ed82beaa6a59205e38b13e6",
+   "query": "Refactor SMTP to use `EmailMessage`",
+   "answers": [
+    {
+     "file": "homeassistant/components/smtp/notify.py",
+     "symbols": [
+      "MailNotifyEntity",
+      "_send_email"
+     ]
+    },
+    {
+     "file": "tests/components/smtp/conftest.py",
+     "symbols": [
+      "mock_randrange"
+     ]
+    },
+    {
+     "file": "tests/components/smtp/test_notify.py",
+     "symbols": [
+      "test_smtp_send_message_image_source",
+      "test_smtp_send_message_tts_source"
+     ]
+    }
+   ],
+   "n_symbols": 5,
+   "n_files": 3
+  },
+  {
+   "sha": "58151f5583aa157ace51d60ae26f637d706d3b59",
+   "query": "Silence Hikvision videoloss watchdog warning",
+   "answers": [
+    {
+     "file": "homeassistant/components/hikvision/binary_sensor.py",
+     "symbols": [
+      "async_setup_entry"
+     ]
+    },
+    {
+     "file": "tests/components/hikvision/test_binary_sensor.py",
+     "symbols": [
+      "test_binary_sensor_device_class_unknown",
+      "test_binary_sensor_videoloss_silently_skipped"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "38ac696fa4b53fa68d935e67f1f14f1ea489aad3",
+   "query": "Don't fetch the same OID twice while setting up an SNMP sensor",
+   "answers": [
+    {
+     "file": "homeassistant/components/snmp/sensor.py",
+     "symbols": [
+      "async_setup_platform"
+     ]
+    },
+    {
+     "file": "tests/components/snmp/test_sensor.py",
+     "symbols": [
+      "test_entity_recovers_when_device_unreachable",
+      "test_setup_fetches_once"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "9bafeeea1bcaff35e9e56d0d8f523582e0c62c6d",
+   "query": "Add diagnostics to Monzo",
+   "answers": [
+    {
+     "file": "homeassistant/components/monzo/diagnostics.py",
+     "symbols": [
+      "_account_diagnostics",
+      "_pot_diagnostics",
+      "async_get_config_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "homeassistant/components/monzo/webhook.py",
+     "symbols": [
+      "MonzoWebhookManager",
+      "diagnostics_data"
+     ]
+    },
+    {
+     "file": "tests/components/monzo/test_diagnostics.py",
+     "symbols": [
+      "test_entry_diagnostics"
+     ]
+    },
+    {
+     "file": "tests/components/monzo/test_webhook.py",
+     "symbols": [
+      "test_cloud_subscription_loss_falls_back_to_external_url"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 4
+  },
+  {
+   "sha": "d5d72ca86b7423c9c738f005d57e8679b064f13a",
+   "query": "Fix transient network error handling during Google Drive token refresh",
+   "answers": [
+    {
+     "file": "homeassistant/components/google_drive/api.py",
+     "symbols": [
+      "AsyncConfigEntryAuth"
+     ]
+    },
+    {
+     "file": "tests/components/google_drive/test_init.py",
+     "symbols": [
+      "test_oauth_implementation_not_available",
+      "test_runtime_token_refresh_failures"
+     ]
+    }
+   ],
+   "n_symbols": 3,
+   "n_files": 2
+  },
+  {
+   "sha": "1214fc978f6ae225cc15840b022911f8dc350326",
+   "query": "Add device class selector",
+   "answers": [
+    {
+     "file": "homeassistant/helpers/selector.py",
+     "symbols": [
+      "DateTimeSelector",
+      "DeviceClassSelector",
+      "DeviceClassSelectorConfig",
+      "__call__",
+      "__init__",
+      "_enum_options"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_selector.py",
+     "symbols": [
+      "test_device_class_selector_schema",
+      "test_select_selector_schema_error"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "2237ab98a63c23330329808dca3fb574a03c6e41",
+   "query": "Fix ZHA device with 0 entities not setting `via_device_id`",
+   "answers": [
+    {
+     "file": "homeassistant/components/zha/entity.py",
+     "symbols": [
+      "ZHAEntity"
+     ]
+    },
+    {
+     "file": "homeassistant/components/zha/helpers.py",
+     "symbols": [
+      "ZHAGatewayProxy"
+     ]
+    },
+    {
+     "file": "tests/components/zha/test_entity.py",
+     "symbols": [
+      "test_device_registry_via_device",
+      "test_device_registry_via_device_without_entities"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 3
+  },
+  {
+   "sha": "c9990fa048e7056837f31dfc923c9b59c58afc19",
+   "query": "Expand composite devices in tag trigger",
+   "answers": [
+    {
+     "file": "homeassistant/components/tag/trigger.py",
+     "symbols": [
+      "async_attach_trigger"
+     ]
+    },
+    {
+     "file": "tests/components/tag/test_trigger.py",
+     "symbols": [
+      "split_devices",
+      "test_composite_device_trigger",
+      "test_multiple_tags_and_devices_trigger"
+     ]
+    }
+   ],
+   "n_symbols": 4,
+   "n_files": 2
+  },
+  {
+   "sha": "62e467d5d5387c2dc0cbe2b7d402e4de12c1a2f3",
+   "query": "Handle cloud_not_connected string centrally",
+   "answers": [
+    {
+     "file": "homeassistant/components/owntracks/config_flow.py",
+     "symbols": [
+      "OwnTracksFlow"
+     ]
+    },
+    {
+     "file": "homeassistant/components/plaato/config_flow.py",
+     "symbols": [
+      "PlaatoConfigFlow"
+     ]
+    },
+    {
+     "file": "homeassistant/helpers/config_entry_flow.py",
+     "symbols": [
+      "WebhookFlowHandler"
+     ]
+    },
+    {
+     "file": "tests/components/owntracks/test_config_flow.py",
+     "symbols": [
+      "test_with_cloud_sub_not_connected"
+     ]
+    },
+    {
+     "file": "tests/components/plaato/test_config_flow.py",
+     "symbols": [
+      "test_show_config_form_validate_webhook_not_connected"
+     ]
+    },
+    {
+     "file": "tests/helpers/test_config_entry_flow.py",
+     "symbols": [
+      "test_webhook_create_cloudhook_aborts_not_connected"
+     ]
+    }
+   ],
+   "n_symbols": 6,
+   "n_files": 6
+  },
+  {
+   "sha": "1d53ef4563e328da3611f2c10bcafe962079ba73",
+   "query": "Set climate device from Midea based on capabilities",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/climate.py",
+     "symbols": [
+      "MideaACClimate",
+      "MideaC3Climate",
+      "MideaCCClimate",
+      "MideaCFClimate",
+      "MideaClimate",
+      "__init__",
+      "hvac_modes"
+     ]
+    },
+    {
+     "file": "tests/components/midea/conftest.py",
+     "symbols": [
+      "DummyDevice"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "e14f816e3670dd62498265603e13306141b07b5e",
+   "query": "Add Time platform to Midea",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/time.py",
+     "symbols": [
+      "MideaTime",
+      "__init__",
+      "async_setup_entry",
+      "native_value",
+      "set_value"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_time.py",
+     "symbols": [
+      "_assert_service_call",
+      "test_ed_time_service",
+      "test_switch_state_snapshot"
+     ]
+    }
+   ],
+   "n_symbols": 8,
+   "n_files": 2
+  },
+  {
+   "sha": "7c662cdfd12e447688d755a643a720150c0f933a",
+   "query": "Add sensor platform to Midea",
+   "answers": [
+    {
+     "file": "homeassistant/components/midea/sensor.py",
+     "symbols": [
+      "MideaSensor",
+      "MideaSensorEntityDescription",
+      "async_setup_entry",
+      "native_value"
+     ]
+    },
+    {
+     "file": "tests/components/midea/conftest.py",
+     "symbols": [
+      "DummyDevice"
+     ]
+    },
+    {
+     "file": "tests/components/midea/test_sensor.py",
+     "symbols": [
+      "test_all_entities",
+      "test_sensor_state_update"
+     ]
+    }
+   ],
+   "n_symbols": 7,
+   "n_files": 3
+  },
+  {
+   "sha": "0c6f3c7578e41fea1724f5e01cef42b4d62bade0",
+   "query": "Add hourly and daily forecast attributes to Open-Meteo",
+   "answers": [
+    {
+     "file": "homeassistant/components/open_meteo/coordinator.py",
+     "symbols": [
+      "OpenMeteoDataUpdateCoordinator"
+     ]
+    },
+    {
+     "file": "homeassistant/components/open_meteo/weather.py",
+     "symbols": [
+      "OpenMeteoWeatherEntity"
+     ]
+    }
+   ],
+   "n_symbols": 2,
+   "n_files": 2
+  }
+ ]
+}

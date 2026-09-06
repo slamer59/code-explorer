@@ -1,0 +1,3137 @@
+{
+ "tool": "code-explorer-body",
+ "corpus": "home-assistant",
+ "repo": "home-assistant",
+ "k": 10,
+ "n_queries": 200,
+ "expands": true,
+ "embedding": null,
+ "index_ms": 90630.3,
+ "provenance": {
+  "utc": "2026-09-06T13:52:48+00:00",
+  "tool_sha": "a0d3b948",
+  "tool_dirty": true,
+  "corpus_sha": "932838840b3",
+  "host": "fedora5.home",
+  "cpus": 16,
+  "python": "3.12.13",
+  "platform": "Linux-7.1.13-200.fc44.x86_64-x86_64-with-glibc2.43"
+ },
+ "per_query": [
+  {
+   "qid": "e37a8cfa98262b67ffcff6cdfc70f148b4d2a188",
+   "query": "Leave Powerwall gateway host blank when discovery fails",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 4,
+   "tokens": 3840,
+   "wall_ms": 1020.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e1efb35a971d0396200553bf46a83a3ccb96b4dd",
+   "query": "Split Teslemetry local-control abort into two reasons",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 599,
+   "wall_ms": 1034.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "81e0a244f8701086aa8a73e48f59c8c226e2607b",
+   "query": "Fix Teslemetry energy-site setup crash on encrypted RSA key",
+   "n_relevant": 4,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 2279,
+   "wall_ms": 1107.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0828053500c96ea5b91af4861fbef0a49d7fa202",
+   "query": "Allow non-admins to subscribe to conditions over the websocket",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 1359,
+   "wall_ms": 1158.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a933a32d552b69d4da66590447c05a1795397897",
+   "query": "Handle Tradfri devices without a firmware version",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 5,
+   "tokens": 4037,
+   "wall_ms": 1041.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a31d81b963cdb24349d35795b29070fe2b50ce1b",
+   "query": "Fix Synology DSM backup share step losing its input",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 2,
+   "tokens": 2377,
+   "wall_ms": 1029.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "7f6b995473478f2177bbaac694e1e29c551ec5be",
+   "query": "Add the air outlet, DHW and indoor unit sensors to WeHeat",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 2,
+   "tokens": 544,
+   "wall_ms": 1186.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f501eaed55998011933722dbc892249d2df1d793",
+   "query": "Allow empty motionEye usernames",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 1994,
+   "wall_ms": 1002.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bafc126de8f3fff62c3710a771ba96dfde400dfc",
+   "query": "WeHeat - Diagnostics",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 246,
+   "wall_ms": 1011.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "dbf135a2ef40cb10afeb65515ae4ded5681f929d",
+   "query": "Reject Hot Spring Spa Network Adapter (SNA) in config flow (hotfix)",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 4,
+   "tokens": 1672,
+   "wall_ms": 1069.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "357c6f56162a0269e86a36aa1ad66d6af222c282",
+   "query": "Fix EnergyZero market price regression",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 961,
+   "wall_ms": 1002.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "cca93dec22d3d3523e530c5cfecd9af8e1c9ccf1",
+   "query": "Fix Besen config flow schema serialization",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 793,
+   "wall_ms": 1130.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "5643c2ba66cf98a84daf4ab10c92a8ed12d65b9f",
+   "query": "Rename service registration method in google_assistant and shopping_list",
+   "n_relevant": 4,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 941,
+   "wall_ms": 1093.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "3aae3b4ea795270f7627553b06419892789d8c02",
+   "query": "Drop translations from the Sofar coordinator errors",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 2455,
+   "wall_ms": 1104.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c6219719b55b4b1f58e926684ba7504c42a93199",
+   "query": "Add the Sofar active power limit binary sensor",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 170,
+   "wall_ms": 1165.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "38df1695f212133864d57d9bc034e46dfa06a51f",
+   "query": "Purge unreachable deleted devices on device registry load",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 3632,
+   "wall_ms": 1126.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "3c46bcb85a7ca70cd0d962362a0c38d531dd0c09",
+   "query": "Fix host override ignored in UniFi Protect public-only mode",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 3369,
+   "wall_ms": 1066.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "5a80328b1df9fc3e197c97912f69887377a407a7",
+   "query": "Handle already_in_progress centrally",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 2561,
+   "wall_ms": 1025.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "763981324741b073a17fa9ecbfd7c03e823c30fc",
+   "query": "Add Imou diagnostics for config entries",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 456,
+   "wall_ms": 1157.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b3f43dea4a923e41de7a42b75d3fa50289aec0dd",
+   "query": "Rename services module in switchbot_cloud",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 112,
+   "wall_ms": 1078.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "298249854cfdb6ff84b2d2fbbe33ec049e62665e",
+   "query": "Align service registration method in services module",
+   "n_relevant": 6,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 941,
+   "wall_ms": 1046.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "ac2ee023f39bcb3faed657bfaf420c33e07459bb",
+   "query": "Use discovery result in Midea for reconfigure flow",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 648,
+   "wall_ms": 1147.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a6a5a49dbbc9260c010003a74ffc52f70aadd0fc",
+   "query": "Rename services module in ihc",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 1261,
+   "wall_ms": 1078.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "df4808f629ffec2be76f0adb2d7329f56407ce17",
+   "query": "Add missing husqvarna_automower error keys",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 669,
+   "wall_ms": 1068.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c9d17c6c158ea5b5a3a44aa97e1b734d78b1ac83",
+   "query": "Fix HomeKit power control for Daikin zone climates",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 555,
+   "wall_ms": 1094.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8d48785e4fbd2253298fdea0eec25fef19e38ef1",
+   "query": "Deprecate passing a target to homeassistant.reload_config_entry",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 322,
+   "wall_ms": 1242.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a98e9c25bb220aea04dc565500f9de4031067c82",
+   "query": "Use sentence-style capitalization for built-in integration names",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 2437,
+   "wall_ms": 1125.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "10eb0bb61c5e1c20e13f263e107fd88d6a7a783a",
+   "query": "Add coroutines to MELCloud Home's coordinator",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 338,
+   "wall_ms": 1118.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "5c5073dd3ae42e844a5711ec93de8e9c43338209",
+   "query": "Type the lookin UDP manager with a HassKey",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 1585,
+   "wall_ms": 1093.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f04652b3242039e40b076743f887df6107e0ac5f",
+   "query": "Deprecate modbus get_hub in favour of async_get_unit",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 14,
+   "tokens": 3776,
+   "wall_ms": 1117.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "d0ebb31684ee4c49407480da71a3b537d3b12751",
+   "query": "Update Lutron light state without waiting for the controller",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1543,
+   "wall_ms": 1197.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "34f617da9e7f3ec5bddfbc039f0189e86954a83a",
+   "query": "Expose Zooz ZSE43 vibration sensor as vibration, not tampering",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 1110,
+   "wall_ms": 1061.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "487f863245f53b116ae83ddc6a7ee735b6c33493",
+   "query": "Fire a Lutron single press when the button reports only a release",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 1748,
+   "wall_ms": 1183.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "23af6097cebad1c8551795bb49fdc07c5ec492b2",
+   "query": "Fix SMTP attaching valid images as files when content sniffing fails",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 477,
+   "wall_ms": 1080.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "00d7c71f507bb8005feedb78c37b87a48e9577e6",
+   "query": "Use dhcp discovery to update midea device IP",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 6,
+   "tokens": 1313,
+   "wall_ms": 1176.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c5fae71f7064751e5a48174c13045a18ae6d25aa",
+   "query": "Fix potential deadlock in receive_file backup util",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 103,
+   "wall_ms": 1044.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e78b25429227fb23e44b6c0eecd27b73a34606fd",
+   "query": "Ignore static add-on devices when attributing serial ports",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 537,
+   "wall_ms": 1126.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "72a982b33bff70ed7cd4a9623b209a6586fb8a7a",
+   "query": "Fix offline devices being removed in Xbox integration",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 3,
+   "tokens": 4009,
+   "wall_ms": 1102.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a34ee857a0cd1441d8322fe4b4856a110d7aa2dd",
+   "query": "Media selector to retain metadata for presentation",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 255,
+   "wall_ms": 1119.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a293744b78142abe5ec346be60dcd4030162bb96",
+   "query": "Use iter_chunked for STT audio stream to prevent LineTooLong",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 5,
+   "tokens": 2266,
+   "wall_ms": 1140.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "2afe6fed10db10a2f73dad84ef93591a6a68e569",
+   "query": "Update default timeout to 60s in SMTP integration",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 939,
+   "wall_ms": 1158.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8f1391e15f99e012074f69913d3e5e3bacb5201d",
+   "query": "Fix swallowed exceptions in roomba action handlers",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1712,
+   "wall_ms": 1036.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "13b9ef09f2c1f19c32529894e1a14d59f8ca8bba",
+   "query": "Change range for getting all columns in Google Sheets",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 548,
+   "wall_ms": 1108.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8061e0d349bbcfa12a1ae016ee4813752d837dfd",
+   "query": "Use async_config_entry_first_refresh in Subaru setup",
+   "n_relevant": 4,
+   "n_seed": 9,
+   "n_bundle": 7,
+   "tokens": 4204,
+   "wall_ms": 1106.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1a0baa3f36e8dd6992f19172a6b267300c7f6be9",
+   "query": "Filter cancelled events out of remote_calendar",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 474,
+   "wall_ms": 1793.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1c79a02b4703531f4db23dc6f234ee3fa3cb5f21",
+   "query": "Raise ServiceValidationError for missing code in arming actions for Satel Integra",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1175,
+   "wall_ms": 2691.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "7bddee43e85bc13ea3218be8b34848c77ade4969",
+   "query": "Add Flexit binary sensors and change default baud rate",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 158,
+   "wall_ms": 2625.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f3a8fd917c38111f4b0103b47fc3fe0fd9d91f4c",
+   "query": "Drop the DC claim from the Fronius MPPT energy sensor",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1747,
+   "wall_ms": 2630.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "5de41160ed4a6266c60c719e3ef6dfa8d1fda41a",
+   "query": "Finish recorder purge without an extra cycle on partial statistics batches",
+   "n_relevant": 3,
+   "n_seed": 3,
+   "n_bundle": 4,
+   "tokens": 4341,
+   "wall_ms": 2162.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "94188f87b4d8de63ca1e1ea3338df85c2fa7ba58",
+   "query": "Handle no_devices_found centrally",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 2561,
+   "wall_ms": 1014.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4c66a9c589c1b732a3516132888f82005b7c8bf7",
+   "query": "Add reconfigure flow to Zonneplan",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 3170,
+   "wall_ms": 1100.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f874e62fa3bf2279fe51eefe28c1b3b01a4b883d",
+   "query": "Add AC buttons to LG Infrared",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 203,
+   "wall_ms": 1080.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8d9a9b07757b51dedb0b1320e957a8237b26362a",
+   "query": "Start Imou reauthentication when the cloud rejects the credentials",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 3,
+   "tokens": 1291,
+   "wall_ms": 1130.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bb35e5e184fd9e23ffc9ba86cdb7ffa72666eca7",
+   "query": "Keep Duco filter time pollable after missing result",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 1177,
+   "wall_ms": 1007.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "76a38d446f74fbd67961c65b66ef3b8f2c6b9392",
+   "query": "Add panel information to diagnostics for Satel Integra",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 755,
+   "wall_ms": 1045.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "45c2434230ad39916c962f0d96bff1f27bded9d1",
+   "query": "Add reauthentication flow to the Imou integration",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 1771,
+   "wall_ms": 1152.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6540e013f3bf7620b3a71284b345607c216bd4b4",
+   "query": "Fix Music Assistant shared player icons",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 5,
+   "tokens": 2875,
+   "wall_ms": 982.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b188ff431580a8333d45038b9b273704390a269f",
+   "query": "Populate Satel Integra model and firmware",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 755,
+   "wall_ms": 995.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c194c3b77111e8f25bb1f15054853a5ac4147c56",
+   "query": "Delegate Duco bypass target policy to the library",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 2118,
+   "wall_ms": 1054.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8f7a82c7b3f1fed8e6a69bb767007d689dbba947",
+   "query": "Add diagnostics to Zonneplan",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 282,
+   "wall_ms": 1062.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6cd5e225334ccda9729a8f9d628deade45d07ed3",
+   "query": "Remove Subaru unique_id migration for HA<=2022.10",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 328,
+   "wall_ms": 1072.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bc893b074ca19070d2872680afafa11e600d8ab1",
+   "query": "Restore Husqvarna Automower work area sensors and gate by WorkAreaTyp\u2026",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 316,
+   "wall_ms": 1011.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "876ab37064d50252e6a55a69c709b819acc1cdb5",
+   "query": "Add kPa as a valid unit of measurement for pressure in weather entity",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 158,
+   "wall_ms": 1189.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4a0594e5435fd210f8971f8f5f3598a9e3eada25",
+   "query": "Deprecate Configurator integration",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 5,
+   "tokens": 2517,
+   "wall_ms": 1002.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9889cfcf66a93577ba4a8ff714217eef088fb5e2",
+   "query": "Add atmospheres (atm) as a pressure unit",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 121,
+   "wall_ms": 1044.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "68b5fcb9025da331891888c6c788e10040b56510",
+   "query": "Move common platform setup code into entity.py",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 3,
+   "tokens": 1311,
+   "wall_ms": 1216.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4fb7c04ba366a2199d5bbd06a9d4d81431829885",
+   "query": "Use NEWEST_FIRST replay for Matter BLE commissioning",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 1612,
+   "wall_ms": 1061.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "93cf9c8d8d001bcbb35798881500474ec75bd66f",
+   "query": "Remove the Sofar waiting-ends sensor",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 641,
+   "wall_ms": 1108.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a3975e9047cb9dee611ba7c1e2304868af98d2b0",
+   "query": "Stop the Hikvision event stream on Home Assistant shutdown",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 1,
+   "tokens": 126,
+   "wall_ms": 1128.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c01aac0ec8c88d8e185996827846ce5f9d10f566",
+   "query": "Add a reconfigure flow to the Sofar integration",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 1781,
+   "wall_ms": 1083.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "342c9d4858efc54427ab03284d10e18d9c00a660",
+   "query": "Remove homeassistant auth legacy mode",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 2189,
+   "wall_ms": 1178.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "cc126abfb2c1ac27b7aeb7f9d66aac523d5ec61a",
+   "query": "Fix swallowed exceptions in action handlers for Pushover",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1712,
+   "wall_ms": 1022.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8281b2faff83c39b1e60d91b1b1492aa593608a0",
+   "query": "Add diagnostics support for Sofar",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 1,
+   "tokens": 315,
+   "wall_ms": 1066.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4016b01b89eaebe72eb8f204fa58a837ce6ee7d4",
+   "query": "Report an uncalibrated Shelly roller by its last direction",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 266,
+   "wall_ms": 1026.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "ae9c2c80176dd8605c4cfb2cbb89b9f825e82811",
+   "query": "Correctly display sn and mac in Midea device page",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 202,
+   "wall_ms": 1113.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "29223d390832796524df1f9207a0265ff2fef871",
+   "query": "Stop reporting max_volume in Lyngdorf diagnostics",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 414,
+   "wall_ms": 1055.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a9ba568154e49f4f0366aa83780f74355409dc96",
+   "query": "Add a restart button to Modern Forms",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 1373,
+   "wall_ms": 1034.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "968e26a092d8b00661eccc1885db208e6dcf2bfb",
+   "query": "Fix mangled model names in Google Generative AI options",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 6,
+   "tokens": 3260,
+   "wall_ms": 1017.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "644f6212c1688d18119848f8794a7c05caf25431",
+   "query": "Add color temperature support for Modern Forms Gen4 light fixtures",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 2582,
+   "wall_ms": 1031.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1bee69c5c36e010c83782003657a663390f6e247",
+   "query": "Migrate nextbus to config entry runtime data",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 7,
+   "tokens": 3907,
+   "wall_ms": 1169.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1b547efd6a3b395662b4d1c4760567d6517ed62e",
+   "query": "Use JSON fixture helpers in tests",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 743,
+   "wall_ms": 1037.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "386833e918b84c9f1f338a5c101c5c0e6192f9eb",
+   "query": "Allow Apple TV pairing PIN to accept leading zeroes",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 7,
+   "tokens": 4299,
+   "wall_ms": 1070.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9145c009f834befcf4a1021f2f7079afa323ec2b",
+   "query": "Use SmartThings custom setpoint bounds for air conditioners",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 1,
+   "tokens": 246,
+   "wall_ms": 1051.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f5d961ed84c0797848b5d3a9e9fbf7b76aa65988",
+   "query": "Vistapool entity device class",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 632,
+   "wall_ms": 1022.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0c76ebf31039d00b022bd28201c6d0bf2907512b",
+   "query": "Fix Trafikverket Ferry no time",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 148,
+   "wall_ms": 1006.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f417ad86e51c52f88cf4445de259e9a5ec1f098c",
+   "query": "Abort the Silla Prism config flow when MQTT is unavailable",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 2303,
+   "wall_ms": 1070.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "616fb5a6e896cdd213293930908001ffcf743a9a",
+   "query": "Continue the flow these config flow tests already opened",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 4322,
+   "wall_ms": 1186.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "13b0bf04bb80b81a27bfb8d8311cda1d2016d870",
+   "query": "Migrate the Lyngdorf select platform to the lyngdorf 2.0 API",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 232,
+   "wall_ms": 1062.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "235a9b3e005a39f2235395f71f2ad5a36df4d2c4",
+   "query": "Migrate the Lyngdorf sensor platform to the lyngdorf 2.0 API",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 414,
+   "wall_ms": 1183.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c3e93446818a8d13962bccb7606ad6e68f1551bd",
+   "query": "Migrate Lyngdorf diagnostics to the lyngdorf 2.0 API",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 414,
+   "wall_ms": 1154.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1654e96ed725823fb98d403a1abd7e0ceab0afc5",
+   "query": "Fix Prana fan percentage rounding so displayed values map to the same step",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 3405,
+   "wall_ms": 1059.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "ea7c98a0608be58dda635acecd3adc257ba7d1c6",
+   "query": "Seed Sofar total sensors' high-water marks before the first poll",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 798,
+   "wall_ms": 1099.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "96f517cd261b27006fb51ded58facd260002c33e",
+   "query": "Let LG ThinQ unload when the network is down",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 142,
+   "wall_ms": 1151.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "af6ddab93a143fdc58d22d057beaa4e565b009b1",
+   "query": "Add Elgato power-on behavior select",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 186,
+   "wall_ms": 1055.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9b368640e494768ac23d34a0bc69e42f5e6a3a9b",
+   "query": "Move the Elgato color temperature range out of the light entity",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 1571,
+   "wall_ms": 1060.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bc788883b8bdcc9ce59499602949f497257e2213",
+   "query": "Do not crash the Synology DSM options on an unloaded entry",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 212,
+   "wall_ms": 1187.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b74ee8cc20ffd94e6abd8d804c50c261bbf82278",
+   "query": "Authorize a Peblar charge session",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 174,
+   "wall_ms": 1049.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "26f6b47c31b7e1d118dc7f12c78bd52dce7e2544",
+   "query": "Ask Google for the calendar access the entry is set to",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 323,
+   "wall_ms": 1217.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6f9d55229b8ae75ce93c1a9574e5167f34ae674d",
+   "query": "Add DALI line status diagnostic sensor to lunatone",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 924,
+   "wall_ms": 1039.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8a89fa80162bac35e2073d218bcf1b6d87fcb1a9",
+   "query": "Give a sleeping printer time to wake up",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 162,
+   "wall_ms": 1102.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "2f50531be1f2855b5e84eda0088ded479b6a5880",
+   "query": "Scan every supported wireless interface in Mikrotik",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 3554,
+   "wall_ms": 1061.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "99192f5b9eaf1512092c37f0c761428a9e0aa30c",
+   "query": "Add serial number to Roborock devices",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 2202,
+   "wall_ms": 1076.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "52adc20f85b79ebb9218b8ed4753d20bf07cc63e",
+   "query": "Add Priority Status sensor to Lyric integration",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 929,
+   "wall_ms": 1040.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1273fd566fce03aa1c3874e93be8603686fef041",
+   "query": "Fix Growatt V1 total output power",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 5,
+   "tokens": 4051,
+   "wall_ms": 986.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "99ae47aa40d020cb23bb5fd93ad52296771ed253",
+   "query": "Fix swallowed exceptions in action handlers for MJPEG IP Camera",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1712,
+   "wall_ms": 1024.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "037d2cfa16ddcc99a013722c6f7fe5dc6c98342d",
+   "query": "warmup loader caches to remove blocking listdir calls",
+   "n_relevant": 4,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 1262,
+   "wall_ms": 1175.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "eac53b5dc3b0f21cb3d7e3e0cbba5d4fc642172b",
+   "query": "Add support for priority to SMTP integration",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 7,
+   "tokens": 1969,
+   "wall_ms": 1120.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8094598c2fe8f6ea13322d4ceb294841ee85f2f0",
+   "query": "Use Home Assistant's shared aiohttp session in Lyngdorf",
+   "n_relevant": 5,
+   "n_seed": 8,
+   "n_bundle": 7,
+   "tokens": 4097,
+   "wall_ms": 1078.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "129ff239a35998727c47207ae8ba91f4ba36d2b3",
+   "query": "Handle malformed ViCare payloads as an update failure",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 2099,
+   "wall_ms": 1078.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "325bc5f91fa44b9a387faa3a53cdbd0b7bdba723",
+   "query": "FIx airflow and power rate availability for Midea",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 128,
+   "wall_ms": 1067.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "92983e4022f6552990dc1141b6ae7916eb4f5093",
+   "query": "Fix SmartThings AC temperature range unit conversion",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 163,
+   "wall_ms": 997.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6b0e63568a293f047239504407819ad446b9ff61",
+   "query": "Ask MCP authorization servers for a refresh token",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 2964,
+   "wall_ms": 1086.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "754691c5d6ad421d3d13efdbe8a9bf517032797b",
+   "query": "Gate the Sofar waiting-ends sensor on an active countdown",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 1263,
+   "wall_ms": 1054.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6a5d0472eb6442a018049f19890e4e1f040dc687",
+   "query": "Add diagnostics to SolarEdge Modbus",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 644,
+   "wall_ms": 1068.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1963268a0346a51aac1a28935b3c5739cddb3e2a",
+   "query": "Improve Monzo API errors, icon, and test coverage",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 111,
+   "wall_ms": 1134.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f5041217f647d1042364348069e4e7a7f8175bb4",
+   "query": "Add DNS response code sensor to Gatus integration",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 267,
+   "wall_ms": 1105.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1cf82bdea3332fb56d2c3e79d6f547e00e05b5be",
+   "query": "Validate the target of a service description registered in code",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 3087,
+   "wall_ms": 1186.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b0b8c3d45d9cd5d16bd606118fafb23c1c935d29",
+   "query": "Poll the myStrom motion sensor readings",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 987,
+   "wall_ms": 1034.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "036cebbf06d179444d5567ce2e5b7e50b51af0c6",
+   "query": "Only offer smart charging modes the Peblar accepts",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 251,
+   "wall_ms": 1091.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6b453881ca6483ba1cb8ba7a98795a384bcc78a3",
+   "query": "Skip Bluesound players whose config entry is not loaded",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 262,
+   "wall_ms": 1165.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0cdbba4eadc0842bc692a2f7727f8d603917c2bc",
+   "query": "Keep a SwitchBot Cloud entry loading when the cloud goes away",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 4231,
+   "wall_ms": 1167.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "3da5869857aaf934597be5ea7db56023397a89bd",
+   "query": "Translate the Peblar setup exceptions",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 1606,
+   "wall_ms": 1120.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "dc189b94e16d6634776f7b8b85a6f745c23a2e4a",
+   "query": "Fix the Peblar charge limit maximum",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 167,
+   "wall_ms": 1084.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4e16893496d8c8e5f2755cb4e3bd87616a2f16ca",
+   "query": "Pass the config entry to the ProgettiHWSW coordinators",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 6,
+   "tokens": 3731,
+   "wall_ms": 1195.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b39b8acb8b94911080856b2886590887b1e29f76",
+   "query": "Guard the Hydrawise zone and sensor of an entity like its controller",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 246,
+   "wall_ms": 1172.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9113c1e83ac73e0cf0233151faadc99c3c27686b",
+   "query": "Leave a SwitchBot air purifier without a preset it does not report",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 3666,
+   "wall_ms": 1035.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "322e5d141073561f390cf39cf8e2779692240867",
+   "query": "Address review feedback on Matter fan PercentSetting fix",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 331,
+   "wall_ms": 1035.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "fac772eb803aea48043a998b640d82102958dfa2",
+   "query": "Report every SwitchBot Cloud lock state",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 9,
+   "tokens": 4326,
+   "wall_ms": 1055.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "907943ed6807d0d1df56560b06d937bb718bab77",
+   "query": "Restore Plex recovery from a changed plex.direct certificate",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 2802,
+   "wall_ms": 1082.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "317e87d130721cc9a8225223b8530d2b4ff728db",
+   "query": "Follow the requested mode when setting a SwitchBot Cloud AC temperature",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 4,
+   "tokens": 2922,
+   "wall_ms": 1056.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "91ba35fd1e600ed42ecc2aafc42d30f493c46e6e",
+   "query": "Report the original error when removing an entity fails",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 1,
+   "tokens": 160,
+   "wall_ms": 1149.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b8b5aa204a2780ff11e0d4845feb02444c6cf4a3",
+   "query": "Keep an LG soundbar on when it never reports a power status",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 253,
+   "wall_ms": 1107.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "010a9519666a7bd27441ca7cc2e4b9426d0d063b",
+   "query": "Restore a SwitchBot Cloud AC temperature in the unit it was published in",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 4,
+   "tokens": 2922,
+   "wall_ms": 1071.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "380352879ccfbebaa78d2d20d437e3d951b8cb1a",
+   "query": "Say so when Abode reauthentication uses a different account",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 2,
+   "tokens": 738,
+   "wall_ms": 1015.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a9346a624937ad795b6512938d8bb2972f11e75b",
+   "query": "Retry SmartThings setup when the cloud is unreachable while fetching",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 199,
+   "wall_ms": 1168.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "ef90070ace358cd36c2be6ddd32e335db4dc8c21",
+   "query": "Only add a Lutron Caseta battery sensor where there is a battery",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 2587,
+   "wall_ms": 1061.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "fec5158cbfeaef1054eafc493461645f4b7a2f74",
+   "query": "Retry Freebox setup when the router cannot be reached",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 514,
+   "wall_ms": 1147.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e1190e1a32f1a48c911961e6ae7d0d6ef1865999",
+   "query": "Add hardware-conditional buzzer and LED select entities to Peblar",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 192,
+   "wall_ms": 1103.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "99fca0d2c3b4a601272bb12fec08f29ce457639a",
+   "query": "Fix Matter fan turn_on writing invalid PercentSetting=255",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 331,
+   "wall_ms": 1012.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e1130859154f101aa564671149c14eec1aacbb2a",
+   "query": "Tell Telegram which updates the bot wants",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 373,
+   "wall_ms": 1091.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e4c3e3509d1471b821a718ce27afff1811566213",
+   "query": "Set up Denon receivers that report no serial number",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 3216,
+   "wall_ms": 1026.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "553926806727c940c761ce2410cc3428633ead85",
+   "query": "Apply the hygrostat minimum cycle duration to keep-alive calls",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 4729,
+   "wall_ms": 1099.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "72b0c4b7bcb1383f0d195df6f69abd9bde199038",
+   "query": "Honor the Modbus verify states for coils",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 3982,
+   "wall_ms": 1047.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a633baf481091d7522b1769b26bcd6c81c6b8fca",
+   "query": "Block Capability and State attributes for template sensor attributes but allow `options`",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 111,
+   "wall_ms": 1071.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "456582ed2d6f8e13fd6c087992f15a918aef2da9",
+   "query": "Apply AiDot color when brightness is sent along with it",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 1755,
+   "wall_ms": 1130.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f985fafbf5abcd121d256c619efc4df320073cfc",
+   "query": "Don't attach a device to iotawatt entities without a unique ID",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 270,
+   "wall_ms": 1203.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b0ee78d517abf9a133d6ea5781630cd45e3e6e56",
+   "query": "Require admin for remaining Z-Wave lock services",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 1113,
+   "wall_ms": 1016.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "01c3ee0b1baa77da0fea367671a10ca6f4a019a9",
+   "query": "Use the temperature step Airzone reports",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 1286,
+   "wall_ms": 1041.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e4d7d723c72db4455ca029dea94a152f40537bc0",
+   "query": "Send the transition with the WLED segment change",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 214,
+   "wall_ms": 1135.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "70625db31b543d0051e23fd32e82d3de38a5426d",
+   "query": "Remove cloud config entry on logout",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 205,
+   "wall_ms": 1132.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9871cc29e54b915c2b3293e55fd9877ea0504f6c",
+   "query": "Webostv screen switch capability",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 121,
+   "wall_ms": 998.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "5102b0622e8269d35dff3f306d8a11a40bc76597",
+   "query": "Keep the current hour in the SMHI hourly forecast",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 868,
+   "wall_ms": 1049.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "73a9be883adb5103853034907c4ab341b6aed81a",
+   "query": "Accept a templated PIN for the Matter lock credential",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 3,
+   "tokens": 2228,
+   "wall_ms": 1150.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "beb87717d37c2096eecc1a19525eb2d767260e1e",
+   "query": "Retry SmartThings setup when the subscription times out",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 201,
+   "wall_ms": 1134.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "7dbc17c9a0b1ff8d6c4e8366ffa51353491ae2f0",
+   "query": "Normalize the Proxmox VE guest id to an int",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 350,
+   "wall_ms": 1066.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bef12b849b218490f7e383ed8eb941b477abd854",
+   "query": "Fix homematicip_cloud shutter group resetting slats on close",
+   "n_relevant": 2,
+   "n_seed": 1,
+   "n_bundle": 1,
+   "tokens": 157,
+   "wall_ms": 1029.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "af8e6f29e8bff8fb4e0d34e47a3f9706bd528ee8",
+   "query": "Wait for the EHEIM Digital main device data before setting up",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 2892,
+   "wall_ms": 1087.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "2c6815ea3fc130066ead62dd3d747773b31065ab",
+   "query": "Fix swallowed exceptions in dlna_dmr action handlers",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 2,
+   "tokens": 1712,
+   "wall_ms": 1006.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "6b5235f352a6462d3a5ad9ceb08d3a0cf4c7825f",
+   "query": "Translate KNX device trigger configuration error",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 965,
+   "wall_ms": 1074.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "a06c462c68ff99270defaee4ad65bd4f5b9599f1",
+   "query": "Use ESPHome project info for serial device manufacturer and model",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 4155,
+   "wall_ms": 1132.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e81abcf8cd500f99b818a54b44dd9766dcace24f",
+   "query": "Ensure gardena image goes back to unknown on render fails",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 94,
+   "wall_ms": 1091.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "4c6fba2712179d3c36105852406d704ec39adc77",
+   "query": "Fix timeout of endpoint does not crash Portainer update",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 4,
+   "tokens": 1586,
+   "wall_ms": 1101.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c4eeb50d771e785ddc5e3a1a8319061035bb6555",
+   "query": "Report KNX group address DPT for undecodable telegrams",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 1129,
+   "wall_ms": 1052.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "855850cd2f78803970d62b4af41ea62bd1577037",
+   "query": "Report a color mode for WiZ bulbs that send no color values",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 1493,
+   "wall_ms": 1058.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "973b065dabbab507eb392897004047821f45f77b",
+   "query": "Disconnect the Litter-Robot account when Home Assistant stops",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 4,
+   "tokens": 957,
+   "wall_ms": 1098.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "f62ecb27b47b46ece95d39dfd4ef85ef7f600c57",
+   "query": "Keep UniFi Protect month browsing inside the month asked for",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 6,
+   "tokens": 4284,
+   "wall_ms": 1133.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "bff05e9c1b9eab8cb53a121209c85a116eb5b6ef",
+   "query": "Drop ecobee thermostats from the action list on unload",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 6,
+   "tokens": 1079,
+   "wall_ms": 1138.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "dc6b5711b407a1827e0e0bdb1aae0c379e6b133e",
+   "query": "Add icons, state translations and enum mapping for OpenEVSE status sensor",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 2,
+   "tokens": 194,
+   "wall_ms": 1146.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "d1cd298141255fb8d52c01ed3af2e1d15147eb27",
+   "query": "Add reconfigure flow to NeoPool",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 2443,
+   "wall_ms": 1091.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0cfc9f831befa22525c4e70b6cd71a49c3f38d5e",
+   "query": "warmup loader caches to remove blocking listdir calls",
+   "n_relevant": 4,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 1262,
+   "wall_ms": 1175.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0a306e1ad9a6e56827bf530162368d0187840d16",
+   "query": "Stop deriving PrusaLink job timestamps after the print ends",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 8,
+   "tokens": 4282,
+   "wall_ms": 1124.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "2937c80da5b7f7ad139b22fe3350eec2a1525f3a",
+   "query": "Fix ViCare setup by passing the accessor to fetch_all_features",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 279,
+   "wall_ms": 1145.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9220f9ddaba22ff7070a523707d29fbb5de86756",
+   "query": "Enhance androidtv.adb_command to return response data",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 1616,
+   "wall_ms": 1168.5,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "08216dda63256b150a6e34cd24b3cc77e6bf2197",
+   "query": "Allow saving HTTP config without trusted proxies",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 206,
+   "wall_ms": 1085.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "26880d33dd6452532176f01dedcaf0728acb15a7",
+   "query": "Remove the Sofar serial number sensor",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 4,
+   "tokens": 1354,
+   "wall_ms": 1042.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c9ae88e3b9d6862ee35d77a120d83cf241b8ac7a",
+   "query": "Keep the Spotify source list in a stable order",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 145,
+   "wall_ms": 1167.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "8a2a3da34a0db8ccceb190e098d55903be9ffc77",
+   "query": "Avoid blocking SSL context creation in the MCP SSE transport",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 704,
+   "wall_ms": 1143.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9f1998d10381d48ac98d6d58d46d926b40fcc9fa",
+   "query": "Add diagnostics to libreNMS",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 171,
+   "wall_ms": 1067.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "3e0d75fec42bf061af6c20f772af416726cf8b7b",
+   "query": "Proxmox refactor to use UPTIME sensor",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 279,
+   "wall_ms": 1012.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "b4cb769768b60d385b8060213a7e2f313b5cdb80",
+   "query": "Fix ESPHome climate target temperature handling in auto mode",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 293,
+   "wall_ms": 1068.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "044a9d2d5a0ce4c24c3b5a9ebf4bfa2af1387362",
+   "query": "Fix history stats missed state change during startup",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 4346,
+   "wall_ms": 1052.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9f1afd2e4fc0e53f736b13d6c4cba55083658266",
+   "query": "Translate shared OAuth2 abort reasons centrally",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 246,
+   "wall_ms": 986.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1f48a2fdc6c2360e9ce6733744c6955802542aed",
+   "query": "Add Hot Water Override select entity to opentherm_gw",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 137,
+   "wall_ms": 1119.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "7b09dbfd13a3377b9e16c8a64691dd4e2204b1d6",
+   "query": "Add cover speed support to SwitchBot roller shades",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 4,
+   "tokens": 2179,
+   "wall_ms": 1025.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "cd110c23d5957d8f36475edb68a60b23545951c3",
+   "query": "Write the google_sheets created column in the configured time zone",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 548,
+   "wall_ms": 1152.1,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "88607170d9e87ea66f4f81f8df9cdd351ca40ccf",
+   "query": "Expose MonarchAccount ownedByUser attribute",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 659,
+   "wall_ms": 975.8,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "81a59063ae73ba2d026cd3a495243ed7f1a09952",
+   "query": "Make config entry field required in DuckDNS  `set_txt` action",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 5,
+   "tokens": 2672,
+   "wall_ms": 1142.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c48216b074e16b1d8ed82beaa6a59205e38b13e6",
+   "query": "Refactor SMTP to use `EmailMessage`",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 144,
+   "wall_ms": 1042.3,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "58151f5583aa157ace51d60ae26f637d706d3b59",
+   "query": "Silence Hikvision videoloss watchdog warning",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 515,
+   "wall_ms": 987.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "38ac696fa4b53fa68d935e67f1f14f1ea489aad3",
+   "query": "Don't fetch the same OID twice while setting up an SNMP sensor",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 947,
+   "wall_ms": 1132.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "9bafeeea1bcaff35e9e56d0d8f523582e0c62c6d",
+   "query": "Add diagnostics to Monzo",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 527,
+   "wall_ms": 1067.6,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "d5d72ca86b7423c9c738f005d57e8679b064f13a",
+   "query": "Fix transient network error handling during Google Drive token refresh",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 5,
+   "tokens": 1718,
+   "wall_ms": 999.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1214fc978f6ae225cc15840b022911f8dc350326",
+   "query": "Add device class selector",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 2,
+   "tokens": 2951,
+   "wall_ms": 1022.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "2237ab98a63c23330329808dca3fb574a03c6e41",
+   "query": "Fix ZHA device with 0 entities not setting `via_device_id`",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 4,
+   "tokens": 3194,
+   "wall_ms": 1167.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "c9990fa048e7056837f31dfc923c9b59c58afc19",
+   "query": "Expand composite devices in tag trigger",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 952,
+   "wall_ms": 1055.2,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "62e467d5d5387c2dc0cbe2b7d402e4de12c1a2f3",
+   "query": "Handle cloud_not_connected string centrally",
+   "n_relevant": 6,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 2561,
+   "wall_ms": 987.0,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "1d53ef4563e328da3611f2c10bcafe962079ba73",
+   "query": "Set climate device from Midea based on capabilities",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 260,
+   "wall_ms": 1116.4,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "e14f816e3670dd62498265603e13306141b07b5e",
+   "query": "Add Time platform to Midea",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 1548,
+   "wall_ms": 1019.9,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "7c662cdfd12e447688d755a643a720150c0f933a",
+   "query": "Add sensor platform to Midea",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 263,
+   "wall_ms": 1039.7,
+   "mode": "BM25",
+   "error": null
+  },
+  {
+   "qid": "0c6f3c7578e41fea1724f5e01cef42b4d62bade0",
+   "query": "Add hourly and daily forecast attributes to Open-Meteo",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 895,
+   "wall_ms": 1110.5,
+   "mode": "BM25",
+   "error": null
+  }
+ ],
+ "kind": "bundle",
+ "run": {
+  "e37a8cfa98262b67ffcff6cdfc70f148b4d2a188": {
+   "homeassistant/components/powerwall/config_flow.py": 1.0,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.16666666666666666,
+   "homeassistant/config_entries.py": 0.14285714285714285,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.125
+  },
+  "e1efb35a971d0396200553bf46a83a3ccb96b4dd": {
+   "homeassistant/components/teslemetry/config_flow.py": 1.0,
+   "homeassistant/components/application_credentials/__init__.py": 0.5,
+   "homeassistant/helpers/collection.py": 0.25,
+   "homeassistant/util/__init__.py": 0.2
+  },
+  "81e0a244f8701086aa8a73e48f59c8c226e2607b": {
+   "homeassistant/components/teslemetry/config_flow.py": 1.0,
+   "homeassistant/helpers/aiohttp_client.py": 0.3333333333333333,
+   "homeassistant/helpers/frame.py": 0.14285714285714285
+  },
+  "0828053500c96ea5b91af4861fbef0a49d7fa202": {
+   "homeassistant/components/websocket_api/commands.py": 1.0,
+   "homeassistant/components/websocket_api/connection.py": 0.5,
+   "homeassistant/components/websocket_api/messages.py": 0.3333333333333333,
+   "homeassistant/helpers/json.py": 0.16666666666666666
+  },
+  "a933a32d552b69d4da66590447c05a1795397897": {
+   "homeassistant/components/tradfri/entity.py": 1.0,
+   "homeassistant/components/tradfri/sensor.py": 0.3333333333333333,
+   "homeassistant/components/tradfri/switch.py": 0.25,
+   "homeassistant/components/tradfri/light.py": 0.2,
+   "homeassistant/components/tradfri/cover.py": 0.16666666666666666
+  },
+  "a31d81b963cdb24349d35795b29070fe2b50ce1b": {
+   "homeassistant/components/synology_dsm/repairs.py": 1.0,
+   "homeassistant/components/repairs/models.py": 0.14285714285714285
+  },
+  "7f6b995473478f2177bbaac694e1e29c551ec5be": {
+   "homeassistant/components/weheat/sensor.py": 1.0,
+   "homeassistant/components/nexblue/sensor.py": 0.5
+  },
+  "f501eaed55998011933722dbc892249d2df1d793": {
+   "homeassistant/components/motioneye/__init__.py": 1.0,
+   "homeassistant/components/webhook/__init__.py": 0.3333333333333333
+  },
+  "bafc126de8f3fff62c3710a771ba96dfde400dfc": {
+   "homeassistant/components/weheat/diagnostics.py": 1.0
+  },
+  "dbf135a2ef40cb10afeb65515ae4ded5681f929d": {
+   "homeassistant/components/hotspring/config_flow.py": 1.0,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.25,
+   "homeassistant/config_entries.py": 0.2,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.16666666666666666
+  },
+  "357c6f56162a0269e86a36aa1ad66d6af222c282": {
+   "homeassistant/components/energyzero/coordinator.py": 1.0,
+   "homeassistant/components/energyzero/__init__.py": 0.5
+  },
+  "cca93dec22d3d3523e530c5cfecd9af8e1c9ccf1": {
+   "homeassistant/components/besen/config_flow.py": 1.0
+  },
+  "5643c2ba66cf98a84daf4ab10c92a8ed12d65b9f": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/service_registration.py": 1.0,
+   "tests/pylint/actions/test_service_registration.py": 0.3333333333333333
+  },
+  "3aae3b4ea795270f7627553b06419892789d8c02": {
+   "homeassistant/components/sofar/coordinator.py": 1.0,
+   "homeassistant/components/sofar/__init__.py": 0.5
+  },
+  "c6219719b55b4b1f58e926684ba7504c42a93199": {
+   "homeassistant/components/sofar/services.py": 1.0
+  },
+  "38df1695f212133864d57d9bc034e46dfa06a51f": {
+   "homeassistant/helpers/device_registry.py": 1.0
+  },
+  "3c46bcb85a7ca70cd0d962362a0c38d531dd0c09": {
+   "homeassistant/components/unifiprotect/light.py": 1.0,
+   "homeassistant/components/unifiprotect/entity.py": 0.125,
+   "homeassistant/components/light/__init__.py": 0.1111111111111111
+  },
+  "5a80328b1df9fc3e197c97912f69887377a407a7": {
+   "homeassistant/components/lamarzocco/coordinator.py": 1.0,
+   "homeassistant/components/lamarzocco/__init__.py": 0.5
+  },
+  "763981324741b073a17fa9ecbfd7c03e823c30fc": {
+   "homeassistant/components/imou/diagnostics.py": 1.0,
+   "homeassistant/components/imou/const.py": 0.3333333333333333
+  },
+  "b3f43dea4a923e41de7a42b75d3fa50289aec0dd": {
+   "homeassistant/components/isy994/services.py": 1.0
+  },
+  "298249854cfdb6ff84b2d2fbbe33ec049e62665e": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/service_registration.py": 1.0,
+   "tests/pylint/actions/test_service_registration.py": 0.3333333333333333
+  },
+  "ac2ee023f39bcb3faed657bfaf420c33e07459bb": {
+   "homeassistant/components/midea/config_flow.py": 1.0,
+   "homeassistant/components/roborock/coordinator.py": 0.5,
+   "homeassistant/config_entries.py": 0.3333333333333333
+  },
+  "a6a5a49dbbc9260c010003a74ffc52f70aadd0fc": {
+   "homeassistant/components/ihc/services.py": 1.0,
+   "homeassistant/components/ihc/__init__.py": 0.5,
+   "homeassistant/components/ihc/util.py": 0.25
+  },
+  "df4808f629ffec2be76f0adb2d7329f56407ce17": {
+   "homeassistant/components/husqvarna_automower/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.25
+  },
+  "c9d17c6c158ea5b5a3a44aa97e1b734d78b1ac83": {
+   "homeassistant/components/daikin/climate.py": 1.0
+  },
+  "8d48785e4fbd2253298fdea0eec25fef19e38ef1": {
+   "homeassistant/components/homeassistant/__init__.py": 1.0
+  },
+  "a98e9c25bb220aea04dc565500f9de4031067c82": {
+   "homeassistant/components/assist_satellite/entity.py": 1.0,
+   "homeassistant/components/assist_satellite/__init__.py": 0.25
+  },
+  "10eb0bb61c5e1c20e13f263e107fd88d6a7a783a": {
+   "homeassistant/components/melcloud_home/coordinator.py": 1.0
+  },
+  "5c5073dd3ae42e844a5711ec93de8e9c43338209": {
+   "homeassistant/components/lookin/__init__.py": 1.0
+  },
+  "f04652b3242039e40b076743f887df6107e0ac5f": {
+   "homeassistant/components/modbus/__init__.py": 1.0,
+   "homeassistant/components/modbus/climate.py": 0.5,
+   "homeassistant/components/modbus/cover.py": 0.3333333333333333,
+   "homeassistant/components/modbus/fan.py": 0.25,
+   "homeassistant/components/modbus/light.py": 0.2,
+   "homeassistant/components/modbus/switch.py": 0.16666666666666666,
+   "homeassistant/components/flexit/climate.py": 0.14285714285714285,
+   "homeassistant/components/modbus/sensor.py": 0.125,
+   "homeassistant/components/modbus/binary_sensor.py": 0.1111111111111111,
+   "tests/components/modbus/test_deprecation.py": 0.1,
+   "homeassistant/helpers/frame.py": 0.09090909090909091,
+   "tests/components/flexit/test_climate.py": 0.08333333333333333,
+   "homeassistant/helpers/template/render_info.py": 0.07692307692307693,
+   "homeassistant/util/async_.py": 0.07142857142857142
+  },
+  "d0ebb31684ee4c49407480da71a3b537d3b12751": {
+   "homeassistant/components/lutron/light.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.25
+  },
+  "34f617da9e7f3ec5bddfbc039f0189e86954a83a": {
+   "homeassistant/components/homematicip_cloud/binary_sensor.py": 1.0
+  },
+  "487f863245f53b116ae83ddc6a7ee735b6c33493": {
+   "homeassistant/components/lutron/event.py": 1.0,
+   "homeassistant/components/event/__init__.py": 0.5,
+   "homeassistant/helpers/entity.py": 0.3333333333333333,
+   "homeassistant/components/text/__init__.py": 0.25,
+   "homeassistant/helpers/template/extensions/datetime.py": 0.2
+  },
+  "23af6097cebad1c8551795bb49fdc07c5ec492b2": {
+   "homeassistant/components/collection_image/image.py": 1.0
+  },
+  "00d7c71f507bb8005feedb78c37b87a48e9577e6": {
+   "homeassistant/components/midea/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/helpers/device_registry.py": 0.25,
+   "homeassistant/components/smartthings/number.py": 0.2,
+   "homeassistant/components/sonos/favorites.py": 0.16666666666666666,
+   "homeassistant/components/smartthings/entity.py": 0.1111111111111111
+  },
+  "c5fae71f7064751e5a48174c13045a18ae6d25aa": {
+   "homeassistant/components/backup/manager.py": 1.0
+  },
+  "e78b25429227fb23e44b6c0eecd27b73a34606fd": {
+   "homeassistant/components/usb/__init__.py": 1.0
+  },
+  "72a982b33bff70ed7cd4a9623b209a6586fb8a7a": {
+   "homeassistant/config_entries.py": 1.0,
+   "homeassistant/loader.py": 0.3333333333333333,
+   "homeassistant/helpers/template/render_info.py": 0.14285714285714285
+  },
+  "a34ee857a0cd1441d8322fe4b4856a110d7aa2dd": {
+   "homeassistant/components/mqtt/__init__.py": 1.0
+  },
+  "a293744b78142abe5ec346be60dcd4030162bb96": {
+   "homeassistant/components/stt/__init__.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.16666666666666666,
+   "homeassistant/helpers/template/extensions/datetime.py": 0.14285714285714285,
+   "homeassistant/helpers/frame.py": 0.1,
+   "homeassistant/loader.py": 0.09090909090909091
+  },
+  "2afe6fed10db10a2f73dad84ef93591a6a68e569": {
+   "homeassistant/components/smtp/helpers.py": 1.0,
+   "homeassistant/components/smtp/notify.py": 0.3333333333333333
+  },
+  "8f1391e15f99e012074f69913d3e5e3bacb5201d": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/swallowed_exceptions.py": 1.0,
+   "tests/pylint/actions/test_swallowed_exceptions.py": 0.3333333333333333
+  },
+  "13b9ef09f2c1f19c32529894e1a14d59f8ca8bba": {
+   "homeassistant/components/google_sheets/services.py": 1.0,
+   "homeassistant/components/assist_pipeline/vad.py": 0.5
+  },
+  "8061e0d349bbcfa12a1ae016ee4813752d837dfd": {
+   "homeassistant/components/subaru/__init__.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/loader.py": 0.25,
+   "homeassistant/setup.py": 0.2,
+   "homeassistant/components/shelly/utils.py": 0.14285714285714285,
+   "homeassistant/helpers/frame.py": 0.08333333333333333,
+   "homeassistant/util/async_.py": 0.0625
+  },
+  "1a0baa3f36e8dd6992f19172a6b267300c7f6be9": {
+   "homeassistant/components/remote_calendar/calendar.py": 1.0
+  },
+  "1c79a02b4703531f4db23dc6f234ee3fa3cb5f21": {
+   "homeassistant/components/satel_integra/switch.py": 1.0,
+   "homeassistant/components/switch/__init__.py": 0.2
+  },
+  "7bddee43e85bc13ea3218be8b34848c77ade4969": {
+   "homeassistant/components/flexit/binary_sensor.py": 1.0
+  },
+  "f3a8fd917c38111f4b0103b47fc3fe0fd9d91f4c": {
+   "homeassistant/components/fronius/coordinator.py": 1.0,
+   "homeassistant/components/fronius/__init__.py": 0.5
+  },
+  "5de41160ed4a6266c60c719e3ef6dfa8d1fda41a": {
+   "homeassistant/components/recorder/purge.py": 1.0,
+   "tests/components/recorder/test_purge.py": 0.5,
+   "tests/components/recorder/test_purge_v32_schema.py": 0.2,
+   "homeassistant/components/recorder/tasks.py": 0.16666666666666666
+  },
+  "94188f87b4d8de63ca1e1ea3338df85c2fa7ba58": {
+   "homeassistant/components/lamarzocco/coordinator.py": 1.0,
+   "homeassistant/components/lamarzocco/__init__.py": 0.5
+  },
+  "4c66a9c589c1b732a3516132888f82005b7c8bf7": {
+   "homeassistant/components/zonneplan/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.3333333333333333,
+   "homeassistant/data_entry_flow.py": 0.25,
+   "homeassistant/helpers/aiohttp_client.py": 0.08333333333333333
+  },
+  "f874e62fa3bf2279fe51eefe28c1b3b01a4b883d": {
+   "homeassistant/components/lg_infrared/button.py": 1.0
+  },
+  "8d9a9b07757b51dedb0b1320e957a8237b26362a": {
+   "homeassistant/components/imou/helpers.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/data_entry_flow.py": 0.2
+  },
+  "bb35e5e184fd9e23ffc9ba86cdb7ffa72666eca7": {
+   "homeassistant/components/duco/coordinator.py": 1.0
+  },
+  "76a38d446f74fbd67961c65b66ef3b8f2c6b9392": {
+   "homeassistant/components/satel_integra/coordinator.py": 1.0,
+   "homeassistant/components/satel_integra/__init__.py": 0.5
+  },
+  "45c2434230ad39916c962f0d96bff1f27bded9d1": {
+   "homeassistant/components/imou/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.3333333333333333
+  },
+  "6540e013f3bf7620b3a71284b345607c216bd4b4": {
+   "homeassistant/components/music_assistant/entity.py": 1.0,
+   "homeassistant/components/music_assistant/text.py": 0.16666666666666666,
+   "homeassistant/components/music_assistant/switch.py": 0.14285714285714285,
+   "homeassistant/components/music_assistant/number.py": 0.125,
+   "homeassistant/components/music_assistant/select.py": 0.1111111111111111
+  },
+  "b188ff431580a8333d45038b9b273704390a269f": {
+   "homeassistant/components/satel_integra/coordinator.py": 1.0,
+   "homeassistant/components/satel_integra/__init__.py": 0.5
+  },
+  "c194c3b77111e8f25bb1f15054853a5ac4147c56": {
+   "homeassistant/components/duco/number.py": 1.0,
+   "homeassistant/components/duco/entity.py": 0.25,
+   "homeassistant/components/number/__init__.py": 0.2,
+   "homeassistant/components/wiffi/sensor.py": 0.16666666666666666
+  },
+  "8f7a82c7b3f1fed8e6a69bb767007d689dbba947": {
+   "homeassistant/components/zonneplan/diagnostics.py": 1.0
+  },
+  "6cd5e225334ccda9729a8f9d628deade45d07ed3": {
+   "homeassistant/components/recorder/migration.py": 1.0
+  },
+  "bc893b074ca19070d2872680afafa11e600d8ab1": {
+   "homeassistant/components/husqvarna_automower/number.py": 1.0,
+   "homeassistant/components/number/__init__.py": 0.5
+  },
+  "876ab37064d50252e6a55a69c709b819acc1cdb5": {
+   "homeassistant/components/weather/__init__.py": 1.0
+  },
+  "4a0594e5435fd210f8971f8f5f3598a9e3eada25": {
+   "homeassistant/components/configurator/__init__.py": 1.0,
+   "homeassistant/helpers/frame.py": 0.25,
+   "tests/components/configurator/test_init.py": 0.2,
+   "homeassistant/helpers/template/render_info.py": 0.16666666666666666,
+   "homeassistant/util/async_.py": 0.14285714285714285
+  },
+  "9889cfcf66a93577ba4a8ff714217eef088fb5e2": {
+   "homeassistant/const.py": 1.0
+  },
+  "68b5fcb9025da331891888c6c788e10040b56510": {
+   "homeassistant/components/backup/manager.py": 1.0,
+   "homeassistant/components/backup/util.py": 0.3333333333333333,
+   "tests/components/assist_pipeline/test_websocket.py": 0.25
+  },
+  "4fb7c04ba366a2199d5bbd06a9d4d81431829885": {
+   "homeassistant/components/bluetooth/manager.py": 1.0,
+   "homeassistant/components/bluetooth/match.py": 0.3333333333333333,
+   "homeassistant/components/assist_pipeline/vad.py": 0.25
+  },
+  "93cf9c8d8d001bcbb35798881500474ec75bd66f": {
+   "homeassistant/components/sofar/__init__.py": 1.0
+  },
+  "a3975e9047cb9dee611ba7c1e2304868af98d2b0": {
+   "homeassistant/components/isy994/__init__.py": 1.0
+  },
+  "c01aac0ec8c88d8e185996827846ce5f9d10f566": {
+   "homeassistant/components/sofar/config_flow.py": 1.0,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.3333333333333333,
+   "homeassistant/config_entries.py": 0.25,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.2
+  },
+  "342c9d4858efc54427ab03284d10e18d9c00a660": {
+   "homeassistant/components/homekit_controller/connection.py": 1.0,
+   "homeassistant/helpers/device_registry.py": 0.3333333333333333
+  },
+  "cc126abfb2c1ac27b7aeb7f9d66aac523d5ec61a": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/swallowed_exceptions.py": 1.0,
+   "tests/pylint/actions/test_swallowed_exceptions.py": 0.3333333333333333
+  },
+  "8281b2faff83c39b1e60d91b1b1492aa593608a0": {
+   "homeassistant/components/daikin/diagnostics.py": 1.0
+  },
+  "4016b01b89eaebe72eb8f204fa58a837ce6ee7d4": {
+   "homeassistant/components/shelly/cover.py": 1.0
+  },
+  "ae9c2c80176dd8605c4cfb2cbb89b9f825e82811": {
+   "homeassistant/components/midea/__init__.py": 1.0
+  },
+  "29223d390832796524df1f9207a0265ff2fef871": {
+   "homeassistant/components/lyngdorf/media_player.py": 1.0,
+   "homeassistant/components/text/__init__.py": 0.25
+  },
+  "a9ba568154e49f4f0366aa83780f74355409dc96": {
+   "homeassistant/components/modern_forms/button.py": 1.0,
+   "homeassistant/components/modern_forms/entity.py": 0.25,
+   "homeassistant/components/button/__init__.py": 0.2
+  },
+  "968e26a092d8b00661eccc1885db208e6dcf2bfb": {
+   "homeassistant/components/google_generative_ai_conversation/entity.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.2,
+   "homeassistant/components/google_generative_ai_conversation/stt.py": 0.16666666666666666,
+   "homeassistant/components/google_generative_ai_conversation/ai_task.py": 0.14285714285714285,
+   "homeassistant/components/google_generative_ai_conversation/conversation.py": 0.125,
+   "homeassistant/components/google_generative_ai_conversation/tts.py": 0.1111111111111111
+  },
+  "644f6212c1688d18119848f8794a7c05caf25431": {
+   "homeassistant/components/modern_forms/light.py": 1.0,
+   "homeassistant/components/modern_forms/entity.py": 0.2,
+   "homeassistant/components/light/__init__.py": 0.16666666666666666
+  },
+  "1bee69c5c36e010c83782003657a663390f6e247": {
+   "homeassistant/components/nextbus/__init__.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/components/nextbus/coordinator.py": 0.3333333333333333,
+   "homeassistant/loader.py": 0.25,
+   "homeassistant/setup.py": 0.2,
+   "homeassistant/helpers/frame.py": 0.1,
+   "homeassistant/util/async_.py": 0.07142857142857142
+  },
+  "1b547efd6a3b395662b4d1c4760567d6517ed62e": {
+   "pylint/plugins/pylint_home_assistant/checkers/json_fixture.py": 1.0,
+   "tests/pylint/test_json_fixture.py": 0.3333333333333333
+  },
+  "386833e918b84c9f1f338a5c101c5c0e6192f9eb": {
+   "homeassistant/components/apple_tv/config_flow.py": 1.0,
+   "tests/components/apple_tv/common.py": 0.3333333333333333,
+   "homeassistant/helpers/aiohttp_client.py": 0.09090909090909091,
+   "homeassistant/components/zeroconf/__init__.py": 0.08333333333333333,
+   "homeassistant/components/homekit/accessories.py": 0.07692307692307693,
+   "homeassistant/components/homekit/util.py": 0.0625,
+   "homeassistant/config_entries.py": 0.05555555555555555
+  },
+  "9145c009f834befcf4a1021f2f7079afa323ec2b": {
+   "homeassistant/components/smartthings/water_heater.py": 1.0
+  },
+  "f5d961ed84c0797848b5d3a9e9fbf7b76aa65988": {
+   "homeassistant/components/vistapool/sensor.py": 1.0,
+   "homeassistant/components/sensor/__init__.py": 0.3333333333333333
+  },
+  "0c76ebf31039d00b022bd28201c6d0bf2907512b": {
+   "homeassistant/components/trafikverket_ferry/util.py": 1.0
+  },
+  "f417ad86e51c52f88cf4445de259e9a5ec1f098c": {
+   "homeassistant/components/silla_prism/config_flow.py": 1.0,
+   "tests/components/silla_prism/test_config_flow.py": 0.5,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.14285714285714285,
+   "homeassistant/config_entries.py": 0.125,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.1111111111111111
+  },
+  "616fb5a6e896cdd213293930908001ffcf743a9a": {
+   "homeassistant/components/modbus/connection.py": 1.0,
+   "homeassistant/components/stiebel_eltron/config_flow.py": 0.5,
+   "homeassistant/components/flexit/config_flow.py": 0.3333333333333333,
+   "homeassistant/components/sofar/config_flow.py": 0.25,
+   "homeassistant/components/solaredge_modbus/config_flow.py": 0.2,
+   "homeassistant/components/kaco_modbus/config_flow.py": 0.16666666666666666,
+   "tests/components/modbus/test_connection.py": 0.14285714285714285
+  },
+  "13b0bf04bb80b81a27bfb8d8311cda1d2016d870": {
+   "homeassistant/components/lyngdorf/select.py": 1.0,
+   "homeassistant/components/select/__init__.py": 0.5
+  },
+  "235a9b3e005a39f2235395f71f2ad5a36df4d2c4": {
+   "homeassistant/components/lyngdorf/media_player.py": 1.0,
+   "homeassistant/components/text/__init__.py": 0.25
+  },
+  "c3e93446818a8d13962bccb7606ad6e68f1551bd": {
+   "homeassistant/components/lyngdorf/media_player.py": 1.0,
+   "homeassistant/components/text/__init__.py": 0.25
+  },
+  "1654e96ed725823fb98d403a1abd7e0ceab0afc5": {
+   "homeassistant/components/prana/fan.py": 1.0,
+   "homeassistant/components/prana/entity.py": 0.3333333333333333,
+   "homeassistant/components/fan/__init__.py": 0.25
+  },
+  "ea7c98a0608be58dda635acecd3adc257ba7d1c6": {
+   "homeassistant/components/sofar/__init__.py": 1.0
+  },
+  "96f517cd261b27006fb51ded58facd260002c33e": {
+   "homeassistant/components/lg_thinq/__init__.py": 1.0
+  },
+  "af6ddab93a143fdc58d22d057beaa4e565b009b1": {
+   "homeassistant/components/elgato/select.py": 1.0
+  },
+  "9b368640e494768ac23d34a0bc69e42f5e6a3a9b": {
+   "homeassistant/components/elgato/light.py": 1.0,
+   "homeassistant/components/elgato/entity.py": 0.25,
+   "homeassistant/components/light/__init__.py": 0.2
+  },
+  "bc788883b8bdcc9ce59499602949f497257e2213": {
+   "homeassistant/components/synology_dsm/backup.py": 1.0
+  },
+  "b74ee8cc20ffd94e6abd8d804c50c261bbf82278": {
+   "homeassistant/components/peblar/services.py": 1.0
+  },
+  "26f6b47c31b7e1d118dc7f12c78bd52dce7e2544": {
+   "homeassistant/components/google/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.5
+  },
+  "6f9d55229b8ae75ce93c1a9574e5167f34ae674d": {
+   "homeassistant/components/lunatone/sensor.py": 1.0,
+   "homeassistant/components/sensor/__init__.py": 0.25
+  },
+  "8a89fa80162bac35e2073d218bcf1b6d87fcb1a9": {
+   "homeassistant/components/reolink/__init__.py": 1.0
+  },
+  "2f50531be1f2855b5e84eda0088ded479b6a5880": {
+   "homeassistant/components/mikrotik/coordinator.py": 1.0,
+   "homeassistant/components/mikrotik/utils.py": 0.25,
+   "homeassistant/components/assist_pipeline/vad.py": 0.1
+  },
+  "99192f5b9eaf1512092c37f0c761428a9e0aa30c": {
+   "homeassistant/components/homekit_controller/connection.py": 1.0
+  },
+  "52adc20f85b79ebb9218b8ed4753d20bf07cc63e": {
+   "homeassistant/components/lyric/sensor.py": 1.0,
+   "homeassistant/components/lyric/entity.py": 0.25,
+   "homeassistant/components/sensor/__init__.py": 0.2
+  },
+  "1273fd566fce03aa1c3874e93be8603686fef041": {
+   "homeassistant/components/growatt_server/coordinator.py": 1.0,
+   "homeassistant/helpers/template/extensions/datetime.py": 0.5,
+   "homeassistant/helpers/template/extensions/functional.py": 0.3333333333333333,
+   "homeassistant/util/dt.py": 0.25,
+   "homeassistant/helpers/template/helpers.py": 0.125
+  },
+  "99ae47aa40d020cb23bb5fd93ad52296771ed253": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/swallowed_exceptions.py": 1.0,
+   "tests/pylint/actions/test_swallowed_exceptions.py": 0.3333333333333333
+  },
+  "037d2cfa16ddcc99a013722c6f7fe5dc6c98342d": {
+   "homeassistant/components/backblaze_b2/backup.py": 1.0
+  },
+  "eac53b5dc3b0f21cb3d7e3e0cbba5d4fc642172b": {
+   "homeassistant/components/smtp/notify.py": 1.0,
+   "homeassistant/components/notify/__init__.py": 0.5,
+   "homeassistant/components/smartthings/number.py": 0.25,
+   "homeassistant/helpers/entity.py": 0.2,
+   "homeassistant/helpers/template/extensions/datetime.py": 0.16666666666666666,
+   "homeassistant/components/smartthings/entity.py": 0.14285714285714285,
+   "homeassistant/helpers/frame.py": 0.1111111111111111
+  },
+  "8094598c2fe8f6ea13322d4ceb294841ee85f2f0": {
+   "homeassistant/components/remember_the_milk/__init__.py": 1.0,
+   "homeassistant/helpers/aiohttp_client.py": 0.5,
+   "homeassistant/config_entries.py": 0.3333333333333333,
+   "homeassistant/loader.py": 0.2,
+   "homeassistant/setup.py": 0.16666666666666666,
+   "homeassistant/helpers/frame.py": 0.07692307692307693,
+   "homeassistant/util/async_.py": 0.05555555555555555
+  },
+  "129ff239a35998727c47207ae8ba91f4ba36d2b3": {
+   "homeassistant/components/vicare/entity.py": 1.0,
+   "homeassistant/components/vicare/water_heater.py": 0.5,
+   "homeassistant/components/vicare/climate.py": 0.3333333333333333,
+   "homeassistant/components/vicare/button.py": 0.25,
+   "homeassistant/components/vicare/switch.py": 0.2,
+   "homeassistant/components/vicare/binary_sensor.py": 0.16666666666666666,
+   "homeassistant/components/vicare/fan.py": 0.14285714285714285,
+   "homeassistant/components/vicare/number.py": 0.125
+  },
+  "325bc5f91fa44b9a387faa3a53cdbd0b7bdba723": {
+   "homeassistant/components/midea/select.py": 1.0
+  },
+  "92983e4022f6552990dc1141b6ae7916eb4f5093": {
+   "homeassistant/components/smartthings/climate.py": 1.0
+  },
+  "6b0e63568a293f047239504407819ad446b9ff61": {
+   "homeassistant/components/mcp/config_flow.py": 1.0
+  },
+  "754691c5d6ad421d3d13efdbe8a9bf517032797b": {
+   "homeassistant/components/sofar/binary_sensor.py": 1.0,
+   "homeassistant/components/sofar/entity.py": 0.3333333333333333,
+   "homeassistant/components/binary_sensor/__init__.py": 0.25
+  },
+  "6a5d0472eb6442a018049f19890e4e1f040dc687": {
+   "homeassistant/components/solaredge_modbus/diagnostics.py": 1.0
+  },
+  "1963268a0346a51aac1a28935b3c5739cddb3e2a": {
+   "homeassistant/components/openweathermap/weather.py": 1.0
+  },
+  "f5041217f647d1042364348069e4e7a7f8175bb4": {
+   "homeassistant/components/gatus/sensor.py": 1.0
+  },
+  "1cf82bdea3332fb56d2c3e79d6f547e00e05b5be": {
+   "homeassistant/components/notify/legacy.py": 1.0,
+   "tests/components/notify/test_legacy.py": 0.5,
+   "homeassistant/helpers/service.py": 0.125,
+   "homeassistant/core.py": 0.1111111111111111,
+   "homeassistant/core_config.py": 0.1,
+   "homeassistant/util/__init__.py": 0.09090909090909091
+  },
+  "b0b8c3d45d9cd5d16bd606118fafb23c1c935d29": {
+   "homeassistant/components/mystrom/binary_sensor.py": 1.0,
+   "homeassistant/components/binary_sensor/__init__.py": 0.25
+  },
+  "036cebbf06d179444d5567ce2e5b7e50b51af0c6": {
+   "homeassistant/components/peblar/select.py": 1.0
+  },
+  "6b453881ca6483ba1cb8ba7a98795a384bcc78a3": {
+   "homeassistant/components/forked_daapd/media_player.py": 1.0
+  },
+  "0cdbba4eadc0842bc692a2f7727f8d603917c2bc": {
+   "homeassistant/components/switchbot_cloud/__init__.py": 1.0,
+   "homeassistant/components/cloud/__init__.py": 0.3333333333333333,
+   "homeassistant/components/webhook/__init__.py": 0.25,
+   "homeassistant/helpers/network.py": 0.125,
+   "homeassistant/components/hassio/coordinator.py": 0.08333333333333333,
+   "homeassistant/helpers/hassio.py": 0.07692307692307693
+  },
+  "3da5869857aaf934597be5ea7db56023397a89bd": {
+   "homeassistant/components/peblar/services.py": 1.0,
+   "homeassistant/config_entries.py": 0.3333333333333333
+  },
+  "dc189b94e16d6634776f7b8b85a6f745c23a2e4a": {
+   "homeassistant/components/peblar/switch.py": 1.0
+  },
+  "4e16893496d8c8e5f2755cb4e3bd87616a2f16ca": {
+   "homeassistant/components/progettihwsw/__init__.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/loader.py": 0.3333333333333333,
+   "homeassistant/setup.py": 0.25,
+   "homeassistant/helpers/frame.py": 0.1111111111111111,
+   "homeassistant/util/async_.py": 0.07692307692307693
+  },
+  "b39b8acb8b94911080856b2886590887b1e29f76": {
+   "homeassistant/components/hydrawise/entity.py": 1.0
+  },
+  "9113c1e83ac73e0cf0233151faadc99c3c27686b": {
+   "homeassistant/components/switchbot_cloud/fan.py": 1.0,
+   "homeassistant/components/switchbot_cloud/entity.py": 0.3333333333333333,
+   "homeassistant/components/fan/__init__.py": 0.25
+  },
+  "322e5d141073561f390cf39cf8e2779692240867": {
+   "homeassistant/components/matter/fan.py": 1.0,
+   "homeassistant/components/matter/entity.py": 0.5
+  },
+  "fac772eb803aea48043a998b640d82102958dfa2": {
+   "homeassistant/components/switchbot_cloud/__init__.py": 1.0,
+   "homeassistant/config_entries.py": 0.3333333333333333,
+   "homeassistant/helpers/aiohttp_client.py": 0.25,
+   "homeassistant/components/cloud/__init__.py": 0.2,
+   "homeassistant/components/webhook/__init__.py": 0.1111111111111111,
+   "homeassistant/loader.py": 0.09090909090909091,
+   "tests/components/imap/conftest.py": 0.08333333333333333,
+   "homeassistant/setup.py": 0.07692307692307693,
+   "homeassistant/components/switchbot_cloud/coordinator.py": 0.0625
+  },
+  "907943ed6807d0d1df56560b06d937bb718bab77": {
+   "homeassistant/components/plex/server.py": 1.0,
+   "tests/components/plex/test_server.py": 0.3333333333333333
+  },
+  "317e87d130721cc9a8225223b8530d2b4ff728db": {
+   "homeassistant/components/switchbot_cloud/climate.py": 1.0,
+   "homeassistant/components/switchbot_cloud/entity.py": 0.2,
+   "homeassistant/components/climate/__init__.py": 0.16666666666666666,
+   "homeassistant/helpers/restore_state.py": 0.14285714285714285
+  },
+  "91ba35fd1e600ed42ecc2aafc42d30f493c46e6e": {
+   "homeassistant/components/google_assistant/helpers.py": 1.0
+  },
+  "b8b5aa204a2780ff11e0d4845feb02444c6cf4a3": {
+   "homeassistant/components/lg_soundbar/media_player.py": 1.0,
+   "tests/components/zha/conftest.py": 0.25
+  },
+  "010a9519666a7bd27441ca7cc2e4b9426d0d063b": {
+   "homeassistant/components/switchbot_cloud/climate.py": 1.0,
+   "homeassistant/components/switchbot_cloud/entity.py": 0.2,
+   "homeassistant/components/climate/__init__.py": 0.16666666666666666,
+   "homeassistant/helpers/restore_state.py": 0.14285714285714285
+  },
+  "380352879ccfbebaa78d2d20d437e3d951b8cb1a": {
+   "pylint/plugins/pylint_home_assistant/checkers/quality_scale/reauthentication_flow.py": 1.0,
+   "tests/pylint/quality_scale/test_reauthentication_flow.py": 0.3333333333333333
+  },
+  "a9346a624937ad795b6512938d8bb2972f11e75b": {
+   "tests/components/smartthings/test_init.py": 1.0
+  },
+  "ef90070ace358cd36c2be6ddd32e335db4dc8c21": {
+   "homeassistant/components/lutron_caseta/binary_sensor.py": 1.0,
+   "homeassistant/components/lutron_caseta/entity.py": 0.2,
+   "homeassistant/components/binary_sensor/__init__.py": 0.16666666666666666
+  },
+  "fec5158cbfeaef1054eafc493461645f4b7a2f74": {
+   "homeassistant/components/freebox/device_tracker.py": 1.0,
+   "homeassistant/components/assist_pipeline/vad.py": 0.25
+  },
+  "e1190e1a32f1a48c911961e6ae7d0d6ef1865999": {
+   "homeassistant/components/peblar/select.py": 1.0
+  },
+  "99fca0d2c3b4a601272bb12fec08f29ce457639a": {
+   "homeassistant/components/matter/fan.py": 1.0,
+   "homeassistant/components/matter/entity.py": 0.5
+  },
+  "e1130859154f101aa564671149c14eec1aacbb2a": {
+   "homeassistant/components/telegram_bot/bot.py": 1.0
+  },
+  "e4c3e3509d1471b821a718ce27afff1811566213": {
+   "homeassistant/components/denonavr/config_flow.py": 1.0,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.16666666666666666,
+   "homeassistant/config_entries.py": 0.14285714285714285,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.125
+  },
+  "553926806727c940c761ce2410cc3428633ead85": {
+   "homeassistant/components/generic_hygrostat/humidifier.py": 1.0,
+   "homeassistant/components/humidifier/__init__.py": 0.14285714285714285,
+   "homeassistant/helpers/restore_state.py": 0.125
+  },
+  "72b0c4b7bcb1383f0d195df6f69abd9bde199038": {
+   "homeassistant/components/modbus/entity.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.2,
+   "homeassistant/helpers/restore_state.py": 0.16666666666666666,
+   "homeassistant/components/modbus/switch.py": 0.14285714285714285,
+   "homeassistant/components/modbus/fan.py": 0.125,
+   "homeassistant/components/modbus/light.py": 0.1111111111111111
+  },
+  "a633baf481091d7522b1769b26bcd6c81c6b8fca": {
+   "homeassistant/components/sensor/const.py": 1.0
+  },
+  "456582ed2d6f8e13fd6c087992f15a918aef2da9": {
+   "homeassistant/components/aidot/light.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.5,
+   "homeassistant/helpers/frame.py": 0.25
+  },
+  "f985fafbf5abcd121d256c619efc4df320073cfc": {
+   "homeassistant/components/iotawatt/sensor.py": 1.0
+  },
+  "b0ee78d517abf9a133d6ea5781630cd45e3e6e56": {
+   "homeassistant/components/zwave_js/select.py": 1.0
+  },
+  "01c3ee0b1baa77da0fea367671a10ca6f4a019a9": {
+   "homeassistant/components/airzone_cloud/climate.py": 1.0,
+   "homeassistant/components/airzone/entity.py": 0.3333333333333333,
+   "homeassistant/components/airzone_cloud/entity.py": 0.25,
+   "homeassistant/components/climate/__init__.py": 0.2
+  },
+  "e4d7d723c72db4455ca029dea94a152f40537bc0": {
+   "homeassistant/components/wled/light.py": 1.0,
+   "homeassistant/components/deconz/hub/hub.py": 0.5
+  },
+  "70625db31b543d0051e23fd32e82d3de38a5426d": {
+   "homeassistant/components/cloud/__init__.py": 1.0
+  },
+  "9871cc29e54b915c2b3293e55fd9877ea0504f6c": {
+   "homeassistant/components/webostv/switch.py": 1.0
+  },
+  "5102b0622e8269d35dff3f306d8a11a40bc76597": {
+   "homeassistant/components/smhi/coordinator.py": 1.0,
+   "homeassistant/components/smhi/__init__.py": 0.5
+  },
+  "73a9be883adb5103853034907c4ab341b6aed81a": {
+   "homeassistant/components/matter/lock_helpers.py": 1.0,
+   "homeassistant/components/smartthings/entity.py": 0.3333333333333333,
+   "homeassistant/components/matter/lock.py": 0.25
+  },
+  "beb87717d37c2096eecc1a19525eb2d767260e1e": {
+   "homeassistant/components/twinkly/coordinator.py": 1.0
+  },
+  "7dbc17c9a0b1ff8d6c4e8366ffa51353491ae2f0": {
+   "homeassistant/components/proxmoxve/helpers.py": 1.0
+  },
+  "bef12b849b218490f7e383ed8eb941b477abd854": {
+   "homeassistant/components/homematicip_cloud/cover.py": 1.0
+  },
+  "af8e6f29e8bff8fb4e0d34e47a3f9706bd528ee8": {
+   "homeassistant/components/eheimdigital/config_flow.py": 1.0,
+   "homeassistant/components/epic_games_store/config_flow.py": 0.2,
+   "homeassistant/config_entries.py": 0.16666666666666666,
+   "script/scaffold/templates/config_flow/integration/config_flow.py": 0.14285714285714285
+  },
+  "2c6815ea3fc130066ead62dd3d747773b31065ab": {
+   "pylint/plugins/pylint_home_assistant/checkers/actions/swallowed_exceptions.py": 1.0,
+   "tests/pylint/actions/test_swallowed_exceptions.py": 0.3333333333333333
+  },
+  "6b5235f352a6462d3a5ad9ceb08d3a0cf4c7825f": {
+   "homeassistant/components/knx/trigger.py": 1.0,
+   "homeassistant/components/knx/telegrams.py": 0.5
+  },
+  "a06c462c68ff99270defaee4ad65bd4f5b9599f1": {
+   "homeassistant/components/esphome/manager.py": 1.0,
+   "homeassistant/components/esphome/__init__.py": 0.5,
+   "tests/components/esphome/test_serial_proxy.py": 0.25
+  },
+  "e81abcf8cd500f99b818a54b44dd9766dcace24f": {
+   "homeassistant/components/gardena_bluetooth/image.py": 1.0
+  },
+  "4c6fba2712179d3c36105852406d704ec39adc77": {
+   "homeassistant/components/portainer/services.py": 1.0,
+   "homeassistant/helpers/update_coordinator.py": 0.5,
+   "homeassistant/helpers/service.py": 0.2,
+   "homeassistant/helpers/device_registry.py": 0.16666666666666666
+  },
+  "c4eeb50d771e785ddc5e3a1a8319061035bb6555": {
+   "homeassistant/components/knx/telegrams.py": 1.0
+  },
+  "855850cd2f78803970d62b4af41ea62bd1577037": {
+   "homeassistant/components/wiz/light.py": 1.0,
+   "homeassistant/components/wiz/entity.py": 0.25,
+   "homeassistant/components/light/__init__.py": 0.2
+  },
+  "973b065dabbab507eb392897004047821f45f77b": {
+   "homeassistant/components/litterrobot/coordinator.py": 1.0,
+   "homeassistant/components/litterrobot/vacuum.py": 0.5,
+   "homeassistant/components/litterrobot/time.py": 0.3333333333333333,
+   "homeassistant/components/litterrobot/update.py": 0.25
+  },
+  "f62ecb27b47b46ece95d39dfd4ef85ef7f600c57": {
+   "homeassistant/components/unifiprotect/media_source.py": 1.0,
+   "homeassistant/components/assist_pipeline/vad.py": 0.07692307692307693,
+   "homeassistant/components/google_tasks/api.py": 0.07142857142857142,
+   "homeassistant/components/text/__init__.py": 0.06666666666666667,
+   "homeassistant/helpers/config_validation.py": 0.058823529411764705,
+   "homeassistant/util/dt.py": 0.05555555555555555
+  },
+  "bff05e9c1b9eab8cb53a121209c85a116eb5b6ef": {
+   "homeassistant/components/ecobee/climate.py": 1.0,
+   "homeassistant/components/ecobee/services.py": 0.5,
+   "homeassistant/components/assist_pipeline/vad.py": 0.3333333333333333,
+   "homeassistant/components/smartthings/number.py": 0.25,
+   "homeassistant/helpers/entity_platform.py": 0.2,
+   "homeassistant/components/smartthings/entity.py": 0.16666666666666666
+  },
+  "dc6b5711b407a1827e0e0bdb1aae0c379e6b133e": {
+   "homeassistant/components/openevse/sensor.py": 1.0,
+   "homeassistant/util/__init__.py": 0.5
+  },
+  "d1cd298141255fb8d52c01ed3af2e1d15147eb27": {
+   "homeassistant/components/neopool/config_flow.py": 1.0,
+   "homeassistant/config_entries.py": 0.5,
+   "homeassistant/data_entry_flow.py": 0.2
+  },
+  "0cfc9f831befa22525c4e70b6cd71a49c3f38d5e": {
+   "homeassistant/components/backblaze_b2/backup.py": 1.0
+  },
+  "0a306e1ad9a6e56827bf530162368d0187840d16": {
+   "tests/components/prusalink/test_sensor.py": 1.0,
+   "homeassistant/helpers/config_validation.py": 0.5,
+   "homeassistant/setup.py": 0.3333333333333333,
+   "homeassistant/components/assist_pipeline/vad.py": 0.25,
+   "homeassistant/config_entries.py": 0.16666666666666666,
+   "homeassistant/core.py": 0.1111111111111111,
+   "homeassistant/helpers/translation.py": 0.1,
+   "homeassistant/loader.py": 0.08333333333333333
+  },
+  "2937c80da5b7f7ad139b22fe3350eec2a1525f3a": {
+   "homeassistant/components/vicare/coordinator.py": 1.0
+  },
+  "9220f9ddaba22ff7070a523707d29fbb5de86756": {
+   "homeassistant/components/androidtv/media_player.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.5,
+   "homeassistant/helpers/frame.py": 0.25
+  },
+  "08216dda63256b150a6e34cd24b3cc77e6bf2197": {
+   "homeassistant/components/http/websocket_api.py": 1.0
+  },
+  "26880d33dd6452532176f01dedcaf0728acb15a7": {
+   "homeassistant/components/sofar/entity.py": 1.0,
+   "homeassistant/components/sofar/button.py": 0.25,
+   "homeassistant/components/sofar/binary_sensor.py": 0.2,
+   "homeassistant/components/sofar/sensor.py": 0.14285714285714285
+  },
+  "c9ae88e3b9d6862ee35d77a120d83cf241b8ac7a": {
+   "homeassistant/components/spotify/media_player.py": 1.0
+  },
+  "8a2a3da34a0db8ccceb190e098d55903be9ffc77": {
+   "homeassistant/components/mcp/coordinator.py": 1.0,
+   "homeassistant/util/ssl.py": 0.5
+  },
+  "9f1998d10381d48ac98d6d58d46d926b40fcc9fa": {
+   "homeassistant/components/librenms/diagnostics.py": 1.0
+  },
+  "3e0d75fec42bf061af6c20f772af416726cf8b7b": {
+   "homeassistant/components/proxmoxve/sensor.py": 1.0,
+   "homeassistant/components/sensor/__init__.py": 0.5
+  },
+  "b4cb769768b60d385b8060213a7e2f313b5cdb80": {
+   "homeassistant/components/esphome/climate.py": 1.0
+  },
+  "044a9d2d5a0ce4c24c3b5a9ebf4bfa2af1387362": {
+   "homeassistant/components/statistics/sensor.py": 1.0,
+   "homeassistant/helpers/entity.py": 0.25,
+   "homeassistant/helpers/event.py": 0.2,
+   "homeassistant/components/assist_pipeline/vad.py": 0.125
+  },
+  "9f1afd2e4fc0e53f736b13d6c4cba55083658266": {
+   "homeassistant/helpers/config_entry_oauth2_flow.py": 1.0
+  },
+  "1f48a2fdc6c2360e9ce6733744c6955802542aed": {
+   "homeassistant/components/opentherm_gw/select.py": 1.0
+  },
+  "7b09dbfd13a3377b9e16c8a64691dd4e2204b1d6": {
+   "homeassistant/components/switchbot/cover.py": 1.0,
+   "homeassistant/components/switchbot/entity.py": 0.25,
+   "homeassistant/components/cover/__init__.py": 0.2,
+   "homeassistant/helpers/restore_state.py": 0.16666666666666666
+  },
+  "cd110c23d5957d8f36475edb68a60b23545951c3": {
+   "homeassistant/components/google_sheets/services.py": 1.0,
+   "homeassistant/components/assist_pipeline/vad.py": 0.5
+  },
+  "88607170d9e87ea66f4f81f8df9cdd351ca40ccf": {
+   "homeassistant/components/knx/schema.py": 1.0
+  },
+  "81a59063ae73ba2d026cd3a495243ed7f1a09952": {
+   "homeassistant/components/todo/__init__.py": 1.0,
+   "homeassistant/components/frontend/__init__.py": 0.5,
+   "homeassistant/components/websocket_api/__init__.py": 0.3333333333333333,
+   "homeassistant/helpers/config_validation.py": 0.25,
+   "homeassistant/core.py": 0.14285714285714285
+  },
+  "c48216b074e16b1d8ed82beaa6a59205e38b13e6": {
+   "homeassistant/components/smtp/notify.py": 1.0
+  },
+  "58151f5583aa157ace51d60ae26f637d706d3b59": {
+   "homeassistant/components/hikvision/__init__.py": 1.0
+  },
+  "38ac696fa4b53fa68d935e67f1f14f1ea489aad3": {
+   "homeassistant/components/snmp/sensor.py": 1.0,
+   "homeassistant/auth/jwt_wrapper.py": 0.3333333333333333,
+   "homeassistant/components/assist_pipeline/vad.py": 0.25
+  },
+  "9bafeeea1bcaff35e9e56d0d8f523582e0c62c6d": {
+   "homeassistant/components/monzo/diagnostics.py": 1.0
+  },
+  "d5d72ca86b7423c9c738f005d57e8679b064f13a": {
+   "homeassistant/exceptions.py": 1.0,
+   "homeassistant/components/cloud/account_link.py": 0.5,
+   "homeassistant/helpers/config_entry_oauth2_flow.py": 0.3333333333333333,
+   "tests/components/august/test_init.py": 0.25,
+   "tests/components/google_mail/test_init.py": 0.2
+  },
+  "1214fc978f6ae225cc15840b022911f8dc350326": {
+   "homeassistant/helpers/selector.py": 1.0,
+   "tests/helpers/test_llm.py": 0.5
+  },
+  "2237ab98a63c23330329808dca3fb574a03c6e41": {
+   "homeassistant/components/zha/helpers.py": 1.0,
+   "homeassistant/helpers/device_registry.py": 0.25,
+   "homeassistant/components/zha/__init__.py": 0.16666666666666666,
+   "homeassistant/components/assist_pipeline/vad.py": 0.14285714285714285
+  },
+  "c9990fa048e7056837f31dfc923c9b59c58afc19": {
+   "homeassistant/components/tag/trigger.py": 1.0,
+   "homeassistant/helpers/device_registry.py": 0.5,
+   "homeassistant/core_config.py": 0.3333333333333333
+  },
+  "62e467d5d5387c2dc0cbe2b7d402e4de12c1a2f3": {
+   "homeassistant/components/lamarzocco/coordinator.py": 1.0,
+   "homeassistant/components/lamarzocco/__init__.py": 0.5
+  },
+  "1d53ef4563e328da3611f2c10bcafe962079ba73": {
+   "homeassistant/components/midea/climate.py": 1.0
+  },
+  "e14f816e3670dd62498265603e13306141b07b5e": {
+   "homeassistant/components/midea/time.py": 1.0,
+   "homeassistant/components/midea/entity.py": 0.25,
+   "homeassistant/components/time/__init__.py": 0.2
+  },
+  "7c662cdfd12e447688d755a643a720150c0f933a": {
+   "homeassistant/components/midea/sensor.py": 1.0,
+   "homeassistant/components/sensor/__init__.py": 0.5
+  },
+  "0c6f3c7578e41fea1724f5e01cef42b4d62bade0": {
+   "homeassistant/components/open_meteo/weather.py": 1.0,
+   "homeassistant/components/assist_pipeline/vad.py": 0.5,
+   "homeassistant/helpers/template/extensions/datetime.py": 0.3333333333333333
+  }
+ }
+}

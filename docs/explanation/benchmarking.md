@@ -60,18 +60,37 @@ are reported separately and never mixed into a cross-tool table.
 Because a run file is just those rows plus provenance, it stays re-scorable years
 later under a metric nobody had thought of when it was recorded.
 
-## Two runs per tool, one ground truth
+## Three runs per tool, one ground truth
 
-- **`seed`** — the ranked hits search returned. Does step 1 work?
-- **`bundle`** — the files the tool actually puts in front of the model. For
-  code-explorer that is the seed plus everything graph expansion reached; for a
-  tool with no expansion step it repeats `seed`, which is that tool's correct
-  answer rather than a missing measurement.
+- **`delivered`** — everything one call puts in front of the model. **This is
+  the number that matters**, because it is what the caller receives.
+- **`seed`** — the ranked hits search returned, on its own.
+- **`bundle`** — what expansion added, on its own.
 
-Scoring both against the same qrels is what tests the product's central claim. A
-commit touched N files; search finds one; does expansion supply the other N−1, or
-does it spend tokens narrowing the answer? The `bundle` row is where that gets
-settled, and it is free to come out badly.
+The first version recorded only the last two, and that was a measurement bug
+rather than a presentation choice: scoring the two halves of a single output
+separately credits the tool for neither. A tool that returns a ranked list *and*
+an assembled context was being judged on each in isolation, which made its
+expansion step look like a net loss when it was in fact an addition.
+
+The split is still reported, because it says *where* a tool wins or loses. It is
+just not what anybody receives.
+
+Scoring `delivered` against the same qrels is what tests the product's central
+claim. A commit touched N files; search finds one; does expansion supply the
+other N−1? That is free to come out badly, and did.
+
+## Complementarity, not just ranking
+
+Recall says which tool retrieves more. It cannot say whether two tools retrieve
+the **same** things — and that is the difference between a tool being redundant
+and a tool being worth running alongside another. Two tools at recall 0.6 that
+agree completely are interchangeable; two that barely overlap are complementary.
+
+So the summary computes, for every ordered pair, how many relevant files each
+tool found that the other never returned *at any rank*. It is the one place a
+graph traversal can show what keyword and vector matching structurally cannot
+reach, and it is computed from the run files rather than asserted.
 
 ## Best configuration, not default configuration
 

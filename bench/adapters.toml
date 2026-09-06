@@ -55,3 +55,20 @@ notes = [
   "Returns text chunks, not whole symbols -- which is why scoring is at file level.",
   "Has no expansion step, so its `bundle` row repeats its `seed` row.",
 ]
+
+# The token column only compares like with like if both tools deliver code.
+# At --preview none zg returns paths plus one line per hit -- a table of
+# contents, not the chapter -- so an agent must still open the files, which
+# is the loop this benchmark exists to price. This entry returns the source.
+[tool.zg-full]
+module = "zg"
+command = ["zg"]
+mode = "direct"
+embedding = "local/potion-retrieval-32m"
+preview = "full"
+notes = [
+  "Indexes every file type, so it can reach relevant files code-explorer never sees.",
+  "Hybrid FTS+vector, returning full source previews -- the configuration whose token cost is comparable to an assembled context bundle.",
+  "Returns text chunks, not whole symbols -- which is why scoring is at file level.",
+  "Has no expansion step, so its `bundle` row repeats its `seed` row.",
+]

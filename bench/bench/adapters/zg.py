@@ -51,7 +51,7 @@ class ZgAdapter(Adapter):
             "query", query,
             "--limit", str(k),
             "--mode", str(self.options.get("mode") or "direct"),
-            "--preview", "none",
+            "--preview", str(self.options.get("preview") or "none"),
             *self.query_flags,
         )
 

@@ -42,6 +42,28 @@ Code Explorer excels at analyzing complex Python codebases where understanding d
 | Persistent Storage    | ✅ Database    | ❌ None        | ❌ None         |
 | CI/CD Integration     | ✅ CLI-first   | ⚠️ Limited     | ❌ Not designed |
 
+### Measured against other retrieval tools
+
+Those claims are the ones any tool makes about itself. The ones below are
+measured, against ground truth mined from a repository's own git history
+(the commit subject is the query, the files it touched are the answers) and
+scored with [`ranx`](https://github.com/AmenRa/ranx), including paired
+significance testing.
+
+The reports are **generated, never hand-edited**, and regenerate on every run:
+
+| File | What it holds |
+| ---- | ------------- |
+| [`bench/results/reports/django/summary.md`](bench/results/reports/django/summary.md) | Cross-tool table, what actually ran, complementarity, cost |
+| `bench/results/reports/django/<configuration>.md` | One report per tool configuration |
+| [`docs/explanation/benchmarking.md`](docs/explanation/benchmarking.md) | Why the harness is built this way |
+
+The harness itself lives in [`bench/`](bench/) and is deliberately external:
+it never imports `code_explorer`, drives every tool as a subprocess, and
+compares each at its best configuration rather than at its default. It is
+free to report that Code Explorer loses — and on seed retrieval against
+`zg` (zvec-grep) on Django, it currently does.
+
 ---
 
 ## Tutorial - Getting Started with Dependency Analysis

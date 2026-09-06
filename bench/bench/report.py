@@ -96,19 +96,23 @@ def _scored(qrels: Qrels, data: dict) -> dict[str, float]:
 
 def render_tool(corpus: str, tool: str, runs: dict, qrels: Qrels) -> str:
     seed, bundle = runs[(tool, "seed")], runs[(tool, "bundle")]
+    delivered = runs.get((tool, "delivered"), seed)
     body = [f"# {tool} on {corpus}", "", _provenance_block(seed), ""]
 
     body += [
         "## Retrieval quality (file level)", "",
-        "`seed` is what search returned. `bundle` is what the tool actually "
-        "puts in front of the model.",
+        "`delivered` is everything one call puts in front of the model, and "
+        "is the number that matters. `seed` (what search ranked) and "
+        "`bundle` (what expansion added) are its two halves, shown because "
+        "the split says *where* a tool wins or loses -- not because either "
+        "half is what a caller receives.",
         "" if seed["expands"] else
         "This tool has no expansion step, so `bundle` repeats `seed` -- that "
         "is the correct answer for it, not a missing measurement.",
         "",
     ]
     rows = []
-    for kind, data in (("seed", seed), ("bundle", bundle)):
+    for kind, data in (("delivered", delivered), ("seed", seed), ("bundle", bundle)):
         scores = _scored(qrels, data)
         rows.append([kind] + [f"{scores[m]:.3f}" for m in METRICS])
     body.append(_table(["run", *METRICS], rows))
@@ -117,7 +121,7 @@ def render_tool(corpus: str, tool: str, runs: dict, qrels: Qrels) -> str:
     cost = _cost_row(seed)
     per_1k = 0.0
     if cost["mean_tokens"]:
-        per_1k = _scored(qrels, bundle)["recall@10"] / (cost["mean_tokens"] / 1000)
+        per_1k = _scored(qrels, delivered)["recall@10"] / (cost["mean_tokens"] / 1000)
     body.append(_table(
         ["queries", "errors", "median latency", "mean tokens", "recall@10 per 1k tokens"],
         [[str(cost["queries"]), str(cost["errors"]),
@@ -133,6 +137,41 @@ def render_tool(corpus: str, tool: str, runs: dict, qrels: Qrels) -> str:
     return "\n".join(body) + "\n"
 
 
+def _unique_reach(qrels: Qrels, runs: dict, tools: list[str], kind: str) -> str:
+    """Relevant files each tool found that a given other tool never returned.
+
+    Recall says who retrieves more; it cannot say whether the tools are
+    finding the *same* things. Two tools at recall 0.6 that agree completely
+    are interchangeable; two that overlap barely are complementary, and the
+    right answer is to run both. Only this table distinguishes those cases,
+    and it is the one place a graph traversal can show what keyword and
+    vector matching structurally cannot reach.
+    """
+    rel = qrels.qrels
+    rows = []
+    for tool in tools:
+        mine = runs.get((tool, kind))
+        if mine is None:
+            continue
+        for other in tools:
+            if other == tool or (other, kind) not in runs:
+                continue
+            theirs = runs[(other, kind)]
+            n = sum(
+                len((set(mine["run"].get(q, {})) & set(docs))
+                    - set(theirs["run"].get(q, {})))
+                for q, docs in rel.items()
+            )
+            total = sum(len(set(mine["run"].get(q, {})) & set(docs))
+                        for q, docs in rel.items())
+            share = f"{n / total:.0%}" if total else "--"
+            rows.append([tool, other, str(n), str(total), share])
+    return _table(
+        ["tool", "vs", "relevant files it alone found", "relevant files it found", "share unique"],
+        rows,
+    )
+
+
 def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str:
     tools = sorted({tool for tool, _ in runs})
     body = [
@@ -145,7 +184,7 @@ def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str
     any_run = next(iter(runs.values()))
     body += [_provenance_block(any_run), ""]
 
-    for kind in ("seed", "bundle"):
+    for kind in ("delivered", "seed", "bundle"):
         present = [(t, runs[(t, kind)]) for t in tools if (t, kind) in runs]
         present = [(t, d) for t, d in present if d["run"]]
         if len(present) < 2:
@@ -162,6 +201,19 @@ def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str
             "the lettered model (paired Fisher randomization, p < 0.05). "
             "A bare number is a gap the data does not support.", "",
         ]
+
+    body += [
+        "## Complementarity", "",
+        "Recall says who retrieves more. It cannot say whether two tools "
+        "retrieve the *same* things -- and that is the difference between a "
+        "tool being redundant and a tool being worth running alongside "
+        "another.", "",
+        _unique_reach(qrels, runs, tools, "delivered"),
+        "",
+        "A high share-unique against a stronger tool means the two are "
+        "complementary rather than ranked: the files behind that number are "
+        "ones the other tool never returned at any rank.", "",
+    ]
 
     body += ["## Cost", ""]
     rows = []

@@ -46,6 +46,24 @@ def provenance(corpus: Path) -> dict:
     }
 
 
+def _delivered(result) -> dict[str, float]:
+    """Everything one call puts in front of the model, in the order printed.
+
+    Scoring `seed` and `bundle` as separate runs measures two halves of one
+    output and credits the tool for neither: a tool that returns a ranked
+    list *and* an assembled context is judged on each in isolation, when the
+    caller receives both from a single invocation. The ranked list comes
+    first because that is the order the output is printed in; files only
+    expansion reached follow it.
+    """
+    merged = {h.doc_id: h.score for h in result.seed}
+    floor = min(merged.values(), default=1.0)
+    for i, hit in enumerate(result.bundle, start=1):
+        # Strictly below every seed hit, but ordered among themselves.
+        merged.setdefault(hit.doc_id, floor - i * 1e-3)
+    return merged
+
+
 def _run_file(corpus: str, tool: str, kind: str) -> Path:
     path = config.RUNS / corpus / f"{tool}.{kind}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +93,7 @@ def execute(tool: str, corpus_name: str, k: int, limit: int | None, do_index: bo
 
     seed_run: dict[str, dict[str, float]] = {}
     bundle_run: dict[str, dict[str, float]] = {}
+    delivered_run: dict[str, dict[str, float]] = {}
     per_query: list[dict] = []
 
     with click.progressbar(cases, label=f"{tool} x {corpus_name}") as bar:
@@ -87,6 +106,9 @@ def execute(tool: str, corpus_name: str, k: int, limit: int | None, do_index: bo
                 seed_run[qid] = {h.doc_id: h.score for h in result.seed}
             if result.bundle:
                 bundle_run[qid] = {h.doc_id: h.score for h in result.bundle}
+            delivered = _delivered(result)
+            if delivered:
+                delivered_run[qid] = delivered
             per_query.append({
                 "qid": qid,
                 "query": case["query"],
@@ -111,7 +133,8 @@ def execute(tool: str, corpus_name: str, k: int, limit: int | None, do_index: bo
         "per_query": per_query,
     }
 
-    for kind, run in (("seed", seed_run), ("bundle", bundle_run)):
+    for kind, run in (("delivered", delivered_run), ("seed", seed_run),
+                      ("bundle", bundle_run)):
         _run_file(corpus_name, tool, kind).write_text(
             json.dumps({**meta, "kind": kind, "run": run}, indent=1)
         )

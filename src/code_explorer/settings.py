@@ -39,11 +39,25 @@ class Settings(BaseSettings):
     # symbol whose relevance lives in what it does rather than what it is
     # called, because what it does is not indexed.
     #
-    # "body" appends the source, capped at search_text_body_chars. Both remain
-    # available: the skeleton is cheaper to build and to embed, and the choice
-    # is a measurable one rather than a belief -- see
-    # docs/explanation/gap-analysis-vs-zvec.md.
-    search_text_mode: Literal["skeleton", "body"] = "skeleton"
+    # "body" appends the source, capped at search_text_body_chars, and is the
+    # default because it was measured to win, not because it sounds better.
+    # On django (150 git-mined queries, bench/results/reports/django/):
+    #
+    #   configuration              R@1    R@5    R@10   MRR@10  NDCG@10
+    #   skeleton, BM25             0.153  0.382  0.518  0.501   0.405
+    #   skeleton, hybrid           0.196  0.480  0.592  0.592   0.482
+    #   body, BM25                 0.235  0.491  0.586  0.630   0.499
+    #   body, hybrid               0.252  0.536  0.631  0.675   0.542
+    #   zvec-grep (for reference)  0.257  0.599  0.629  0.691   0.578
+    #
+    # Body-mode BM25 alone beats skeleton-mode *hybrid* on R@1, MRR and NDCG
+    # for +10ms and no embedding; body-mode hybrid reaches parity with
+    # zvec-grep everywhere except recall@5, at 1.6x its speed.
+    #
+    # "skeleton" is kept, not deprecated: it builds and embeds a ~44-token
+    # field instead of a ~500-token one, which matters for index size and for
+    # embedding cost on a large corpus.
+    search_text_mode: Literal["skeleton", "body"] = "body"
     # Cap on appended body text. A long function embedded whole becomes one
     # diluted vector, and an uncapped field also inflates the index; this
     # bounds both. Chunking long bodies into several vectors is the better

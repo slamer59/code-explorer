@@ -73,3 +73,12 @@ def test_mode_argument_overrides_the_setting(restore_mode):
 
     assert "self._expire_cache()" in _derive(mode="body")
     assert "self._expire_cache()" not in _derive()
+
+
+def test_body_is_the_default():
+    """Measured, not assumed -- see settings.search_text_mode for the table.
+
+    Pinned by a test because flipping it back would silently undo the change
+    that reached parity with zvec-grep, and nothing else would notice.
+    """
+    assert settings.model_fields["search_text_mode"].default == "body"

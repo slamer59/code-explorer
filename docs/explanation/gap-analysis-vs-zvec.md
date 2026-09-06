@@ -79,12 +79,47 @@ Yes, but it is the **second** lever, not the first.
 - Note the ordering matters: a longer-context code model is wasted on a 44-token
   input. Swapping the model first would measure almost nothing.
 
-## Priorities
+## Outcome of priority 1 (implemented and measured)
 
-1. **Index the body, chunked.** Highest expected payoff, addresses 93% of the
-   losses directly. zg indexes line ranges; code-explorer indexes whole symbols
-   — a long function becomes one diluted vector either way, so chunking long
-   bodies is part of this, not a separate step.
+Indexing the body was implemented as `settings.search_text_mode` — a setting,
+not a replacement; `skeleton` remains available and the body is *appended*, so
+the weighted-name prefix that keeps identifier matches above prose matches
+survives intact.
+
+Delivered run, django, 150 queries. Superscripts mark significance at p<0.05:
+
+```
+#    Model                      Recall@1    Recall@5    Recall@10    MRR@10    NDCG@10
+a    code-explorer              0.153       0.382       0.518        0.501     0.405
+b    code-explorer-hybrid       0.196ᵃ      0.480ᵃ      0.592ᵃ       0.592ᵃ    0.482ᵃ
+c    code-explorer-body         0.235ᵃ      0.491ᵃ      0.586ᵃ       0.630ᵃ    0.499ᵃ
+d    code-explorer-body-hybrid  0.252ᵃᵇ     0.536ᵃᵇᶜ    0.631ᵃᶜ      0.675ᵃᵇ   0.542ᵃᵇᶜ
+e    zg                         0.257ᵃᵇ     0.599ᵃᵇᶜᵈ   0.629ᵃ       0.691ᵃᵇ   0.578ᵃᵇᶜ
+```
+
+The prediction held. Two results worth separating:
+
+**Body-mode BM25 (c) beats skeleton-mode hybrid (b)** on recall@1, MRR and
+NDCG — no embedding at all, +10 ms per query (461 → 471 ms). Indexing the body
+did more than adding a transformer vector channel over a 44-token skeleton did.
+
+**Body-mode hybrid (d) reaches parity with zvec-grep.** It edges ahead on
+recall@10 (0.631 vs 0.629), and zg's leads on recall@1, recall@10, MRR and NDCG
+are all **no longer statistically significant** — row `e` carries no `ᵈ` on any
+of them. zg keeps exactly one significant win, **recall@5**. Code-explorer does
+it at 727 ms against zg's 1,171 ms.
+
+`body` is now the default. `skeleton` is kept rather than deprecated: it builds
+and embeds a ~44-token field instead of a ~500-token one, which matters for
+index size and for embedding cost on a large corpus.
+
+## Remaining priorities
+
+1. ~~**Index the body.**~~ Done, and it worked — see above. The *chunked* half
+   is not done: a body over `search_text_body_chars` is truncated at a line
+   boundary rather than split into several vectors, so a long function is still
+   one diluted vector. That is the natural next increment, and recall@5 — zg's
+   last significant win — is where it would show up.
 2. **Make the embedding model configurable** and benchmark two or three,
    including a code-trained one. Only meaningful after (1).
 3. **Re-tune fusion.** RRF at k=60 with equal weights was never fitted. Cheap to

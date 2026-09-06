@@ -57,6 +57,7 @@ The reports are **generated, never hand-edited**, and regenerate on every run:
 | [`bench/results/reports/django/summary.md`](bench/results/reports/django/summary.md) | Cross-tool table, what actually ran, complementarity, cost |
 | `bench/results/reports/django/<configuration>.md` | One report per tool configuration |
 | [`docs/explanation/benchmarking.md`](docs/explanation/benchmarking.md) | Why the harness is built this way |
+| [`docs/explanation/gap-analysis-vs-zvec.md`](docs/explanation/gap-analysis-vs-zvec.md) | Where Code Explorer loses, and what would close it |
 
 The harness itself lives in [`bench/`](bench/) and is deliberately external:
 it never imports `code_explorer`, drives every tool as a subprocess, and

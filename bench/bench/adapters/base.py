@@ -180,6 +180,16 @@ class Adapter:
     def query(self, query: str, k: int) -> QueryResult:
         raise NotImplementedError
 
+    def embedding(self) -> str | None:
+        """The vector model this configuration uses, if any.
+
+        Recorded per run because a hybrid tool's quality is a property of its
+        embedding as much as of its retrieval logic -- and because comparing
+        two tools while silently giving them different models measures the
+        models, not the tools.
+        """
+        return self.options.get("embedding")  # type: ignore[return-value]
+
     def notes(self) -> list[str]:
         """Caveats the report must print next to this tool's numbers.
 

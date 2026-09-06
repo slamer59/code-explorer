@@ -227,16 +227,20 @@ def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str
     body.append(_table(["tool", "errors", "median latency", "mean tokens"], rows))
 
     body += ["## What actually ran", "", _table(
-        ["tool", "observed retrieval mode(s)", "expansion step"],
+        ["tool", "observed retrieval mode(s)", "vector model", "expansion step"],
         [[tool,
           ", ".join(sorted({q["mode"] for q in runs[(tool, "seed")]["per_query"]
                             if q.get("mode")})) or "not reported",
+          runs[(tool, "seed")].get("embedding") or "none",
           "yes" if runs[(tool, "seed")]["expands"] else "no"]
          for tool in tools if (tool, "seed") in runs],
     ), "",
         "Retrieval mode is read back from each tool per query, not assumed: "
         "it usually depends on which indexes were built rather than on a "
-        "documented default.", ""]
+        "documented default. The vector model is recorded because a hybrid "
+        "tool's quality is a property of its embedding as much as of its "
+        "retrieval logic -- two tools compared under different models are "
+        "partly a comparison of the models.", ""]
 
     notes = [
         (tool, note)

@@ -128,6 +128,7 @@ def execute(tool: str, corpus_name: str, k: int, limit: int | None, do_index: bo
         "k": k,
         "n_queries": len(cases),
         "expands": adapter.expands,
+        "embedding": adapter.embedding(),
         "index_ms": None if index_ms is None else round(index_ms, 1),
         "provenance": provenance(corpus),
         "per_query": per_query,

@@ -107,6 +107,46 @@ class Settings(BaseSettings):
     # answer and is not implemented yet.
     search_text_body_chars: int = 2000
 
+    # Results pulled from each retrieval channel before re-ranking
+    # (demote_tests) and truncating to the user's --limit. It was 4, chosen to
+    # cover a function with four near-identical tests out-scoring it; that is
+    # a re-ranking argument, and it silently also set the *fusion* depth.
+    #
+    # Fusion wants more. Measured offline on django (one protocol, only depth
+    # varying; not comparable to end-to-end numbers):
+    #
+    #   fetch depth   BM25    vectors   RRF fused
+    #            10   0.622   0.493     0.682
+    #            40   0.696   0.573     0.707   <- overfetch 4 at --limit 10
+    #           100   0.699   0.575     0.726
+    #           300   0.699   0.578     0.721
+    #
+    # BM25 saturates around 100; fusion keeps improving to it, because the
+    # extra depth only pays when there is a second channel to fuse against.
+    rerank_overfetch: int = 4
+
+    # Multiplier applied to a test file's score before truncating to --limit
+    # (see hybrid_search.demote_tests). 1.0 disables the demotion.
+    #
+    # It exists for a real failure: on gemseo, `search "function dimension"`
+    # put three test_get_function_dimension* variants above the function they
+    # test, so the context bundle was seeded from the test.
+    #
+    # But it is a genuine trade, not a free fix. On the django benchmark 56%
+    # of ground-truth file slots are test files and 97% of queries have a test
+    # among their correct answers -- because a commit that changes behaviour
+    # changes its tests too. There, demotion suppresses the majority of the
+    # right answers, and it is why fetching deeper made retrieval *worse*
+    # rather than better: more non-test candidates got promoted over relevant
+    # tests.
+    #
+    # Which of those two situations a user is in depends on the question they
+    # asked ("where is X implemented" vs "what covers X"), and nothing here
+    # knows that. Hence a setting rather than a chosen answer -- and see
+    # docs/explanation/gap-analysis-vs-zvec.md before tuning it to a benchmark
+    # whose ground truth is mined from commits.
+    test_demotion_factor: float = 0.4
+
     # LatticeDB write-transaction chunking (see graph/backends/lattice_backend.py).
     # Operations accumulated per streaming ingest batch before the writer
     # commits. Measured, not guessed: perfo/benchmark_batch_size_sweep.py on

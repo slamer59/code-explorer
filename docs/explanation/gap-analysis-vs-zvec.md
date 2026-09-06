@@ -152,6 +152,53 @@ way. That is the same lesson as priority 1, pointing the other direction.
 `ollama` therefore stays the default. `model2vec` stays available because the
 conclusion is corpus- and input-specific, and the harness can re-answer it.
 
+## Outcome of priority 3 (fusion depth) — and the limit of the benchmark
+
+Offline, RRF kept improving to a fetch depth of ~100 while BM25 alone saturated
+at ~40, suggesting `_RERANK_OVERFETCH = 4` was starving fusion. `--overfetch`
+made it configurable and the prediction was tested end to end.
+
+**It failed.** Depth 40 → 100 made retrieval *worse* in both channels: BM25
+0.586 → 0.542, static hybrid 0.578 → 0.532. The offline model omitted one
+stage, and that stage turned out to be the whole story.
+
+`demote_tests` multiplies a test file's score by 0.4 before truncating to
+`--limit`. On this benchmark:
+
+- **56%** of ground-truth file slots are test files.
+- **97%** of queries have a test file among their correct answers.
+
+Because a commit that changes behaviour changes its tests too. So demotion
+suppresses the majority of the right answers, and fetching deeper amplified it:
+more non-test candidates got promoted over relevant tests.
+
+Disabling it (`--test-demotion 1.0`) is dramatic — BM25 alone, no vectors:
+
+```
+#  Model                          R@1      R@5      R@10     MRR@10
+a  code-explorer-body             0.235    0.491    0.586    0.630
+b  code-explorer-body-notestdemo  0.328ᵃᶜᵈ 0.658ᵃᶜᵈ 0.692ᵃᶜᵈ 0.792ᵃᶜᵈ
+c  code-explorer-body-hybrid      0.252    0.536ᵃ   0.631ᵃ   0.675
+d  zg                             0.257    0.597ᵃ   0.629    0.691
+```
+
+That beats zvec-grep significantly on every metric, at 471 ms and a 0.29-minute
+build. **The default was not changed.**
+
+This is where the benchmark stops being able to answer the question. Its ground
+truth *defines* test files as correct, so measuring test demotion against it is
+circular — the metric was built from the same assumption the decision is about.
+Demotion exists for a real failure (on gemseo, three `test_get_function_dimension*`
+variants outranked the function they test, and the bundle was seeded from a
+test), and which behaviour is right depends on whether the user asked "where is
+X implemented" or "what covers X". Nothing in the pipeline knows that.
+
+So `test_demotion_factor` is a setting with the trade documented, and this
+number is recorded as a benchmark artifact rather than banked as a win. Deciding
+it properly needs ground truth that separates "the code that changed" from "the
+tests that changed with it" — which the miner could label, since it already
+knows which files a commit touched.
+
 ## Remaining priorities
 
 1. ~~**Index the body.**~~ Done, and it worked — see above. The *chunked* half

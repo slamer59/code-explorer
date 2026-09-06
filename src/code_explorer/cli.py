@@ -51,6 +51,9 @@ console = Console()
 # How many extra hits to pull from the backend before re-ranking (demote_tests)
 # and truncating to the user's --limit. 4 covers the observed worst case: a
 # function with four near-identical tests, all out-scoring it.
+# Kept as the module default; settings.rerank_overfetch is what the search
+# path reads, so it can be changed per invocation. See that setting for the
+# measurement behind the value.
 _RERANK_OVERFETCH = 4
 
 # Plain text (no Rich markup) -- printed via click.echo, not console.print,
@@ -1232,6 +1235,28 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     ),
 )
 @click.option(
+    "--test-demotion",
+    type=float,
+    default=None,
+    help=(
+        "Multiplier applied to a test file's score before truncating to "
+        "--limit (default: 0.4; 1.0 disables it). Demotion stops a short test "
+        "out-scoring the function it tests, but suppresses tests when they "
+        "are the answer -- see settings.test_demotion_factor."
+    ),
+)
+@click.option(
+    "--overfetch",
+    type=int,
+    default=None,
+    help=(
+        "Results pulled from each retrieval channel before re-ranking and "
+        "truncating to --limit (default: 4x). Also sets the depth at which "
+        "hybrid fusion operates, where more helps -- see "
+        "settings.rerank_overfetch."
+    ),
+)
+@click.option(
     "--embedding",
     "embedding_spec",
     default=None,
@@ -1270,6 +1295,8 @@ def search(
     as_json: bool,
     search_text_mode: Optional[str],
     embedding_spec: Optional[str],
+    overfetch: Optional[int],
+    test_demotion: Optional[float],
     no_context: bool,
     depth: int,
     budget: int,
@@ -1412,6 +1439,14 @@ def search(
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
 
+    if test_demotion is not None:
+        settings.test_demotion_factor = test_demotion
+
+    if overfetch is not None:
+        if overfetch < 1:
+            raise click.BadParameter("must be >= 1", param_hint="--overfetch")
+        settings.rerank_overfetch = overfetch
+
     if embedding_spec is not None:
         provider, _, model = embedding_spec.partition("/")
         if provider not in ("ollama", "model2vec") or not model:
@@ -1544,7 +1579,7 @@ def search(
         # the four test_get_function_dimension* variants filled the window and
         # get_function_dimension (4th by raw BM25) was gone before demotion
         # could promote it.
-        fetch = max(limit * _RERANK_OVERFETCH, limit)
+        fetch = max(limit * settings.rerank_overfetch, limit)
         if semantic:
             hits = graph.backend.search_vector(query, limit=fetch)
         elif hybrid:
@@ -1559,7 +1594,7 @@ def search(
         # on gemseo, "function dimension" put three test_get_function_dimension*
         # variants above get_function_dimension itself, and the bundle was then
         # seeded from the test. Demote, don't drop -- see demote_tests.
-        hits = demote_tests(hits)[:limit]
+        hits = demote_tests(hits, factor=settings.test_demotion_factor)[:limit]
     except Exception as e:
         console.print(f"[red]Error during search:[/red] {e}")
         sys.exit(1)

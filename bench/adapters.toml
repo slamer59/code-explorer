@@ -90,6 +90,37 @@ notes = [
   "Has no expansion step, so its `bundle` row repeats its `seed` row.",
 ]
 
+# Fusion depth. Offline, RRF keeps improving to a fetch depth of ~100 while
+# BM25 alone saturates at ~40 -- the extra depth only pays when there is a
+# second channel to fuse against. These rows test whether the pipeline
+# actually realises that gain end to end.
+[tool.code-explorer-body-potion-d10]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body", "--embedding", "model2vec/minishlab/potion-retrieval-32m", "--overfetch", "10"]
+prepare = [["--semantic"]]
+reset = [".code-explorer/graph_vectors.sqlite"]
+embedding = "model2vec/potion-retrieval-32m"
+notes = ["Hybrid over the source body with static embeddings, fusing 100-deep lists instead of 40."]
+
+[tool.code-explorer-body-d10]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body", "--overfetch", "10"]
+reset = [".code-explorer/graph_vectors.sqlite"]
+notes = ["BM25 over the source body, fetching 100 deep. The control: depth without a second channel should barely move."]
+
+# demote_tests suppresses 56% of this benchmark's ground-truth file slots,
+# because a commit that changes behaviour changes its tests too. This row
+# measures the cost -- with the caveat that winning it is partly an artifact
+# of ground truth mined from commits, not proof the product should ship it.
+[tool.code-explorer-body-notestdemo]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body", "--test-demotion", "1.0"]
+reset = [".code-explorer/graph_vectors.sqlite"]
+notes = ["BM25 over the source body with test demotion disabled."]
+
 [tool.zg]
 module = "zg"
 command = ["zg"]

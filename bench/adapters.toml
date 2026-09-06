@@ -1,0 +1,57 @@
+# Tools under test, one entry per *configuration*. `module` picks the adapter
+# class; the key is the row label. A tool may appear several times.
+#
+# The point of the benchmark is to compare each tool at its best, not to
+# compare packaging defaults -- so where a tool has a stronger setup that
+# costs something to build, it gets its own entry rather than being left off.
+
+[tool.code-explorer]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+# Without this, a previous hybrid run's vector index would still be present
+# and `search` would quietly fuse it -- see the observed-mode table.
+reset = [".code-explorer/graph_vectors.sqlite"]
+notes = [
+  "Indexes Python only, so a relevant non-Python file is unreachable for it by construction.",
+  "Full-text search (SQLite FTS5/BM25) with no vector component, because no vector index was built for this configuration.",
+  "Returns whole symbols, and has a second expansion step, so its `bundle` row differs from its `seed` row.",
+]
+
+# `search` fuses a vector index into its FTS results whenever one exists, so
+# the hybrid configuration is simply "the same tool, with that index built".
+# One --semantic run at index time is what builds it (via local Ollama with
+# nomic-embed-text).
+[tool.code-explorer-hybrid]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+prepare = [["--semantic"]]
+notes = [
+  "Indexes Python only, so a relevant non-Python file is unreachable for it by construction.",
+  "Hybrid: FTS/BM25 fused with a vector index (Ollama nomic-embed-text) by reciprocal rank fusion.",
+  "Returns whole symbols, and has a second expansion step, so its `bundle` row differs from its `seed` row.",
+]
+
+[tool.zg]
+module = "zg"
+command = ["zg"]
+mode = "direct"
+embedding = "local/potion-retrieval-32m"
+notes = [
+  "Indexes every file type, so it can reach relevant files code-explorer never sees.",
+  "Hybrid FTS+vector by default. Both tools have full-text search; the difference is whether a vector component is fused, which the observed-mode table above records per run.",
+  "Returns text chunks, not whole symbols -- which is why scoring is at file level.",
+  "Has no expansion step, so its `bundle` row repeats its `seed` row. That is its correct answer, not a missing measurement.",
+]
+
+[tool.zg-symbol]
+module = "zg"
+command = ["zg"]
+mode = "direct"
+embedding = "local/potion-retrieval-32m"
+query_flags = ["--prefer-symbol"]
+notes = [
+  "Indexes every file type, so it can reach relevant files code-explorer never sees.",
+  "Hybrid FTS+vector, biased toward exact indexed symbols (--prefer-symbol) -- the closest match to how code-explorer is meant to be queried.",
+  "Returns text chunks, not whole symbols -- which is why scoring is at file level.",
+  "Has no expansion step, so its `bundle` row repeats its `seed` row.",
+]

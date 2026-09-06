@@ -1,0 +1,5 @@
+# The bench venv is per-machine; the run files and reports under results/
+# are deliberately NOT ignored -- they are the committed history a delta is
+# measured against.
+.venv/
+__pycache__/

@@ -6,161 +6,169 @@ whether what comes back is **correct**. That is the only number the product
 goal cares about, and every performance argument this project has had was
 settled without it.
 
-This document describes the evaluation harness in `perfo/eval/`, which exists
-to produce that number.
+`bench/` exists to produce that number, and to produce it for other tools too.
+
+## Why the harness is external
+
+The first version lived in `perfo/eval/`, imported `code_explorer` in-process,
+computed its own recall, and rendered its own tables. It could only ever grade
+one tool — and a benchmark that can only grade its author's tool is not a
+benchmark, it is a press release.
+
+So `bench/` is a separate package with its own `pyproject.toml`, and it may
+never import `code_explorer`. Every tool under test is a **subprocess**: the
+harness gives it a corpus path and a query string, reads its stdout, and
+normalises whatever comes back. Adding a third tool is an adapter file, not a
+refactor. It also means the numbers include interpreter startup and index-open
+cost, because the user pays those too.
 
 ## Ground truth without hand-labeling
 
 The obvious approach — write fifty queries and mark the right answers by hand —
 is slow, does not move to a new repository, and is biased: you write queries for
-code you already know the index handles well.
+code you already know is indexed well.
 
-**Git history labels itself.** A merged commit is a free example: its subject
-line is the question a developer would have asked, and the functions it touched
-are the answer set. `build_queryset.py` mines thousands of these per repository
-with no manual work.
+A merged commit is a free labeled example instead. Its subject line is the
+query a developer would have asked; the files it touched are the answer set.
+`bench/bench/queryset.py` mines them, thousands per repo, no manual labeling.
 
-Selection is deliberately narrow — a commit qualifies only if it touches 2–8
-distinct Python functions across at least two files. Single-function commits are
-findable by grep and prove nothing; fifty-function refactors have no coherent
-answer. What remains is exactly the case the product claims to serve: evidence
-spans files, and the entry point is not known in advance.
+Selection is deliberately narrow. A commit qualifies only if it touches 2–8
+distinct symbols across ≥2 files: single-symbol commits are findable by grep and
+prove nothing, and 50-symbol refactors have no coherent "answer". What is left is
+exactly the case the product claims — evidence spans files, the entry point is
+not known in advance.
 
-Subject lines are used nearly verbatim. Conventional-commit prefixes (`fix:`,
-`[core]`), issue refs (`(#1234)`) and Django's `Fixed #37293 --` lead are
-stripped because they are vocabulary of the *process*, not the code. Nothing
-else is cleaned: an agent's guess is messy prose too, and polishing queries into
-something BM25 likes would be marking our own homework.
+The subject line is used **verbatim**, with only conventional-commit noise
+(`fix:`, `[core]`) and issue refs (`(#1234)`) stripped. Polishing it into
+something BM25 likes would be marking our own homework; an agent's guess is messy
+prose too.
 
-## The tiers
+Known limits, stated rather than hidden: the miner parses `def`/`class` from diff
+hunks, so it is **Python-only**; and a corpus needs its own git history, which
+rules out any checkout whose `.git` resolves to an enclosing repository.
 
-Each tier gates the next. Running them out of order wastes effort measuring
-quality on a corpus that cannot be indexed, or tuning an embedding model whose
-recall nobody has priced.
+## The interchange format is what makes it generic
 
-### T0 — scale gate (`t0_scale.py`)
+Every tool is reduced to TREC-style rows: `(query_id, doc_id, rank, score)`.
 
-Does the indexer survive a large corpus? Not a score, a gate. Measured through
-the **real CLI**, because an agent pays process startup, index open and
-rendering too, and a library-level harness hides exactly those costs.
+**`doc_id` is the repo-relative file path.** This is the only honest common
+denominator. `zg` returns text chunks with no guaranteed symbol identity;
+code-explorer returns whole symbols. Both know which file a result came from.
+Scoring at file level is what makes them comparable at all — symbol-level numbers
+are reported separately and never mixed into a cross-tool table.
 
-Reference numbers (SQLite backend, 16 CPUs):
+Because a run file is just those rows plus provenance, it stays re-scorable years
+later under a metric nobody had thought of when it was recorded.
 
-| corpus | `.py` files | cold build | peak RSS | index | search | re-index 1 file |
-|---|---:|---:|---:|---:|---:|---:|
-| gemseo | 2,312 | 5.6s | 0.31 GB | 47 MB | 0–2 ms | 0.5s |
-| django | 2,930 | 15.4s | 0.51 GB | 107 MB | 0–2 ms | 0.5s |
-| home-assistant | 18,631 | 80.8s | 1.70 GB | 524 MB | 6–59 ms | 1.0s |
+## Two runs per tool, one ground truth
 
-8× the files costs 14× the build and 5.5× the memory. The column that matters
-for an agent is the last one: after the first build, ~1s per invocation on an
-18k-file repository, of which ~0.45s is Python interpreter startup.
+- **`seed`** — the ranked hits search returned. Does step 1 work?
+- **`bundle`** — the files the tool actually puts in front of the model. For
+  code-explorer that is the seed plus everything graph expansion reached; for a
+  tool with no expansion step it repeats `seed`, which is that tool's correct
+  answer rather than a missing measurement.
 
-Open question this raised: search latency grows 30× (1–2 ms → 6–59 ms) while
-the corpus grows 6×. Not blocking at 59 ms, not yet explained.
+Scoring both against the same qrels is what tests the product's central claim. A
+commit touched N files; search finds one; does expansion supply the other N−1, or
+does it spend tokens narrowing the answer? The `bundle` row is where that gets
+settled, and it is free to come out badly.
 
-### T1 — seed accuracy (`t1_seed_accuracy.py`)
+## Best configuration, not default configuration
 
-Step 1 of the retrieval model is "the LLM guesses a plausible name, BM25 finds
-it". T1 measures whether that works, on queries nobody wrote to flatter it.
+Comparing two tools' out-of-the-box defaults measures packaging decisions. So
+`adapters.toml` holds one entry per **configuration**, and a tool may appear
+several times — `code-explorer` (FTS only) and `code-explorer-hybrid` (FTS fused
+with a vector index) are separate rows of the same adapter.
 
-Metric is recall@k over symbols. **Recall@1 matters most**: the context bundle
-is seeded from the top hit alone, so a correct answer at rank 4 still bundles
-the wrong neighbourhood. MRR is reported alongside because recall@5 cannot
-distinguish rank 2 from rank 9.
+This matters here because code-explorer's retrieval mode is not a fixed default
+at all: `search` fuses a vector index whenever one exists on the corpus
+(`cli.py`, `hybrid = not fuzzy and not semantic and vector_db_path.exists()`).
+The mode therefore depends on what was built, not on what was documented — which
+is exactly the kind of claim that belongs in a measurement.
 
-### T2 — bundle recall
+Two mechanisms keep that honest, both declarative and both tool-neutral:
 
-Given the seed, does expansion pull in the *rest* of the commit's symbols?
-Reported as recall **and tokens spent**, so the headline is recall per 1k
-tokens. This is the number that justifies the depth-3 collect-then-rank design.
+- `prepare` — extra flag sets run once at index time, so a configuration can
+  build the capability it claims (`[["--semantic"]]` builds the vector index).
+- `reset` — corpus-relative paths deleted before indexing, so a capability built
+  by one configuration does not leak into the next one that shares its index
+  directory.
 
-### T3 — beating the grep loop
+And the report does not take any of it on trust: every adapter reports the
+retrieval mode it observed **per query**, and the summary prints what actually
+ran next to the scores.
 
-The baseline is not another tool, it is what an agent does today: ripgrep the
-query terms, open the top N files. Same recall metric, same token accounting.
-Without T3 the claim "replaces a grep loop" is unfalsifiable.
+## Nothing is scored by us
 
-### T4 — embedding choice
+| Half | Tool | Why |
+|---|---|---|
+| Retrieval quality | [`ranx`](https://github.com/AmenRa/ranx) | TREC/BEIR-standard recall@k, MRR, nDCG. `ranx.compare()` does paired Fisher randomization, so a cross-tool table carries significance markers instead of two numbers placed side by side. |
+| Latency | [`hyperfine`](https://github.com/sharkdp/hyperfine) | Warmups, outlier detection, shell-spawn compensation, JSON export. A hand-rolled timing loop gets all four subtly wrong and reports a mean with no confidence interval. |
 
-`potion-retrieval-32m` (Model2Vec — a static token→vector lookup table, no
-transformer forward pass) against a contextual model. Deliberately last: a
-static embedding has no context, so `dimension` gets the same vector in "output
-dimension" and "design space dimension". "Faster" is only interesting once T1
-can price what it costs in recall.
+Reimplementing either would mean defending our own arithmetic in every argument
+about the results. Delegating means the only thing left to argue about is the
+measurement design, which is the part worth arguing about.
 
-## Comparing against other tools
+## Three properties that make a report worth re-running
 
-The harness is tool-agnostic by design, so the same query sets can score
-`zvec-grep` (`zg`) or plain ripgrep.
+All three are plumbing rather than measurement, and all three are load-bearing:
 
-One asymmetry has to be stated up front, because it decides what a comparison
-can mean. `zg` returns **passages ranked by relevance**; this project returns
-**a seed plus its call graph**. On T1 (find the right code) that is a fair
-fight. On T2 it is not like-for-like — graph expansion is the thing we do that
-they do not, so T2's honest baseline is ripgrep, not `zg`.
+1. **Every run is appended, never overwritten.** `bench/results/history.jsonl` is
+   committed, so a regression shows up as a delta rather than as a number nobody
+   remembers the old value of.
+2. **Every run records what produced it** — tool sha, dirty flag, corpus sha,
+   host, CPU count, date. A number without provenance cannot be argued with later.
+3. **The report is generated, never edited.** Hand-maintained tables drift from
+   the code that produced them within a week.
 
-A second asymmetry is granularity: T1 scores symbols, while a passage-based
-tool returns file+line spans. Where the other tool cannot reliably name the
-enclosing function, score **both** at file level. Scoring ourselves at symbol
-level and the competitor at file level would not be a measurement.
-
-## `--json`: why the CLI grew an output mode
-
-`search --json` emits hits and the context bundle as a JSON document on stdout,
-with every human-facing line (progress, timings, the ingest summary) redirected
-to stderr.
-
-It exists because the rendered table **truncates long names with an ellipsis**,
-so benchmark code cannot parse results back reliably — and neither can an agent
-consuming this as a tool. The redirect is applied to the shared module-level
-`console` rather than a local one, because the ingest helpers print through it
-too and would otherwise corrupt the document.
+Rule 3 binds this document too. **No results are reproduced here.** They live in
+`bench/results/reports/<corpus>/`, regenerated from the committed run files on
+every run.
 
 ## Running it
 
 ```bash
-# One tier, one corpus.
-uv run --python 3.12 --extra dev python perfo/eval/t0_scale.py .benchmarks/django
+cd bench
+uv venv --python 3.12 && uv pip install -e .
+cargo install hyperfine          # or: sudo dnf install hyperfine
 
-# Build a query set from history (needs a non-shallow clone).
-uv run --python 3.12 --extra dev python perfo/eval/build_queryset.py \
-    .benchmarks/django --out perfo/eval/queryset-django.json --limit 150
+# ground truth, once per corpus
+uv run python -m bench.queryset <corpus-path> --out querysets/<name>.json
 
-# Everything, appending to history and regenerating the report.
-uv run --python 3.12 --extra dev python perfo/eval/run_report.py
+# quality: every configuration in adapters.toml, every corpus in corpora.toml
+uv run python -m bench.runner --corpus django --index -k 10
+uv run python -m bench.report --corpus django
+
+# latency
+uv run python -m bench.perf --corpus django --runs 10
 ```
 
-Corpora live in `.benchmarks/`, which is gitignored. They need real history for
-`build_queryset.py`, so clone without `--depth 1` (or `git fetch --deepen`).
+`--limit N` runs only the first N queries, for smoke-testing a new adapter
+without paying for the full sweep.
 
-## The report
+## Output
 
-`run_report.py` appends one record per run to `perfo/eval/results/history.jsonl`
-and regenerates `results/report.md` from it. Three properties make a benchmark
-worth re-running, and all three are plumbing rather than measurement:
+One markdown file per configuration plus one summary, per corpus:
 
-1. **Runs are appended, never overwritten.** The history file is committed, so a
-   regression shows as a delta against the previous run rather than a number
-   whose old value nobody remembers.
-2. **Every run records its provenance** — commit sha, dirty flag, host, CPU
-   count, date. A number without provenance cannot be argued with later.
-3. **The report is generated, never edited.** Hand-maintained tables drift from
-   the code that produced them.
+```
+bench/results/reports/<corpus>/<configuration>.md
+bench/results/reports/<corpus>/summary.md
+```
 
-Changes under 5% are suppressed as noise; wall-clock on a laptop is not tighter
-than that.
+The summary carries the cross-tool significance table, the observed-mode table,
+the cost table, and each adapter's declared asymmetries — which are stated and
+never corrected for. Silently normalising away "zg indexes every file type,
+code-explorer indexes Python only" would hide a real difference in what the two
+tools are for.
 
 ## CI
 
-T0 needs ~2 GB of checkouts and 100s across three corpora, so it cannot run per
-PR. The split:
+Split by cost, because these are different questions on different clocks:
 
-- **Per PR:** T1 only, against a small committed query-set fixture and a small
-  corpus. Seconds, no clones — and it is the tier that catches ranking
-  regressions. The `demote_tests`-after-truncation bug would have been caught
-  here.
-- **Nightly or on demand:** T0 plus full T1, corpora restored from cache,
-  results appended and the report regenerated.
-- **Gate on deltas, not absolutes.** Wall-clock on a shared runner is noise;
-  "recall@1 fell 8% against the last recorded run" is signal.
+- **Per PR** — quality only, on a small fixture corpus, one configuration. Fails
+  the build on a recall regression beyond the noise floor. Must finish in minutes.
+- **Nightly** — every configuration on the full corpora, plus `hyperfine`.
+  Appends to `history.jsonl` and commits the regenerated reports.
+
+A grep enforcing that nothing under `bench/` imports `code_explorer` belongs in
+the per-PR job: it is the one property that makes the rest of it credible.

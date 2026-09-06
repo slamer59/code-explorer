@@ -1,0 +1,18 @@
+# Corpora under test. `path` may be absolute, ~-relative, or relative to
+# bench/; "{repo}" expands to the parent checkout. Nothing is cloned
+# automatically, because a benchmark that silently re-clones cannot tell you
+# which revision produced a number.
+#
+# A corpus needs its *own* git history: ground truth is mined from commits
+# (see bench/queryset.py). The gemseo checkout under
+# .benchmarks/zvec-vs-codeexplorer/ has a broken .git that resolves to the
+# enclosing repository, so it is not listed here -- it can only ever be a
+# latency corpus, never a quality one.
+
+[corpus.django]
+path = "{repo}/.benchmarks/django"
+queryset = "django.json"
+
+[corpus.home-assistant]
+path = "{repo}/.benchmarks/home-assistant"
+queryset = "home-assistant.json"

@@ -1,4 +1,4 @@
-"""T1 -- turn git history into a labeled retrieval query set.
+"""Turn a repository's git history into a labeled retrieval query set.
 
 Hand-writing queries does not scale, and it is biased: I would write
 queries for code I already know is indexed well. A merged commit is a free
@@ -19,8 +19,8 @@ polishing the query into something BM25 likes would be marking our own
 homework.
 
 Usage:
-    python perfo/eval/build_queryset.py .benchmarks/home-assistant \
-        --out perfo/eval/queryset-home-assistant.json --limit 200
+    python -m bench.queryset ../.benchmarks/home-assistant \
+        --out querysets/home-assistant.json --limit 200
 """
 
 import argparse

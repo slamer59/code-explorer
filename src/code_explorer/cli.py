@@ -1232,6 +1232,22 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
     ),
 )
 @click.option(
+    "--embedding",
+    "embedding_spec",
+    default=None,
+    help=(
+        "Embedding provider and model for --semantic, as PROVIDER/MODEL: "
+        "'ollama/nomic-embed-text' (default: a transformer, via a local "
+        "Ollama server) or 'model2vec/<hf-id>' (a static vector lookup, "
+        "in-process, ~300x faster to index but with no context). Measured on "
+        "django, the static option indexes 13x faster yet retrieves worse "
+        "than no vector index at all, and raises query latency by ~0.5s of "
+        "model load per call -- see docs/explanation/gap-analysis-vs-zvec.md. "
+        "Changing this invalidates an existing vector index; rebuild with "
+        "--semantic --reindex."
+    ),
+)
+@click.option(
     "--search-text",
     "search_text_mode",
     type=click.Choice(["skeleton", "body"]),
@@ -1253,6 +1269,7 @@ def search(
     semantic: bool,
     as_json: bool,
     search_text_mode: Optional[str],
+    embedding_spec: Optional[str],
     no_context: bool,
     depth: int,
     budget: int,
@@ -1394,6 +1411,20 @@ def search(
     from .context import ContextAssembler, _estimate_tokens
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
+
+    if embedding_spec is not None:
+        provider, _, model = embedding_spec.partition("/")
+        if provider not in ("ollama", "model2vec") or not model:
+            raise click.BadParameter(
+                "expected PROVIDER/MODEL where PROVIDER is 'ollama' or "
+                f"'model2vec', got {embedding_spec!r}",
+                param_hint="--embedding",
+            )
+        settings.embedding_provider = provider  # type: ignore[assignment]
+        if provider == "model2vec":
+            settings.model2vec_model = model
+        else:
+            settings.embedding_model = model
 
     if search_text_mode is not None:
         # Applied to the process-wide settings rather than threaded through

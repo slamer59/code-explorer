@@ -36,6 +36,12 @@ perf = [
     "faker>=20.0",
     "polars>=0.19.0",
 ]
+# Static embeddings (settings.embedding_provider = "model2vec"). Optional
+# because it is a real dependency for a non-default provider -- though a
+# light one: numpy, tokenizers and safetensors, no torch.
+model2vec = [
+    "model2vec>=0.9",
+]
 
 [project.scripts]
 code-explorer = "code_explorer:main"

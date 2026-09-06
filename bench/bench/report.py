@@ -215,16 +215,25 @@ def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str
         "ones the other tool never returned at any rank.", "",
     ]
 
-    body += ["## Cost", ""]
+    body += [
+        "## Cost", "",
+        "Query latency and tokens are paid on every question the agent asks. "
+        "Index build is paid once per corpus, and is only reported for a run "
+        "that actually rebuilt -- a tool whose index was reused shows "
+        "`reused`, never a misleadingly small number.", "",
+    ]
     rows = []
     for tool in tools:
         data = runs.get((tool, "seed"))
         if data is None:
             continue
         cost = _cost_row(data)
+        ms = data.get("index_ms")
+        build = f"{ms / 60000:.1f} min" if ms else "reused"
         rows.append([tool, str(cost["errors"]), f"{cost['median_ms']:.0f} ms",
-                     f"{cost['mean_tokens']:.0f}"])
-    body.append(_table(["tool", "errors", "median latency", "mean tokens"], rows))
+                     f"{cost['mean_tokens']:.0f}", build])
+    body.append(_table(
+        ["tool", "errors", "median latency", "mean tokens", "index build"], rows))
 
     body += ["## What actually ran", "", _table(
         ["tool", "observed retrieval mode(s)", "vector model", "expansion step"],

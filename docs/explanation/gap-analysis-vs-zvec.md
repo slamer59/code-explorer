@@ -113,6 +113,45 @@ it at 727 ms against zg's 1,171 ms.
 and embeds a ~44-token field instead of a ~500-token one, which matters for
 index size and for embedding cost on a large corpus.
 
+## Outcome of priority 2 (implemented and measured — it does not pay)
+
+`settings.embedding_provider` now selects `ollama` (a transformer forward pass
+per text, over HTTP) or `model2vec` (a static token→vector lookup, in-process),
+with `--embedding PROVIDER/MODEL` on the CLI. The hypothesis was that zvec-grep's
+indexing speed *is* this choice, and that adopting it would close the last gap.
+
+The first half was right. Measured on 500 real body-mode `search_text` rows:
+
+| provider | throughput | dims |
+|---|---|---|
+| `ollama/nomic-embed-text` | 76 texts/s | 768 |
+| `model2vec/potion-retrieval-32m` | **24,211 texts/s** | 512 |
+
+**319×**, and it holds end to end: the django vector build drops from 8.43 min to
+0.62 min. zvec-grep's 24-second cold build is this, not a faster pipeline.
+
+The second half was wrong, and the benchmark is why we know:
+
+| configuration | build | query | recall@10 | MRR@10 |
+|---|---|---|---|---|
+| ollama transformer | 8.43 min | 727 ms | **0.631** | **0.675** |
+| model2vec static | 0.62 min | 1,191 ms | 0.578 | 0.578 |
+| **no vector index at all** | 0.29 min | **471 ms** | 0.586 | 0.630 |
+
+The static model loses to the transformer on every metric at p<0.05 — and loses
+to **using no vector index at all**, which is also cheaper and faster. So it is
+not a speed-for-quality trade; it is worse on both axes that matter to a user.
+Query latency is *higher* because each process pays ~0.5 s loading the static
+model, a cost that amortises over a bulk index build and never over one query.
+
+Why zvec-grep gets away with it: it embeds **code chunks**, we embed a ~500-token
+synthetic `search_text`. Static embeddings have no context, so they depend
+entirely on the input carrying the signal — and ours does not carry it the same
+way. That is the same lesson as priority 1, pointing the other direction.
+
+`ollama` therefore stays the default. `model2vec` stays available because the
+conclusion is corpus- and input-specific, and the harness can re-answer it.
+
 ## Remaining priorities
 
 1. ~~**Index the body.**~~ Done, and it worked — see above. The *chunked* half

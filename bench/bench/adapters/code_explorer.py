@@ -18,10 +18,12 @@ class CodeExplorerAdapter(Adapter):
     index_dir = ".code-explorer"
 
     def embedding(self) -> str | None:
-        # Only meaningful once --semantic has built a vector index; the
-        # model is not selectable from the CLI, it is whatever the local
-        # Ollama server is serving.
-        return "ollama/nomic-embed-text" if self.prepare else None
+        # Only meaningful once --semantic has built a vector index. A
+        # configuration that passes --embedding declares it in the registry;
+        # otherwise the model is whatever the tool's own default resolves to.
+        if not self.prepare:
+            return None
+        return str(self.options.get("embedding") or "ollama/nomic-embed-text")
 
     def _argv(self, *extra: str) -> list[str]:
         base = list(self.options.get("command") or ["code-explorer"])

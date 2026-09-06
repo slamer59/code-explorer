@@ -5,10 +5,11 @@
  "k": 10,
  "n_queries": 150,
  "expands": false,
- "index_ms": 2256.3,
+ "embedding": "local/potion-retrieval-32m",
+ "index_ms": null,
  "provenance": {
-  "utc": "2026-09-06T11:22:33+00:00",
-  "tool_sha": "6f9f364c",
+  "utc": "2026-09-06T12:53:48+00:00",
+  "tool_sha": "d98d1d8d",
   "tool_dirty": true,
   "corpus_sha": "b3f4d83a",
   "host": "fedora5.home",
@@ -24,7 +25,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 337,
-   "wall_ms": 1164.9,
+   "wall_ms": 1175.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -35,7 +36,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 306,
-   "wall_ms": 1179.2,
+   "wall_ms": 1169.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -46,7 +47,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 341,
-   "wall_ms": 1161.7,
+   "wall_ms": 1176.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -57,7 +58,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 301,
-   "wall_ms": 1171.8,
+   "wall_ms": 1174.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -68,7 +69,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 332,
-   "wall_ms": 1158.1,
+   "wall_ms": 1160.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -79,7 +80,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 373,
-   "wall_ms": 1163.2,
+   "wall_ms": 1153.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -90,7 +91,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 357,
-   "wall_ms": 1166.0,
+   "wall_ms": 1166.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -101,7 +102,7 @@
    "n_seed": 9,
    "n_bundle": 9,
    "tokens": 313,
-   "wall_ms": 1166.8,
+   "wall_ms": 1173.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -112,7 +113,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 356,
-   "wall_ms": 1179.8,
+   "wall_ms": 1169.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -123,7 +124,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 393,
-   "wall_ms": 1147.5,
+   "wall_ms": 1162.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -134,7 +135,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 349,
-   "wall_ms": 1145.8,
+   "wall_ms": 1161.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -145,7 +146,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 343,
-   "wall_ms": 1156.4,
+   "wall_ms": 1175.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -156,7 +157,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 305,
-   "wall_ms": 1177.8,
+   "wall_ms": 1169.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -167,7 +168,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 365,
-   "wall_ms": 1170.0,
+   "wall_ms": 1192.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -178,7 +179,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 342,
-   "wall_ms": 1142.6,
+   "wall_ms": 1168.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -189,7 +190,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 341,
-   "wall_ms": 1180.2,
+   "wall_ms": 1157.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -200,7 +201,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 368,
-   "wall_ms": 1152.6,
+   "wall_ms": 1169.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -211,7 +212,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 383,
-   "wall_ms": 1186.0,
+   "wall_ms": 1173.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -222,7 +223,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 387,
-   "wall_ms": 1169.0,
+   "wall_ms": 1178.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -233,7 +234,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 389,
-   "wall_ms": 1158.8,
+   "wall_ms": 1163.4,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -244,7 +245,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 333,
-   "wall_ms": 1164.5,
+   "wall_ms": 1148.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -255,7 +256,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 384,
-   "wall_ms": 1163.1,
+   "wall_ms": 1169.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -266,7 +267,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 351,
-   "wall_ms": 1182.9,
+   "wall_ms": 1184.8,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -276,8 +277,8 @@
    "n_relevant": 3,
    "n_seed": 1,
    "n_bundle": 1,
-   "tokens": 321,
-   "wall_ms": 1176.0,
+   "tokens": 328,
+   "wall_ms": 1179.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -288,7 +289,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 328,
-   "wall_ms": 1171.9,
+   "wall_ms": 1171.6,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -299,7 +300,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 354,
-   "wall_ms": 1177.3,
+   "wall_ms": 1178.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -310,7 +311,7 @@
    "n_seed": 2,
    "n_bundle": 2,
    "tokens": 520,
-   "wall_ms": 1202.3,
+   "wall_ms": 1178.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -321,7 +322,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 359,
-   "wall_ms": 1194.6,
+   "wall_ms": 1170.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -332,7 +333,7 @@
    "n_seed": 9,
    "n_bundle": 9,
    "tokens": 281,
-   "wall_ms": 1182.2,
+   "wall_ms": 1176.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -343,7 +344,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 316,
-   "wall_ms": 1186.9,
+   "wall_ms": 1163.3,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -354,7 +355,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 428,
-   "wall_ms": 1198.6,
+   "wall_ms": 1162.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -364,8 +365,8 @@
    "n_relevant": 4,
    "n_seed": 8,
    "n_bundle": 8,
-   "tokens": 255,
-   "wall_ms": 1196.2,
+   "tokens": 263,
+   "wall_ms": 1156.6,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -376,7 +377,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 340,
-   "wall_ms": 1168.8,
+   "wall_ms": 1155.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -387,7 +388,7 @@
    "n_seed": 2,
    "n_bundle": 2,
    "tokens": 360,
-   "wall_ms": 1161.1,
+   "wall_ms": 1165.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -398,7 +399,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 324,
-   "wall_ms": 1164.2,
+   "wall_ms": 1174.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -409,7 +410,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 330,
-   "wall_ms": 1163.3,
+   "wall_ms": 1179.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -420,7 +421,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 389,
-   "wall_ms": 1166.6,
+   "wall_ms": 1169.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -431,7 +432,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 343,
-   "wall_ms": 1164.2,
+   "wall_ms": 1156.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -442,7 +443,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 342,
-   "wall_ms": 1183.2,
+   "wall_ms": 1162.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -453,7 +454,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 304,
-   "wall_ms": 1158.5,
+   "wall_ms": 1165.0,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -464,7 +465,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 308,
-   "wall_ms": 1169.1,
+   "wall_ms": 1169.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -475,7 +476,7 @@
    "n_seed": 2,
    "n_bundle": 2,
    "tokens": 341,
-   "wall_ms": 1163.1,
+   "wall_ms": 1159.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -486,7 +487,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 306,
-   "wall_ms": 1168.3,
+   "wall_ms": 1172.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -497,7 +498,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 377,
-   "wall_ms": 1170.8,
+   "wall_ms": 1172.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -508,7 +509,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 341,
-   "wall_ms": 1170.6,
+   "wall_ms": 1169.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -519,7 +520,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 355,
-   "wall_ms": 1173.0,
+   "wall_ms": 1164.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -530,7 +531,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 379,
-   "wall_ms": 1169.8,
+   "wall_ms": 1173.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -541,7 +542,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 390,
-   "wall_ms": 1171.4,
+   "wall_ms": 1177.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -552,7 +553,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 353,
-   "wall_ms": 1159.9,
+   "wall_ms": 1159.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -563,7 +564,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 344,
-   "wall_ms": 1164.7,
+   "wall_ms": 1168.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -574,7 +575,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 340,
-   "wall_ms": 1179.1,
+   "wall_ms": 1160.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -585,7 +586,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 334,
-   "wall_ms": 1186.8,
+   "wall_ms": 1168.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -596,7 +597,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 374,
-   "wall_ms": 1186.9,
+   "wall_ms": 1168.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -607,7 +608,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 316,
-   "wall_ms": 1176.6,
+   "wall_ms": 1171.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -618,7 +619,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 349,
-   "wall_ms": 1177.5,
+   "wall_ms": 1170.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -629,7 +630,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 316,
-   "wall_ms": 1161.4,
+   "wall_ms": 1168.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -640,7 +641,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 307,
-   "wall_ms": 1162.7,
+   "wall_ms": 1170.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -651,7 +652,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 357,
-   "wall_ms": 1161.4,
+   "wall_ms": 1174.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -662,7 +663,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 299,
-   "wall_ms": 1171.7,
+   "wall_ms": 1183.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -673,7 +674,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 342,
-   "wall_ms": 1171.6,
+   "wall_ms": 1156.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -684,7 +685,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 386,
-   "wall_ms": 1179.6,
+   "wall_ms": 1163.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -695,7 +696,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 369,
-   "wall_ms": 1163.4,
+   "wall_ms": 1167.8,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -706,7 +707,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 275,
-   "wall_ms": 1176.2,
+   "wall_ms": 1159.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -717,7 +718,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 325,
-   "wall_ms": 1169.8,
+   "wall_ms": 1161.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -728,7 +729,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 345,
-   "wall_ms": 1176.5,
+   "wall_ms": 1174.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -739,7 +740,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 336,
-   "wall_ms": 1171.1,
+   "wall_ms": 1175.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -749,8 +750,8 @@
    "n_relevant": 2,
    "n_seed": 4,
    "n_bundle": 4,
-   "tokens": 369,
-   "wall_ms": 1177.9,
+   "tokens": 360,
+   "wall_ms": 1168.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -761,7 +762,7 @@
    "n_seed": 9,
    "n_bundle": 9,
    "tokens": 380,
-   "wall_ms": 1194.0,
+   "wall_ms": 1168.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -772,7 +773,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 315,
-   "wall_ms": 1164.4,
+   "wall_ms": 1159.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -783,7 +784,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 317,
-   "wall_ms": 1174.5,
+   "wall_ms": 1143.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -794,7 +795,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 320,
-   "wall_ms": 1178.5,
+   "wall_ms": 1180.5,
    "mode": "fts,fts+vector",
    "error": null
   },
@@ -805,7 +806,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 356,
-   "wall_ms": 1159.6,
+   "wall_ms": 1162.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -815,8 +816,8 @@
    "n_relevant": 2,
    "n_seed": 4,
    "n_bundle": 4,
-   "tokens": 364,
-   "wall_ms": 1186.5,
+   "tokens": 358,
+   "wall_ms": 1161.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -826,8 +827,8 @@
    "n_relevant": 2,
    "n_seed": 3,
    "n_bundle": 3,
-   "tokens": 308,
-   "wall_ms": 1177.7,
+   "tokens": 315,
+   "wall_ms": 1170.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -838,7 +839,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 385,
-   "wall_ms": 1176.0,
+   "wall_ms": 1163.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -849,7 +850,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 325,
-   "wall_ms": 1169.6,
+   "wall_ms": 1161.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -860,7 +861,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 293,
-   "wall_ms": 1175.9,
+   "wall_ms": 1149.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -871,7 +872,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 300,
-   "wall_ms": 1167.0,
+   "wall_ms": 1172.3,
    "mode": "fts,fts+vector",
    "error": null
   },
@@ -882,7 +883,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 298,
-   "wall_ms": 1173.3,
+   "wall_ms": 1168.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -893,7 +894,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 354,
-   "wall_ms": 1182.9,
+   "wall_ms": 1165.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -904,7 +905,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 338,
-   "wall_ms": 1172.0,
+   "wall_ms": 1158.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -915,7 +916,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 307,
-   "wall_ms": 1177.8,
+   "wall_ms": 1157.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -926,7 +927,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 276,
-   "wall_ms": 1178.2,
+   "wall_ms": 1153.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -937,7 +938,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 349,
-   "wall_ms": 1189.0,
+   "wall_ms": 1163.3,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -948,7 +949,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 306,
-   "wall_ms": 1168.2,
+   "wall_ms": 1183.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -959,7 +960,7 @@
    "n_seed": 9,
    "n_bundle": 9,
    "tokens": 264,
-   "wall_ms": 1180.2,
+   "wall_ms": 1168.5,
    "mode": "fts,vector",
    "error": null
   },
@@ -970,7 +971,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 362,
-   "wall_ms": 1180.7,
+   "wall_ms": 1158.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -981,7 +982,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 356,
-   "wall_ms": 1181.0,
+   "wall_ms": 1156.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -992,7 +993,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 363,
-   "wall_ms": 1164.9,
+   "wall_ms": 1174.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1003,7 +1004,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 344,
-   "wall_ms": 1151.5,
+   "wall_ms": 1163.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1014,7 +1015,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 338,
-   "wall_ms": 1170.7,
+   "wall_ms": 1183.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -1025,7 +1026,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 321,
-   "wall_ms": 1164.8,
+   "wall_ms": 1175.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -1036,7 +1037,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 400,
-   "wall_ms": 1165.8,
+   "wall_ms": 1174.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -1047,7 +1048,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 360,
-   "wall_ms": 1162.6,
+   "wall_ms": 1174.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1058,7 +1059,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 359,
-   "wall_ms": 1170.9,
+   "wall_ms": 1168.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1069,7 +1070,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 350,
-   "wall_ms": 1189.5,
+   "wall_ms": 1174.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1080,7 +1081,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 351,
-   "wall_ms": 1167.9,
+   "wall_ms": 1161.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1091,7 +1092,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 339,
-   "wall_ms": 1190.2,
+   "wall_ms": 1177.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1102,7 +1103,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 392,
-   "wall_ms": 1182.2,
+   "wall_ms": 1186.7,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1113,7 +1114,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 324,
-   "wall_ms": 1166.4,
+   "wall_ms": 1157.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -1124,7 +1125,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 376,
-   "wall_ms": 1183.3,
+   "wall_ms": 1177.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -1135,7 +1136,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 387,
-   "wall_ms": 1184.8,
+   "wall_ms": 1176.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1146,7 +1147,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 372,
-   "wall_ms": 1191.6,
+   "wall_ms": 1172.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -1157,7 +1158,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 347,
-   "wall_ms": 1160.1,
+   "wall_ms": 1177.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -1168,7 +1169,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 395,
-   "wall_ms": 1180.0,
+   "wall_ms": 1165.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -1179,7 +1180,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 394,
-   "wall_ms": 1181.8,
+   "wall_ms": 1156.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1190,7 +1191,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 268,
-   "wall_ms": 1165.4,
+   "wall_ms": 1175.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -1198,10 +1199,10 @@
    "qid": "c79bdfc1351ef2a2ad95df36241a74c736ef20a1",
    "query": "Fixed CVE-2026-6907 -- Prevented caching of requests when Vary header contains an asterisk.",
    "n_relevant": 2,
-   "n_seed": 7,
-   "n_bundle": 7,
-   "tokens": 325,
-   "wall_ms": 1165.8,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 343,
+   "wall_ms": 1144.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1212,7 +1213,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 417,
-   "wall_ms": 1170.9,
+   "wall_ms": 1155.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -1223,7 +1224,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 301,
-   "wall_ms": 1205.1,
+   "wall_ms": 1162.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -1234,7 +1235,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 392,
-   "wall_ms": 1158.1,
+   "wall_ms": 1155.2,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1245,7 +1246,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 407,
-   "wall_ms": 1151.4,
+   "wall_ms": 1170.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1256,7 +1257,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 332,
-   "wall_ms": 1157.2,
+   "wall_ms": 1152.5,
    "mode": "fts+vector",
    "error": null
   },
@@ -1267,7 +1268,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 292,
-   "wall_ms": 1166.1,
+   "wall_ms": 1151.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1278,7 +1279,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 309,
-   "wall_ms": 1171.8,
+   "wall_ms": 1160.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1289,7 +1290,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 312,
-   "wall_ms": 1158.7,
+   "wall_ms": 1137.0,
    "mode": "fts+vector",
    "error": null
   },
@@ -1300,7 +1301,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 342,
-   "wall_ms": 1168.5,
+   "wall_ms": 1167.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -1311,7 +1312,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 354,
-   "wall_ms": 1155.9,
+   "wall_ms": 1146.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -1322,7 +1323,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 290,
-   "wall_ms": 1158.2,
+   "wall_ms": 1149.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1333,7 +1334,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 344,
-   "wall_ms": 1168.6,
+   "wall_ms": 1145.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -1344,7 +1345,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 368,
-   "wall_ms": 1173.1,
+   "wall_ms": 1144.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1355,7 +1356,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 376,
-   "wall_ms": 1177.8,
+   "wall_ms": 1152.5,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1366,7 +1367,7 @@
    "n_seed": 3,
    "n_bundle": 3,
    "tokens": 404,
-   "wall_ms": 1179.9,
+   "wall_ms": 1158.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -1377,7 +1378,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 333,
-   "wall_ms": 1161.7,
+   "wall_ms": 1165.9,
    "mode": "fts+vector",
    "error": null
   },
@@ -1388,7 +1389,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 344,
-   "wall_ms": 1161.2,
+   "wall_ms": 1149.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1399,7 +1400,7 @@
    "n_seed": 2,
    "n_bundle": 2,
    "tokens": 371,
-   "wall_ms": 1165.0,
+   "wall_ms": 1167.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -1410,7 +1411,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 347,
-   "wall_ms": 1176.0,
+   "wall_ms": 1170.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1421,7 +1422,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 371,
-   "wall_ms": 1182.0,
+   "wall_ms": 1161.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1432,7 +1433,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 316,
-   "wall_ms": 1186.9,
+   "wall_ms": 1161.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -1443,7 +1444,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 316,
-   "wall_ms": 1164.7,
+   "wall_ms": 1157.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1453,8 +1454,8 @@
    "n_relevant": 2,
    "n_seed": 3,
    "n_bundle": 3,
-   "tokens": 311,
-   "wall_ms": 1166.1,
+   "tokens": 312,
+   "wall_ms": 1155.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1465,7 +1466,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 365,
-   "wall_ms": 1161.4,
+   "wall_ms": 1174.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1476,7 +1477,7 @@
    "n_seed": 1,
    "n_bundle": 1,
    "tokens": 310,
-   "wall_ms": 1168.3,
+   "wall_ms": 1155.2,
    "mode": "fts+vector",
    "error": null
   },
@@ -1487,7 +1488,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 311,
-   "wall_ms": 1194.1,
+   "wall_ms": 1197.2,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1498,7 +1499,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 315,
-   "wall_ms": 1176.3,
+   "wall_ms": 1144.9,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1506,11 +1507,11 @@
    "qid": "33bfc66add643f49d466c5a646989ad91677753d",
    "query": "Made XML serializer put each ManyToManyField object on its own line.",
    "n_relevant": 2,
-   "n_seed": 7,
-   "n_bundle": 7,
-   "tokens": 341,
-   "wall_ms": 1187.5,
-   "mode": "fts,fts+vector,vector",
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 350,
+   "wall_ms": 1154.3,
+   "mode": "fts+vector,vector",
    "error": null
   },
   {
@@ -1520,7 +1521,7 @@
    "n_seed": 6,
    "n_bundle": 6,
    "tokens": 315,
-   "wall_ms": 1208.4,
+   "wall_ms": 1158.4,
    "mode": "fts+vector",
    "error": null
   },
@@ -1531,7 +1532,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 393,
-   "wall_ms": 1171.4,
+   "wall_ms": 1157.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1542,7 +1543,7 @@
    "n_seed": 8,
    "n_bundle": 8,
    "tokens": 319,
-   "wall_ms": 1171.2,
+   "wall_ms": 1163.1,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1553,7 +1554,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 342,
-   "wall_ms": 1167.0,
+   "wall_ms": 1161.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1564,7 +1565,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 345,
-   "wall_ms": 1175.3,
+   "wall_ms": 1162.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1575,7 +1576,7 @@
    "n_seed": 10,
    "n_bundle": 10,
    "tokens": 329,
-   "wall_ms": 1185.4,
+   "wall_ms": 1148.7,
    "mode": "fts,fts+vector,vector",
    "error": null
   },
@@ -1586,7 +1587,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 304,
-   "wall_ms": 1172.5,
+   "wall_ms": 1151.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1596,8 +1597,8 @@
    "n_relevant": 3,
    "n_seed": 4,
    "n_bundle": 4,
-   "tokens": 347,
-   "wall_ms": 1180.8,
+   "tokens": 354,
+   "wall_ms": 1162.1,
    "mode": "fts+vector",
    "error": null
   },
@@ -1608,7 +1609,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 373,
-   "wall_ms": 1176.9,
+   "wall_ms": 1146.3,
    "mode": "fts+vector",
    "error": null
   },
@@ -1619,7 +1620,7 @@
    "n_seed": 4,
    "n_bundle": 4,
    "tokens": 359,
-   "wall_ms": 1171.0,
+   "wall_ms": 1148.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -1630,7 +1631,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 349,
-   "wall_ms": 1150.4,
+   "wall_ms": 1149.7,
    "mode": "fts+vector",
    "error": null
   },
@@ -1641,7 +1642,7 @@
    "n_seed": 7,
    "n_bundle": 7,
    "tokens": 362,
-   "wall_ms": 1166.4,
+   "wall_ms": 1157.8,
    "mode": "fts+vector",
    "error": null
   },
@@ -1652,7 +1653,7 @@
    "n_seed": 5,
    "n_bundle": 5,
    "tokens": 396,
-   "wall_ms": 1154.2,
+   "wall_ms": 1142.6,
    "mode": "fts+vector",
    "error": null
   },
@@ -1662,8 +1663,8 @@
    "n_relevant": 2,
    "n_seed": 6,
    "n_bundle": 6,
-   "tokens": 335,
-   "wall_ms": 1160.9,
+   "tokens": 350,
+   "wall_ms": 1170.9,
    "mode": "fts+vector",
    "error": null
   }
@@ -1707,14 +1708,14 @@
    "tests/invalid_models_tests/test_models.py": 0.3333333333333333,
    "tests/admin_views/models.py": 0.16666666666666666,
    "django/forms/models.py": 0.14285714285714285,
-   "tests/composite_pk/tests.py": 0.125,
-   "django/db/models/fields/related_descriptors.py": 0.1111111111111111
+   "django/db/models/fields/related_descriptors.py": 0.125,
+   "tests/composite_pk/tests.py": 0.1111111111111111
   },
   "60a17fccf4f2fa31b823b0f938005897f2f3ef16": {
    "django/db/models/fields/related_descriptors.py": 1.0,
    "django/db/models/query.py": 0.3333333333333333,
    "django/contrib/contenttypes/fields.py": 0.25,
-   "tests/one_to_one/tests.py": 0.2,
+   "tests/one_to_one/tests.py": 0.16666666666666666,
    "tests/many_to_one/tests.py": 0.14285714285714285,
    "tests/many_to_many/tests.py": 0.125,
    "django/contrib/contenttypes/prefetch.py": 0.1
@@ -1847,8 +1848,8 @@
    "django/contrib/admin/options.py": 0.2,
    "docs/internals/contributing/triaging-tickets.txt": 0.14285714285714285,
    "django/contrib/admin/utils.py": 0.125,
-   "tests/admin_inlines/urls.py": 0.1111111111111111,
-   "docs/releases/6.0.8.txt": 0.1
+   "docs/releases/6.0.8.txt": 0.1111111111111111,
+   "tests/admin_inlines/urls.py": 0.1
   },
   "27137e655e442e81095f1f8f77ff3870d9fdf169": {
    "docs/releases/security.txt": 1.0
@@ -1856,11 +1857,11 @@
   "5637bec7a033d67407694316bdda74304449488e": {
    "tests/test_runner/tests.py": 1.0,
    "tests/utils_tests/test_html.py": 0.3333333333333333,
-   "django/contrib/auth/tokens.py": 0.2,
-   "django/db/backends/sqlite3/features.py": 0.16666666666666666,
-   "tests/backends/sqlite/test_operations.py": 0.14285714285714285,
-   "django/core/servers/basehttp.py": 0.125,
-   "docs/releases/5.2.1.txt": 0.1111111111111111
+   "django/db/backends/sqlite3/features.py": 0.2,
+   "django/contrib/auth/tokens.py": 0.16666666666666666,
+   "django/core/servers/basehttp.py": 0.14285714285714285,
+   "tests/backends/sqlite/test_operations.py": 0.125,
+   "docs/releases/5.2.1.txt": 0.1
   },
   "60121939f6b225c7a719dd561e372e1d8e5e2c4a": {
    "tests/gis_tests/gdal_tests/test_ds.py": 1.0,
@@ -1900,8 +1901,8 @@
    "django/core/management/commands/dumpdata.py": 0.25,
    "tests/composite_pk/test_update.py": 0.2,
    "docs/topics/serialization.txt": 0.16666666666666666,
-   "docs/releases/6.0.8.txt": 0.1111111111111111,
-   "django/contrib/postgres/validators.py": 0.1
+   "django/contrib/postgres/validators.py": 0.1111111111111111,
+   "docs/releases/6.0.8.txt": 0.1
   },
   "92e1d9e3619ae5274a64b38f26177064486892f2": {
    "tests/admin_views/tests.py": 1.0,
@@ -1913,12 +1914,12 @@
   "92470ad3742524902b29769d2c822dbe791630db": {
    "tests/admin_views/admin.py": 1.0,
    "docs/ref/contrib/admin/index.txt": 0.3333333333333333,
-   "tests/admin_ordering/tests.py": 0.25,
-   "docs/releases/6.1.1.txt": 0.2,
+   "docs/releases/6.1.1.txt": 0.25,
+   "tests/admin_ordering/tests.py": 0.2,
    "docs/releases/1.6.1.txt": 0.16666666666666666,
-   "tests/timezones/admin.py": 0.125,
-   "docs/releases/1.8.5.txt": 0.1111111111111111,
-   "docs/releases/5.0.1.txt": 0.1
+   "docs/releases/1.8.5.txt": 0.125,
+   "tests/timezones/admin.py": 0.1111111111111111,
+   "tests/admin_changelist/admin.py": 0.1
   },
   "c2517faff335f683e1cbe55d9844910b3fb40670": {
    "tests/responses/test_fileresponse.py": 1.0,
@@ -1935,8 +1936,8 @@
   "2a5da9d00555beef8e5f6307cfcbfc029d45491e": {
    "django/db/models/base.py": 1.0,
    "tests/inspectdb/tests.py": 0.5,
-   "django/db/models/query.py": 0.2,
-   "django/db/models/options.py": 0.16666666666666666,
+   "django/db/models/options.py": 0.2,
+   "django/db/models/query.py": 0.16666666666666666,
    "tests/composite_pk/test_checks.py": 0.1
   },
   "d8cedcab5241725003eef059dd76c533f24c5430": {
@@ -1947,7 +1948,7 @@
   "76e1bca1311ae7073a1fa4add6f9d19d709f0f09": {
    "django/contrib/gis/db/backends/oracle/schema.py": 1.0,
    "django/contrib/gis/db/backends/postgis/schema.py": 0.5,
-   "django/contrib/gis/db/backends/mysql/schema.py": 0.3333333333333333,
+   "django/contrib/gis/db/backends/mysql/schema.py": 0.25,
    "tests/gis_tests/geoapp/test_indexes.py": 0.1111111111111111
   },
   "274df4df0bca7fcfb5c1c1d49567f770df147eeb": {
@@ -1972,7 +1973,7 @@
    "tests/admin_ordering/tests.py": 0.16666666666666666,
    "tests/admin_utils/admin.py": 0.14285714285714285,
    "tests/admin_views/admin.py": 0.125,
-   "tests/deprecation/tests.py": 0.1111111111111111
+   "tests/deprecation/tests.py": 0.1
   },
   "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c": {
    "tests/handlers/tests.py": 1.0,
@@ -2010,8 +2011,8 @@
   "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1": {
    "tests/cache/tests.py": 1.0,
    "docs/ref/settings.txt": 0.5,
-   "docs/releases/1.6.3.txt": 0.2,
-   "docs/releases/1.4.11.txt": 0.16666666666666666,
+   "docs/releases/1.4.11.txt": 0.2,
+   "docs/releases/1.6.3.txt": 0.16666666666666666,
    "docs/releases/1.5.6.txt": 0.14285714285714285,
    "tests/sessions_tests/tests.py": 0.1111111111111111
   },
@@ -2127,7 +2128,7 @@
    "tests/migrations/test_optimizer.py": 0.25,
    "tests/migrations/test_commands.py": 0.2,
    "django/db/migrations/autodetector.py": 0.16666666666666666,
-   "docs/releases/4.0.2.txt": 0.125,
+   "docs/releases/4.0.2.txt": 0.14285714285714285,
    "docs/releases/1.7.1.txt": 0.1
   },
   "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c": {
@@ -2168,7 +2169,7 @@
    "docs/topics/cache.txt": 1.0,
    "docs/releases/security.txt": 0.5,
    "django/middleware/cache.py": 0.3333333333333333,
-   "tests/cache/tests.py": 0.1
+   "tests/cache/tests.py": 0.1111111111111111
   },
   "71af23d1f4678c4bf052e051d72e8928e1697de3": {
    "docs/topics/db/models.txt": 1.0,
@@ -2208,18 +2209,18 @@
    "docs/releases/security.txt": 0.5,
    "docs/ref/csp.txt": 0.25,
    "docs/topics/cache.txt": 0.2,
-   "django/middleware/cache.py": 0.1
+   "django/middleware/cache.py": 0.1111111111111111
   },
   "d618d7ae4fec727d5b582bd24f803c28d17bf7cd": {
    "docs/topics/cache.txt": 1.0,
    "django/middleware/cache.py": 0.5,
-   "docs/releases/security.txt": 0.3333333333333333,
-   "tests/cache/tests.py": 0.14285714285714285
+   "docs/releases/security.txt": 0.25,
+   "tests/cache/tests.py": 0.16666666666666666
   },
   "df887f50198593a0e5b4638bfddbbd43a30fd276": {
    "docs/releases/security.txt": 1.0,
-   "docs/topics/email.txt": 0.3333333333333333,
-   "docs/ref/settings.txt": 0.1111111111111111
+   "docs/topics/email.txt": 0.5,
+   "docs/ref/settings.txt": 0.14285714285714285
   },
   "672cfaa53c72dd67fb54ecbdd904ea364d2951c4": {
    "scripts/pr_quality/check_pr.py": 1.0,
@@ -2250,7 +2251,7 @@
    "tests/model_fields/test_jsonfield.py": 0.5,
    "docs/releases/1.0.txt": 0.2,
    "tests/httpwrappers/tests.py": 0.16666666666666666,
-   "docs/releases/6.2.txt": 0.125,
+   "docs/releases/6.2.txt": 0.1111111111111111,
    "docs/releases/0.95.txt": 0.1
   },
   "6e15ac8066312328de279e3e072667416c205bfc": {
@@ -2292,8 +2293,8 @@
    "docs/topics/auth/passwords.txt": 0.5,
    "django/contrib/auth/hashers.py": 0.25,
    "docs/internals/howto-release-django.txt": 0.2,
-   "tests/admin_scripts/custom_templates/project_template/additional_dir/requirements.in": 0.14285714285714285,
-   "docs/releases/1.8.10.txt": 0.125,
+   "tests/admin_scripts/custom_templates/project_template/additional_dir/requirements.in": 0.16666666666666666,
+   "docs/releases/1.8.10.txt": 0.1111111111111111,
    "docs/releases/1.9.3.txt": 0.1
   },
   "20960df455fffd73d556a5ed92cdf6832c23e65f": {
@@ -2304,13 +2305,13 @@
    "tests/transactions/tests.py": 0.14285714285714285
   },
   "9b4433948714d5c43bab96b08bb6618c22512000": {
-   "docs/releases/2.2.2.txt": 1.0,
-   "tests/test_runner_apps/failures/tests_failures.py": 0.5,
-   "docs/releases/4.2.2.txt": 0.25,
-   "docs/releases/3.1.3.txt": 0.2,
-   "tests/tasks/test_tasks.py": 0.16666666666666666,
-   "docs/releases/4.2.8.txt": 0.14285714285714285,
-   "tests/test_runner_apps/sample/tests_sample.py": 0.125,
+   "tests/test_runner_apps/failures/tests_failures.py": 1.0,
+   "docs/releases/2.2.2.txt": 0.5,
+   "docs/releases/4.2.2.txt": 0.3333333333333333,
+   "tests/tasks/test_tasks.py": 0.2,
+   "docs/releases/3.1.3.txt": 0.16666666666666666,
+   "tests/test_runner_apps/sample/tests_sample.py": 0.14285714285714285,
+   "docs/releases/4.2.8.txt": 0.125,
    "docs/releases/4.1.1.txt": 0.1111111111111111,
    "tests/middleware/test_csp.py": 0.1
   },
@@ -2347,9 +2348,9 @@
   },
   "0e1d950fbb44878f6972a0e5730f69f98caf468e": {
    "django/db/models/query.py": 1.0,
-   "django/db/models/sql/query.py": 0.5,
+   "django/db/models/sql/query.py": 0.3333333333333333,
    "tests/queries/tests.py": 0.16666666666666666,
-   "django/db/models/sql/compiler.py": 0.125
+   "django/db/models/sql/compiler.py": 0.14285714285714285
   },
   "da6567da7ea0e844c9a880e02c7b34e1a184edf8": {
    "tests/generic_views/test_base.py": 1.0,
@@ -2475,13 +2476,14 @@
    "django/contrib/auth/hashers.py": 0.125
   },
   "c79bdfc1351ef2a2ad95df36241a74c736ef20a1": {
-   "django/utils/cache.py": 1.0,
-   "docs/topics/cache.txt": 0.5,
-   "docs/ref/utils.txt": 0.3333333333333333,
-   "docs/topics/http/decorators.txt": 0.2,
-   "docs/ref/csp.txt": 0.16666666666666666,
-   "docs/ref/settings.txt": 0.14285714285714285,
-   "tests/cache/tests.py": 0.1111111111111111
+   "docs/releases/security.txt": 1.0,
+   "django/utils/cache.py": 0.5,
+   "docs/topics/cache.txt": 0.3333333333333333,
+   "docs/ref/utils.txt": 0.25,
+   "docs/topics/http/decorators.txt": 0.16666666666666666,
+   "docs/ref/csp.txt": 0.14285714285714285,
+   "docs/ref/settings.txt": 0.125,
+   "tests/cache/tests.py": 0.1
   },
   "7f6e9b55130d5158804c0acbc0b24ccb7422ed82": {
    "tests/sessions_tests/tests.py": 1.0,
@@ -2501,7 +2503,7 @@
    "tests/delete/tests.py": 0.5,
    "tests/delete_regress/tests.py": 0.2,
    "tests/m2m_through_regress/tests.py": 0.14285714285714285,
-   "docs/internals/howto-release-django.txt": 0.1111111111111111
+   "docs/internals/howto-release-django.txt": 0.1
   },
   "12dcba45cb0d3bcf735621c3b2175fdee08308d8": {
    "tests/auth_tests/test_remote_user.py": 1.0,
@@ -2582,10 +2584,10 @@
   "ad073338d02fce884301d159f30eaf17c7f2d246": {
    "tests/composite_pk/test_filter.py": 1.0,
    "tests/migrations/test_autodetector.py": 0.3333333333333333,
-   "tests/get_or_create/tests.py": 0.25,
-   "docs/internals/contributing/committing-code.txt": 0.2,
-   "tests/ordering/tests.py": 0.16666666666666666,
-   "tests/test_client_regress/tests.py": 0.14285714285714285
+   "docs/internals/contributing/committing-code.txt": 0.25,
+   "tests/get_or_create/tests.py": 0.2,
+   "tests/test_client_regress/tests.py": 0.16666666666666666,
+   "tests/ordering/tests.py": 0.14285714285714285
   },
   "61a62be313e395ce1265132bfc99f51476fb3c95": {
    "docs/ref/models/constraints.txt": 1.0,
@@ -2664,10 +2666,10 @@
   "6afe7ce93964f56e33a29d477c269436f9b60cbf": {
    "tests/admin_views/admin.py": 1.0,
    "tests/modeladmin/test_checks.py": 0.3333333333333333,
-   "docs/releases/security.txt": 0.25,
-   "tests/admin_ordering/tests.py": 0.16666666666666666,
-   "docs/releases/6.0.4.txt": 0.14285714285714285,
-   "docs/releases/5.2.13.txt": 0.1111111111111111
+   "docs/releases/security.txt": 0.2,
+   "docs/releases/6.0.4.txt": 0.16666666666666666,
+   "tests/admin_ordering/tests.py": 0.14285714285714285,
+   "docs/releases/5.2.13.txt": 0.125
   },
   "caf90a971f09323775ed0cacf94eadaf39d040e0": {
    "django/test/client.py": 1.0,
@@ -2686,7 +2688,8 @@
    "tests/serializers/tests.py": 0.16666666666666666,
    "tests/serializers/test_data.py": 0.14285714285714285,
    "tests/m2m_regress/models.py": 0.125,
-   "django/db/models/fields/related.py": 0.1111111111111111
+   "django/db/models/fields/related.py": 0.1111111111111111,
+   "django/db/backends/postgresql/introspection.py": 0.1
   },
   "3b161e60964aff99eddcd2627a486d81c1836b3a": {
    "tests/expressions_case/tests.py": 1.0,
@@ -2707,7 +2710,7 @@
    "docs/releases/1.7.txt": 0.5,
    "django/contrib/postgres/constraints.py": 0.3333333333333333,
    "docs/ref/models/querysets.txt": 0.2,
-   "docs/releases/5.0.4.txt": 0.14285714285714285,
+   "docs/releases/5.0.4.txt": 0.16666666666666666,
    "docs/releases/4.2.2.txt": 0.125,
    "django/db/backends/base/operations.py": 0.1111111111111111,
    "docs/releases/5.2.4.txt": 0.1
@@ -2733,8 +2736,8 @@
    "django/contrib/postgres/fields/jsonb.py": 0.5,
    "django/db/models/functions/comparison.py": 0.3333333333333333,
    "django/db/backends/postgresql/operations.py": 0.25,
-   "docs/releases/3.1.1.txt": 0.2,
-   "tests/constraints/tests.py": 0.16666666666666666,
+   "tests/constraints/tests.py": 0.2,
+   "docs/releases/3.1.1.txt": 0.16666666666666666,
    "tests/invalid_models_tests/test_models.py": 0.14285714285714285,
    "docs/releases/5.2.5.txt": 0.125,
    "docs/releases/1.11.3.txt": 0.1111111111111111,
@@ -2750,8 +2753,8 @@
   "5146449a38222dc74f8f1ba88a7a7ef681e93101": {
    "django/db/models/sql/query.py": 1.0,
    "tests/annotations/tests.py": 0.5,
-   "django/db/models/fields/related.py": 0.125,
-   "tests/expressions/test_queryset_values.py": 0.1
+   "tests/check_framework/test_urls.py": 0.25,
+   "django/urls/resolvers.py": 0.1
   },
   "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe": {
    "tests/admin_utils/tests.py": 1.0,
@@ -2792,10 +2795,10 @@
   "7cb2221e9267dec3f1cf7c88b8686d38fd956639": {
    "django/template/defaulttags.py": 1.0,
    "tests/utils_tests/test_inspect.py": 0.3333333333333333,
-   "django/test/runner.py": 0.16666666666666666,
+   "django/test/runner.py": 0.2,
+   "docs/howto/error-reporting.txt": 0.16666666666666666,
    "tests/queries/tests.py": 0.14285714285714285,
-   "docs/howto/error-reporting.txt": 0.125,
-   "django/utils/autoreload.py": 0.1
+   "django/utils/autoreload.py": 0.1111111111111111
   }
  }
 }

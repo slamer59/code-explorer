@@ -42,7 +42,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 import numpy as np
 
 from code_explorer.embeddings import (
-    DEFAULT_DIMENSIONS,
+    active_dimensions,
     DEFAULT_MODEL,
     embed_text,
     embed_texts,
@@ -513,7 +513,7 @@ class SqliteBackend:
         db_path: Path,
         read_only: bool = False,
         enable_vectors: bool = False,
-        vector_dimensions: int = DEFAULT_DIMENSIONS,
+        vector_dimensions: Optional[int] = None,
         enable_fts: bool = True,
         enable_fuzzy: bool = True,
     ):
@@ -529,7 +529,10 @@ class SqliteBackend:
         self.db_path = db_path
         self.read_only = read_only
         self.enable_vectors = enable_vectors
-        self.vector_dimensions = vector_dimensions
+        # Resolved now, not at import: see embeddings.active_dimensions.
+        self.vector_dimensions = (
+            active_dimensions() if vector_dimensions is None else vector_dimensions
+        )
         self.enable_fts = enable_fts
         self.enable_fuzzy = enable_fuzzy
         self.conn: Optional[sqlite3.Connection] = None

@@ -25,6 +25,7 @@ notes = [
 module = "code_explorer"
 command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
 prepare = [["--semantic"]]
+reset = [".code-explorer/graph_vectors.sqlite"]
 notes = [
   "Indexes Python only, so a relevant non-Python file is unreachable for it by construction.",
   "Hybrid: FTS/BM25 fused with a vector index (Ollama nomic-embed-text) by reciprocal rank fusion.",
@@ -51,6 +52,7 @@ module = "code_explorer"
 command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
 query_flags = ["--search-text", "body"]
 prepare = [["--semantic"]]
+reset = [".code-explorer/graph_vectors.sqlite"]
 embedding = "ollama/nomic-embed-text"
 notes = [
   "Indexes Python only.",
@@ -58,9 +60,42 @@ notes = [
   "Returns whole symbols, and has a second expansion step.",
 ]
 
+# Matched pairs. Both tools support both model classes, so the embedding can
+# be held constant and the comparison stops being partly a comparison of the
+# models. potion-retrieval-32m is Model2Vec (static lookup, 512d);
+# nomic-embed-text is a transformer (768d) -- zg carries an ONNX build of it.
+[tool.code-explorer-body-potion]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body", "--embedding", "model2vec/minishlab/potion-retrieval-32m"]
+prepare = [["--semantic"]]
+reset = [".code-explorer/graph_vectors.sqlite"]
+embedding = "model2vec/potion-retrieval-32m"
+notes = [
+  "Indexes Python only.",
+  "Hybrid over the source body, with the same static Model2Vec model class zvec-grep defaults to -- the controlled comparison for zg.",
+  "Returns whole symbols, and has a second expansion step.",
+]
+
+[tool.zg-nomic]
+module = "zg"
+command = ["zg"]
+mode = "direct"
+embedding = "local/nomic-embed-text-v1.5"
+reset = [".zvec-grep"]
+notes = [
+  "Indexes every file type.",
+  "Hybrid FTS+vector using the same transformer class code-explorer defaults to -- the controlled comparison for code-explorer-body-hybrid.",
+  "Returns text chunks, not whole symbols.",
+  "Has no expansion step, so its `bundle` row repeats its `seed` row.",
+]
+
 [tool.zg]
 module = "zg"
 command = ["zg"]
+# Without this, `zg index` on an existing index is a no-op and the
+# recorded build time is "nothing to do", not "built in zero seconds".
+reset = [".zvec-grep"]
 mode = "direct"
 embedding = "local/potion-retrieval-32m"
 notes = [
@@ -73,6 +108,9 @@ notes = [
 [tool.zg-symbol]
 module = "zg"
 command = ["zg"]
+# Without this, `zg index` on an existing index is a no-op and the
+# recorded build time is "nothing to do", not "built in zero seconds".
+reset = [".zvec-grep"]
 mode = "direct"
 embedding = "local/potion-retrieval-32m"
 query_flags = ["--prefer-symbol"]
@@ -90,6 +128,9 @@ notes = [
 [tool.zg-full]
 module = "zg"
 command = ["zg"]
+# Without this, `zg index` on an existing index is a no-op and the
+# recorded build time is "nothing to do", not "built in zero seconds".
+reset = [".zvec-grep"]
 mode = "direct"
 embedding = "local/potion-retrieval-32m"
 preview = "full"

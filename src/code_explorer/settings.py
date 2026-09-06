@@ -20,10 +20,53 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="CODE_EXPLORER_", env_file=".env")
 
-    # Ollama-backed embedding generation (see embeddings.py).
+    # Embedding generation (see embeddings.py).
+    #
+    # Two providers, because they are different *kinds* of computation and the
+    # choice dominates index build time:
+    #
+    #   "ollama"    -- a transformer forward pass per text, over HTTP.
+    #   "model2vec" -- a static vector lookup: token -> vector, mean-pooled.
+    #                  No forward pass, no server, no context. In-process.
+    #
+    # Measured on 500 real body-mode search_text rows (median 503 chars):
+    #   ollama/nomic-embed-text        76 texts/s
+    #   model2vec/potion-retrieval-32m 24,211 texts/s   (+11.7s one-time load)
+    # -- 319x, which is the difference between an 8-minute vector build on
+    # django and a few seconds of it. zvec-grep's speed advantage at indexing
+    # is this choice, not a faster pipeline.
+    #
+    # Static embeddings have no context: a token gets the same vector wherever
+    # it appears. That was measured, and it costs more than it saves, which is
+    # why "ollama" remains the default despite being 300x slower to index.
+    # django, 150 git-mined queries, body-mode search_text:
+    #
+    #   provider                  build      query    R@10    MRR@10
+    #   ollama/nomic-embed-text   8.43 min   727 ms   0.631   0.675
+    #   model2vec/potion-32m      0.62 min  1191 ms   0.578   0.578
+    #   (no vector index at all)  0.29 min   471 ms   0.586   0.630
+    #
+    # The static model loses to the transformer on every metric at p<0.05 --
+    # and loses to using no vector index at all, so it is not a speed/quality
+    # trade, it is worse on both axes that matter here. Query latency is
+    # *higher* because each process pays ~0.5s loading the static model, which
+    # amortises over a bulk index build and never over a single query.
+    #
+    # zvec-grep does well with the same model class because it embeds code
+    # chunks; a ~500-token search_text is a different input. Kept configurable
+    # because that conclusion is corpus- and input-specific, and re-measurable.
+    embedding_provider: Literal["ollama", "model2vec"] = "ollama"
     ollama_endpoint: str = "http://localhost:11434"
     embedding_model: str = "nomic-embed-text"
+    # Must match the provider's model. Changing either invalidates an existing
+    # vector index, which is dimensioned at build time -- rebuild with
+    # --semantic --reindex after a switch.
     embedding_dimensions: int = 768
+    # Hugging Face id used when embedding_provider is "model2vec". Kept
+    # separate from embedding_model so switching providers back and forth does
+    # not lose either setting.
+    model2vec_model: str = "minishlab/potion-retrieval-32m"
+    model2vec_dimensions: int = 512
     embedding_timeout: float = 30.0
     embed_batch_size: int = 50
 

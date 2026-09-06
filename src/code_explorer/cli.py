@@ -1376,7 +1376,7 @@ def search(
     only])` in hop order -- full body while under --budget, signature +
     docstring once it runs out.
     '''
-    from .context import ContextAssembler
+    from .context import ContextAssembler, _estimate_tokens
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
 
@@ -1386,6 +1386,20 @@ def search(
         # else. Done on the shared module-level console rather than a local
         # one because the ingest helpers print through it too, and a caller
         # piping stdout to a JSON parser must not receive their output.
+        #
+        # Restored when the Click context closes -- which happens on every
+        # exit path including sys.exit -- because the console outlives this
+        # command in-process, and a stale handle to a closed stream breaks
+        # whatever runs next.
+        # `console.file` (the property) resolves an unset console to whatever
+        # sys.stdout is *right now*, so restoring that value would pin the
+        # console to a stream that is only correct for this invocation. The
+        # backing attribute is the honest thing to save: None means "track
+        # sys.stdout dynamically", which is the state we must return to.
+        previous_file = console._file
+        click.get_current_context().call_on_close(
+            lambda: setattr(console, "_file", previous_file)
+        )
         console.file = sys.stderr
 
     target = Path(path).resolve()
@@ -1504,6 +1518,13 @@ def search(
                 "[dim]Try --fuzzy for typo tolerance, or --semantic for "
                 "conceptual search (needs local Ollama).[/dim]"
             )
+        if as_json:
+            # A machine caller must get a parseable document for every query,
+            # including the ones that found nothing -- otherwise "no hits" and
+            # "the command crashed" look identical on stdout.
+            click.echo(json.dumps(
+                {"query": query, "mode": mode, "backend": backend,
+                 "limit": limit, "hits": [], "context": None}, indent=1))
         _close_all()
         return
 
@@ -1555,9 +1576,23 @@ def search(
                 top.file, top.name, top.node_type,
                 depth=depth, token_budget=budget, query=query,
             )
-            payload["context"] = ctx.to_markdown()
+            markdown = ctx.to_markdown()
+            payload["context"] = markdown
             payload["seed"] = {"file": top.file, "name": top.name,
                                "type": top.node_type}
+            # The rendered markdown is for humans and models; a benchmark
+            # harness needs the same bundle as data, so it can ask which
+            # *files* expansion pulled in and at what distance. Derived from
+            # resolved_sections() so the Class path (four sections) and the
+            # Function path (callers/callees) both flatten the same way.
+            payload["context_nodes"] = [
+                {"file": n.file, "name": n.name, "section": section.title,
+                 "role": section.role, "distance": n.distance,
+                 "abridged": n.abridged}
+                for section in ctx.resolved_sections()
+                for n in section.nodes
+            ]
+            payload["context_tokens"] = _estimate_tokens(markdown)
             if not as_json:
                 console.print()
                 console.print(

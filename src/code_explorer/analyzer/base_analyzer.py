@@ -38,14 +38,37 @@ from code_explorer.settings import settings
 logger = logging.getLogger(__name__)
 
 
+def _is_git_toplevel(root_path: Path) -> bool:
+    """True when root_path is the root of a git worktree, not merely inside one."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root_path), "rev-parse", "--show-toplevel"],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return False
+    if completed.returncode != 0:
+        return False
+    toplevel = os.fsdecode(completed.stdout).strip()
+    if not toplevel:
+        return False
+    try:
+        return Path(toplevel).resolve() == Path(root_path).resolve()
+    except OSError:
+        return False
+
+
 def discover_python_files(
     root_path: Path, exclude_patterns: Optional[List[str]] = None
 ) -> List[Path]:
     """Find Python files without walking ignored directory trees.
 
     Git already has an optimized index and ignore matcher, so use its file list
-    when possible. Non-Git directories fall back to a top-down filesystem walk
-    that prunes configured exclusions before descending into them.
+    when root_path is a repository root. Everything else -- non-Git directories,
+    and subdirectories of some other checkout -- falls back to a top-down
+    filesystem walk that prunes configured exclusions before descending.
     """
     patterns = (
         settings.default_exclude_patterns
@@ -53,26 +76,35 @@ def discover_python_files(
         else exclude_patterns
     )
 
-    try:
-        completed = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(root_path),
-                "ls-files",
-                "--cached",
-                "--others",
-                "--exclude-standard",
-                "-z",
-                "--",
-                "*.py",
-            ],
-            check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-    except OSError:
+    # Only trust git's file list when root_path *is* the repository root.
+    # `git -C <dir>` answers for the enclosing repository, so a project that
+    # happens to sit inside another checkout gets that checkout's ignore rules
+    # applied to it -- and a directory the parent ignores (a vendored corpus
+    # under .benchmarks/, say) lists zero files with returncode 0, which reads
+    # as "no Python here" rather than as "wrong repository".
+    if not _is_git_toplevel(root_path):
         completed = None
+    else:
+        try:
+            completed = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root_path),
+                    "ls-files",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                    "-z",
+                    "--",
+                    "*.py",
+                ],
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+        except OSError:
+            completed = None
 
     if completed is not None and completed.returncode == 0:
         return [

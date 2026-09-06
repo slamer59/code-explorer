@@ -57,7 +57,15 @@ def resolve_import_aware(
         ingest summary.
     """
     if not results:
-        return [], {}
+        # Zeroed, not empty: the ingest summary indexes these keys
+        # unconditionally, and `search --reindex` on an up-to-date corpus
+        # reaches here with nothing changed.
+        return [], {
+            "calls_resolved": 0,
+            "calls_unresolved": 0,
+            "calls_skipped_unattributable": 0,
+            "external_edges": 0,
+        }
 
     scope = ProjectScope.from_project_root(project_root)
 

@@ -1,0 +1,2492 @@
+{
+ "tool": "code-explorer-hybrid",
+ "corpus": "django",
+ "repo": "django",
+ "k": 10,
+ "n_queries": 150,
+ "expands": true,
+ "index_ms": 363272.8,
+ "provenance": {
+  "utc": "2026-09-06T10:55:47+00:00",
+  "tool_sha": "13f0bbf9",
+  "tool_dirty": true,
+  "corpus_sha": "b3f4d83a",
+  "host": "fedora5.home",
+  "cpus": 16,
+  "python": "3.12.13",
+  "platform": "Linux-7.1.13-200.fc44.x86_64-x86_64-with-glibc2.43"
+ },
+ "per_query": [
+  {
+   "qid": "026b005f3dc43a98557ce5a546b5e4938d06fed1",
+   "query": "Updated deprecation docs for calendar-based warning names.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 78,
+   "wall_ms": 720.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "52abe52bec23df6523aff492364f4f1b049c9572",
+   "query": "Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+   "n_relevant": 6,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 80,
+   "wall_ms": 714.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "0751d5fed159fd9ff7edba522ece13c8c9d2a0d0",
+   "query": "Prevented consumption of rhs iterators in annotation lookups.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 176,
+   "wall_ms": 736.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6",
+   "query": "Used _is_pk_set() in the XML serializer.",
+   "n_relevant": 2,
+   "n_seed": 1,
+   "n_bundle": 7,
+   "tokens": 4201,
+   "wall_ms": 724.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8d1c673466bcabff500edc6c7724e5a20f6df3de",
+   "query": "Used _is_pk_set() in Model.__eq__.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 363,
+   "wall_ms": 743.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "60a17fccf4f2fa31b823b0f938005897f2f3ef16",
+   "query": "Preserved parent instance hints on custom Prefetch querysets.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 6,
+   "tokens": 4193,
+   "wall_ms": 732.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4",
+   "query": "Made .values() and .order_by() resolve FilteredRelation aliases correctly.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 4260,
+   "wall_ms": 728.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "fdfbb711e3dd52683ae633f568761efe2735d5f0",
+   "query": "Included the invalid view type in path()/re_path() error.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 81,
+   "wall_ms": 728.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "be6cf832293779d8aeaeddca8c47a37ba1530898",
+   "query": "Allowed transforms in order_by() after alias().",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 374,
+   "wall_ms": 708.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c",
+   "query": "Fixed #37275, Refs #24920 -- Fixed SQLite DecimalField conversion without precision.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 587,
+   "wall_ms": 706.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea",
+   "query": "Made QuerySet.totally_ordered understand aliases to pure Col/ColPairs.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 1053,
+   "wall_ms": 735.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "812c08bd4e9da7b74ab9ee0db83da58a6da48d19",
+   "query": "Allowed F() expressions on the RHS of CompositePK lookups.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 883,
+   "wall_ms": 725.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "99d56e5cf15839995f62f24294584f1e2976b1ea",
+   "query": "Restored rendering of html-safe strings in form media.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 5,
+   "tokens": 912,
+   "wall_ms": 738.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c6be0bf3bb744d234947cefd6def9f31d9655800",
+   "query": "Added fields.E323 for models referenced by ManyToManyFields.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 338,
+   "wall_ms": 730.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "082b3df4067c3899dd4d57e8c2eca5baea9d07bb",
+   "query": "Fixed incorrect values for second-degree relations in ModelAdmin.list_display.",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 1403,
+   "wall_ms": 733.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6df8fe3bc1879265958b8e59c637a4145995e93c",
+   "query": "Tested FK values with __html__() in ModelAdmin.list_display.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 396,
+   "wall_ms": 732.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9",
+   "query": "Handled further malformed _source_model values in admin popups.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 1296,
+   "wall_ms": 725.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb",
+   "query": "Fixed #37257, Refs #35738 -- Prevented double-dot deprecation warnings for template literals.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 1012,
+   "wall_ms": 716.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "89e82866dc2746383c336c7b10e050b9da3ae1ef",
+   "query": "Omitted inlines without add permission on save-as-new.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 3717,
+   "wall_ms": 719.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8f52e9199b260cdacc5ad372692cddf2dcf76558",
+   "query": "Skipped questioner for field changes on unmanaged models.",
+   "n_relevant": 2,
+   "n_seed": 1,
+   "n_bundle": 1,
+   "tokens": 105,
+   "wall_ms": 745.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6baaf6a87706265446c4c7f2e3b96e3c49385b27",
+   "query": "Asserted exact HttpResponse types in tests.",
+   "n_relevant": 4,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 181,
+   "wall_ms": 766.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5",
+   "query": "Cleared stale db_default when pk comes from related object.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 329,
+   "wall_ms": 722.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "47511a21026cdd721d8fbf8571cc079bc38bb46d",
+   "query": "Fixed CVE-2026-15920 -- Made display_for_field() validate URLs before rendering admin links.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 12,
+   "tokens": 4315,
+   "wall_ms": 735.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "27137e655e442e81095f1f8f77ff3870d9fdf169",
+   "query": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 1845,
+   "wall_ms": 722.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "5637bec7a033d67407694316bdda74304449488e",
+   "query": "Fixed incomplete mocking in SQLiteInMemoryTestDbs.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 17,
+   "tokens": 4257,
+   "wall_ms": 726.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "60121939f6b225c7a719dd561e372e1d8e5e2c4a",
+   "query": "Preserved milliseconds in DataSource time fields.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 3291,
+   "wall_ms": 719.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ea303dee45f4b703b31f73ceb235f11742d3c518",
+   "query": "Allowed altering spatial indexes on RasterField.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 721,
+   "wall_ms": 716.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "9465349120ef8a0b0689e12bcbfd05f3d173ebdf",
+   "query": "Prevented fallback to python default for a pk with a db_default.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 4,
+   "tokens": 4122,
+   "wall_ms": 739.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ca14173f968cf36115f22d6c6785f738de4391ed",
+   "query": "Fixed simplify_regex() with multiple unnamed groups.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 5,
+   "tokens": 3204,
+   "wall_ms": 722.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c9ff757a55392b1f50968eb89fe775f6155168d8",
+   "query": "Fixed bulk_create() for late-saved related primary keys.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 410,
+   "wall_ms": 718.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "92e1d9e3619ae5274a64b38f26177064486892f2",
+   "query": "Prevented sort controls for unordered __str__ admin columns.",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 5,
+   "tokens": 2307,
+   "wall_ms": 729.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "92470ad3742524902b29769d2c822dbe791630db",
+   "query": "Fixed a crash for second-degree relations in ModelAdmin.list_display.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 1403,
+   "wall_ms": 756.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c2517faff335f683e1cbe55d9844910b3fb40670",
+   "query": "Fixed content_disposition_header() quoting of filenames ending with newlines.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 4,
+   "tokens": 1530,
+   "wall_ms": 728.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8a162076e1988ddf9453edfb8329d5df1573dc38",
+   "query": "Improved wording in PR quality check messages.",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 3,
+   "tokens": 2596,
+   "wall_ms": 733.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "2a5da9d00555beef8e5f6307cfcbfc029d45491e",
+   "query": "Used normalized field names for composite pks in inspectdb.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 3,
+   "tokens": 3558,
+   "wall_ms": 719.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "d8cedcab5241725003eef059dd76c533f24c5430",
+   "query": "Escaped introspection error comments in inspectdb.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 8,
+   "tokens": 3961,
+   "wall_ms": 717.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "76e1bca1311ae7073a1fa4add6f9d19d709f0f09",
+   "query": "Restored missing Index options in PostGISSchemaEditor._create_spatial_index_sql().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 5,
+   "tokens": 2007,
+   "wall_ms": 714.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "274df4df0bca7fcfb5c1c1d49567f770df147eeb",
+   "query": "Clarified pull request instructions and adjusted error messages.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 124,
+   "wall_ms": 720.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a486b48d4ea0d34babe58cae215b2123748aacbd",
+   "query": "Logged cached_db session cache delete failures.",
+   "n_relevant": 3,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 857,
+   "wall_ms": 722.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "2e48636c54910e435eb31e1b7d8a8089c84233ad",
+   "query": "Fixed #37187, #37190 -- Pointed ModelAdmin warnings to the deprecated code.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 6,
+   "tokens": 2267,
+   "wall_ms": 725.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c",
+   "query": "Avoided mutating original view in non_atomic_requests().",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 373,
+   "wall_ms": 722.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7b8504eaabea6c70195baa3c02155c24a6e270c6",
+   "query": "Made migrations track all changes to unmanaged models.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 7,
+   "tokens": 576,
+   "wall_ms": 753.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7ab2d803533dd3ffe310055414ad584cfbbf0bea",
+   "query": "Handled fields and files with the same name in encode_multipart().",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 3421,
+   "wall_ms": 769.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "5d489a52c3c604018c786f11d45453eb75fa24b3",
+   "query": "Skipped GC specific tests when GIL disabled.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 4,
+   "tokens": 1175,
+   "wall_ms": 769.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6ca2bbe2efce21010eff48f1f36a3f621d698ed8",
+   "query": "Fixed CVE-2026-53877 -- Prevented heap buffer over-read when creating GDALRaster from bytes.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 466,
+   "wall_ms": 712.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1",
+   "query": "Fixed CVE-2026-48588 -- Prevented caching of responses that set cookies and vary on Cookie.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 5,
+   "tokens": 1004,
+   "wall_ms": 717.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c",
+   "query": "Updated JSONField has_changed method to check for disabled status.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 343,
+   "wall_ms": 723.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "356e5b0f5ddb473eec3ed96d8ad9a37f3f8585eb",
+   "query": "Allowed non-UTF-8 bytes passwords in the PBKDF2 and MD5 password hashers.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 909,
+   "wall_ms": 724.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "d058058976496cedf3f36fa303a0327af38cdeaa",
+   "query": "Prevented ValueError in FileBasedCache.touch() for expired keys.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 1235,
+   "wall_ms": 731.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8acd000725838f73c5e6781114f11866f6674c46",
+   "query": "Used netstring delimiter between vary on arguments for cached template fragments.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 3,
+   "tokens": 1113,
+   "wall_ms": 723.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "65acb3cc2e76c238f5aee38d22626d92171a2f7c",
+   "query": "Used netstring delimiter between vary on headers for cached pages.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 10,
+   "tokens": 4220,
+   "wall_ms": 720.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "56050acb96abc7ac2079d83ffdd232056732bb47",
+   "query": "Applied the no-argument form of sensitive_post_parameters to MultiValueDict.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 841,
+   "wall_ms": 720.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "99a14b6be85793f3371779cd9bf6fb9d9247f475",
+   "query": "Warned via system check on missing \"default\" entry in MAILERS setting.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 621,
+   "wall_ms": 720.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "189c2d2ce58482db5c09d8b1e1464d1456dc9bab",
+   "query": "Supported subclasses\u2019 _get_lines() in jsonl Deserializer.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 123,
+   "wall_ms": 704.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "77d0c9d549a8d95156c833eceb6275d9b7317d4e",
+   "query": "Made admin display database defaults as empty values.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 5,
+   "tokens": 2686,
+   "wall_ms": 726.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ca5746b8680a5e7e14014d365c0610f825df1dae",
+   "query": "Added missing chunk_size=None check to QuerySet.aiterator().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 1270,
+   "wall_ms": 725.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "09434486302078c3649e034dfa74cf3f102db20b",
+   "query": "Raised ValueError when Bcc is used in EmailMessage headers.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 1404,
+   "wall_ms": 713.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c",
+   "query": "Avoided crash in CreateModel with unique_together and AlterUniqueTogether.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 3,
+   "tokens": 4049,
+   "wall_ms": 714.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "14c66825e0088b7e08fe5d108fa293bd31722c39",
+   "query": "Added --using option to sendtestemail command.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 918,
+   "wall_ms": 704.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e",
+   "query": "Made GenericInlineModelAdmin.get_formset() use get_exclude().",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 8,
+   "tokens": 4200,
+   "wall_ms": 722.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1",
+   "query": "Skipped backends not implementing (a)get_user() in (a)force_login().",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 70,
+   "wall_ms": 723.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c6f81b383251dc9fd0918b4ba040c993444b931e",
+   "query": "Fixed sqlmigrate crash for RenameModel with a self-referential foreign key.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 2833,
+   "wall_ms": 754.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c",
+   "query": "Returned NotImplemented in Media.__add__ for non-Media RHS.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 92,
+   "wall_ms": 721.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "f970a98e464320c09dde8d45009eadfb4d038a57",
+   "query": "Moved django_file_prefixes() to django.utils.warnings.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 11,
+   "tokens": 4149,
+   "wall_ms": 739.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "867c7c0451f2e67e715da5b55b5bf6696747fdc3",
+   "query": "Skipped DB cache deletion when culling offset is zero.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 1871,
+   "wall_ms": 724.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "46c5e76f0bcc76bfce19ad7ba07f716fc653a822",
+   "query": "Used safe_join() on downloaded template archive.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 14,
+   "tokens": 4341,
+   "wall_ms": 717.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "142b881cecaddc334cabec139e701c0e4b9798da",
+   "query": "Refs #36560, CVE-2026-35193 -- Replaced substring check on cache-control directives in UpdateCacheMiddleware.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 4064,
+   "wall_ms": 718.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "71af23d1f4678c4bf052e051d72e8928e1697de3",
+   "query": "Fixed rendering empty values for models with db_default on primary key.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 8,
+   "tokens": 2259,
+   "wall_ms": 731.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a7a57a21a8cf42ecc767c204f7939ad4419ae25f",
+   "query": "Optimized cull frequency for DBCache.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 4,
+   "tokens": 1069,
+   "wall_ms": 712.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56",
+   "query": "Restored exact boolean lookup against literals on SQLite.",
+   "n_relevant": 6,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 103,
+   "wall_ms": 703.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "42aa0b3364d312e7c6472258d8b0e9c0277fbf22",
+   "query": "Fixed CVE-2026-48587 -- Ignored whitespace padding when checking Vary header values.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 6,
+   "tokens": 1979,
+   "wall_ms": 717.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9",
+   "query": "Fixed CVE-2026-35193 -- Varied on Authorization when caching non-public responses.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 177,
+   "wall_ms": 715.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "d618d7ae4fec727d5b582bd24f803c28d17bf7cd",
+   "query": "Fixed CVE-2026-8404 -- Used Cache-Control directives case-insensitively in UpdateCacheMiddleware.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 3,
+   "tokens": 4064,
+   "wall_ms": 713.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "df887f50198593a0e5b4638bfddbbd43a30fd276",
+   "query": "Fixed CVE-2026-7666 -- Delayed setting SMTP connection until fully configured.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 754,
+   "wall_ms": 708.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "672cfaa53c72dd67fb54ecbdd904ea364d2951c4",
+   "query": "Made PR quality check require tickets for new contributors.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 2,
+   "tokens": 2116,
+   "wall_ms": 712.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540",
+   "query": "Made HttpRequest.body handle malformed CONTENT_LENGTH.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 582,
+   "wall_ms": 705.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "22d25eff1510eb157be3ef02984869b1309ec15d",
+   "query": "Handled escaped literals in simplify_regex().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 5,
+   "tokens": 3204,
+   "wall_ms": 711.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ea9742c6d02edf64fc0969f21506f2048c976051",
+   "query": "Made DjangoJSONEncoder consistently omit .000 microseconds.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 4,
+   "tokens": 412,
+   "wall_ms": 707.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6e15ac8066312328de279e3e072667416c205bfc",
+   "query": "Deprecated the safe parameter of JSONResponse.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 2,
+   "tokens": 334,
+   "wall_ms": 719.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "f57a90073920f1c34096d062e151a7bd79065f01",
+   "query": "Removed integer pk assumption in AdminCustomQuerysetTest.",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 78,
+   "wall_ms": 710.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a53e02af6d7a07d0367b534f7107a0e2a37e3d34",
+   "query": "Used ModelAdmin.get_queryset() for change form actions.",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 6,
+   "tokens": 2352,
+   "wall_ms": 717.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "53645750412efa1e9013004040db328bd515e0f1",
+   "query": "Prevented control characters in HttpResponse reason_phrase.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 128,
+   "wall_ms": 714.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "bc9bed573ce39c3b739a4a3b7848816d464b6bdc",
+   "query": "Included attributes in media object equality.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 363,
+   "wall_ms": 717.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "e78a46a8fb291a11a31b6938b5089db1058f3925",
+   "query": "Increased the default PBKDF2 iterations for Django 6.2.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 790,
+   "wall_ms": 720.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "20960df455fffd73d556a5ed92cdf6832c23e65f",
+   "query": "Renamed savepoint() to savepoint_create().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 512,
+   "wall_ms": 738.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "9b4433948714d5c43bab96b08bb6618c22512000",
+   "query": "Fixed regression in CSPSeleniumTestCase.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 17,
+   "tokens": 4257,
+   "wall_ms": 719.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8fd29079ed1253f0cd88ccf330de30271a5d15e4",
+   "query": "Aligned admin change form and list minimum permission to run action.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 4163,
+   "wall_ms": 740.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7c125f6a6660a70a0568448b2e40db273a456479",
+   "query": "Disallowed admin change form actions on different objects.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 5,
+   "tokens": 613,
+   "wall_ms": 720.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "fbe902d4a4b8b9dcb371509b25ba8feff3852e64",
+   "query": "Removed compilation-time order clearing on combined queries on Oracle.",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 878,
+   "wall_ms": 722.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6bbe2656e1e89a03d1ae8f2cea7bdd2a027f0665",
+   "query": "Reverted \"Refs #36938 -- Tolerated unnecessary ordering in compound queries on SQLite.\"",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 2,
+   "tokens": 878,
+   "wall_ms": 714.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "0e1d950fbb44878f6972a0e5730f69f98caf468e",
+   "query": "Made Query.clear_ordering() clear ordering on combined queries also.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 2,
+   "tokens": 878,
+   "wall_ms": 721.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "da6567da7ea0e844c9a880e02c7b34e1a184edf8",
+   "query": "Added preserve_request support to RedirectView.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 2539,
+   "wall_ms": 703.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f",
+   "query": "Updated SMTP EmailBackend tests for Python 3.15.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 3,
+   "tokens": 3923,
+   "wall_ms": 733.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ed5486376989c08b34cc62e7c8ba4a07bd60047d",
+   "query": "Fixed #37092, Refs #35870 -- Added missing deprecation warnings for USE_BLANK_CHOICE_DASH.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 4187,
+   "wall_ms": 733.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e",
+   "query": "Replaced \"Go\" with \"Run\" in list_editable alert message.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 6,
+   "tokens": 4360,
+   "wall_ms": 735.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "335c6d0129400eda792f3bec5c71bb28af5e5d37",
+   "query": "Checked maximum redirect lengths against percent-encoded URLs.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 654,
+   "wall_ms": 719.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "2314cdf1ff860058a6579bb9f9bac1253fc9ab43",
+   "query": "Tolerated unnecessary ordering in compound queries on SQLite.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 878,
+   "wall_ms": 719.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "9c655e98006dec4f4fd47a84c254f36404d631e4",
+   "query": "Removed unnecessary ordering from compound queries.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 878,
+   "wall_ms": 715.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "cb192dbb191525550f90d7cb9cff756f57e86aec",
+   "query": "Removed hardcoded pks in AdminViewPermissionsTest.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 78,
+   "wall_ms": 717.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "0c634de4e6950ec6fb83ab420b4af9c645b28acd",
+   "query": "Made ModelAdmin.list_select_related = False more efficient.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 480,
+   "wall_ms": 712.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "e7f539f813bd56a71ca3c1fbf379f47691002086",
+   "query": "Refs #36712, #36664 -- Used annotation_format parameter of getfullargspec() on Python 3.15.",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 6,
+   "tokens": 4244,
+   "wall_ms": 716.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e",
+   "query": "Propagated AlterField through attname-based to_field references.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 3747,
+   "wall_ms": 710.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe",
+   "query": "Cleaned up logging and middleware tests.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 144,
+   "wall_ms": 756.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "f25ad7c086eb694372a8ef08cb713556bcb366a2",
+   "query": "Added error for missing EMAIL_FILE_PATH setting.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 453,
+   "wall_ms": 709.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd",
+   "query": "Added sync_to_async() to dummy password hasher path.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 151,
+   "wall_ms": 722.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "75bb46cc454fdef0585f0a460f36f579b59f0356",
+   "query": "Replaced old PR quality comments when writing new ones.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 2,
+   "tokens": 4503,
+   "wall_ms": 711.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "57b23d15259c32dba80bb093645242f1b3b25365",
+   "query": "Added validate=True to base64.b64decode() calls.",
+   "n_relevant": 7,
+   "n_seed": 8,
+   "n_bundle": 4,
+   "tokens": 789,
+   "wall_ms": 759.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c79bdfc1351ef2a2ad95df36241a74c736ef20a1",
+   "query": "Fixed CVE-2026-6907 -- Prevented caching of requests when Vary header contains an asterisk.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 12,
+   "tokens": 4219,
+   "wall_ms": 720.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7f6e9b55130d5158804c0acbc0b24ccb7422ed82",
+   "query": "Fixed CVE-2026-35192 -- Ensured Vary header is sent when setting session cookie with SESSION_SAVE_EVERY_REQUEST=True.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 6,
+   "tokens": 1979,
+   "wall_ms": 721.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a",
+   "query": "Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+   "n_relevant": 4,
+   "n_seed": 7,
+   "n_bundle": 5,
+   "tokens": 2131,
+   "wall_ms": 726.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "920b43eb5b40190bb2dbee00773e17307bc699d8",
+   "query": "Removed hardcoded pks in annotations and delete_regress tests.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 78,
+   "wall_ms": 734.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "12dcba45cb0d3bcf735621c3b2175fdee08308d8",
+   "query": "Made RemoteUserMiddleware ImproperlyConfigured error message handle subclasses.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 3025,
+   "wall_ms": 708.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f",
+   "query": "Allowed overriding the PostgreSQL pool's \"check\" callable.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 543,
+   "wall_ms": 711.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8c8b833d32c02d3ae6f43b04bb1e45968796b402",
+   "query": "Allowed Task and TaskResult to be pickled.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 1152,
+   "wall_ms": 724.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "3f912ee4189602b4df121c0dc0428673fda5c253",
+   "query": "Extracted set_choices() method from FilePathField.__init__().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 5,
+   "tokens": 4203,
+   "wall_ms": 714.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "60a9c70496e5d7b971928ce3da5b47c8836a4def",
+   "query": "Added trailing slash in django_file_prefixes().",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 338,
+   "wall_ms": 717.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "5b3cfce51770f46c6dc100e9be7f199a37176762",
+   "query": "Fixed ModelAdmin.list_editable form submission for non-editable instances.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 1186,
+   "wall_ms": 719.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "5d911f2d2fecc703be91b2b9b28acc59d34b35f3",
+   "query": "Deprecated double-dot variable lookups.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 1198,
+   "wall_ms": 717.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "fb292a549371a7c011c25b1a10fe5d25c579814a",
+   "query": "Added connector validation to Q.create().",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 809,
+   "wall_ms": 725.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "c63591d4da533944af31ccb46a77eb221dbdba0a",
+   "query": "Centralized auth timing attack mitigations.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 2,
+   "tokens": 463,
+   "wall_ms": 707.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "526b548cfb9c8a02ea2b7ae064ef3b795305d51a",
+   "query": "Marked authenticate() with @sensitive_variables() decorator.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 151,
+   "wall_ms": 715.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "ad073338d02fce884301d159f30eaf17c7f2d246",
+   "query": "Reverted inadvertent changes to PK formatting in tests.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 146,
+   "wall_ms": 757.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "61a62be313e395ce1265132bfc99f51476fb3c95",
+   "query": "Adjusted UniqueConstraint handling of UNKNOWN condition.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 3,
+   "tokens": 5105,
+   "wall_ms": 712.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "dc467fdc3b5744cec71fab876c23a14013e2510b",
+   "query": "Raised BadRequest for invalid encodings in Content-Type headers.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 7,
+   "tokens": 2047,
+   "wall_ms": 721.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "84db026228413dda4cd195464554d51c0b208e32",
+   "query": "Excluded fields by per-object permissions for ModelAdmin.list_editable.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 3559,
+   "wall_ms": 727.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "673fa46d8063577c92cfab3a73a28e9406372e33",
+   "query": "Allowed Ready for checkin Trac status in PR checks.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 2,
+   "tokens": 2865,
+   "wall_ms": 725.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "a284a49153f005f2a7af087025e5112ba06cbd5f",
+   "query": "Fixed crash in Query.orderby_issubset_groupby for descending and random order_by strings.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 391,
+   "wall_ms": 722.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f",
+   "query": "Made SITE_ID system check validation use Site._meta.pk.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 2,
+   "tokens": 569,
+   "wall_ms": 722.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "820c7d3248af6afbdf3390c97b29e41ba126a421",
+   "query": "Added missing flat=True arg in DeferredAttribute.fetch_many().",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 3,
+   "tokens": 4137,
+   "wall_ms": 722.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "3157285e27a426530ef571855e0e29c317e210df",
+   "query": "Made base File objects truthy by default.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 65,
+   "wall_ms": 713.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "280256499c5b2d636949f3c8cb52159a8e4c26bb",
+   "query": "Refs CVE-2026-4292 -- Isolated new test in AdminViewListEditable.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 1,
+   "tokens": 90,
+   "wall_ms": 756.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "e2abe321a6f1370e05c1a89a742125c9eafcac8c",
+   "query": "Added Permission.user_perm_str property.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 98,
+   "wall_ms": 701.9,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7e9885f99cee771b51692fadc5592bdbf19641aa",
+   "query": "Fixed CVE-2026-33033 -- Mitigated potential DoS in MultiPartParser.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 4562,
+   "wall_ms": 709.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6afe7ce93964f56e33a29d477c269436f9b60cbf",
+   "query": "Fixed CVE-2026-4292 -- Disallowed instance creation via ModelAdmin.list_editable.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 3,
+   "tokens": 1374,
+   "wall_ms": 710.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "caf90a971f09323775ed0cacf94eadaf39d040e0",
+   "query": "Fixed CVE-2026-3902 -- Ignored headers with underscores in ASGIRequest.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 4,
+   "tokens": 3404,
+   "wall_ms": 710.7,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "33bfc66add643f49d466c5a646989ad91677753d",
+   "query": "Made XML serializer put each ManyToManyField object on its own line.",
+   "n_relevant": 2,
+   "n_seed": 1,
+   "n_bundle": 7,
+   "tokens": 4201,
+   "wall_ms": 711.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "3b161e60964aff99eddcd2627a486d81c1836b3a",
+   "query": "Avoided propagating invalid arguments from When() to Q().",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 3,
+   "tokens": 1666,
+   "wall_ms": 730.0,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "fcf916884d25ed430bd7cedaea2b10035c2aa3b6",
+   "query": "Made fields.E348 check detect further clashes between managers and related_names.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 1,
+   "tokens": 1738,
+   "wall_ms": 724.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "cec10f992be8eed5ed90506375ae5794cbb7069e",
+   "query": "Fixed handling of __in lookups with None in exclude().",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 1,
+   "tokens": 970,
+   "wall_ms": 727.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "856c915326768962806705ca7733e4abbb8f794f",
+   "query": "Used QuerySet.totally_ordered in BaseModelFormSet.get_queryset() for stable ordering.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 2,
+   "tokens": 1053,
+   "wall_ms": 728.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "8b7ea2bcdd7297941ca6beb72d93b9568e187349",
+   "query": "Maintained error message determinism in MultipleChoiceField.validate().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 3,
+   "tokens": 2005,
+   "wall_ms": 715.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "386257b33eb2a925cecc1a12ba5e7dd694617186",
+   "query": "Prevented crash in JSONField numeric lookups with expressions.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 1,
+   "tokens": 3136,
+   "wall_ms": 721.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "2d7f899deb2e3e58438a0703d6c3be4227641239",
+   "query": "Reloaded logging config when logging settings are changed in tests.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 17,
+   "tokens": 4643,
+   "wall_ms": 756.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "5146449a38222dc74f8f1ba88a7a7ef681e93101",
+   "query": "Removed unnecessary prohibits_dollar_signs_in_column_aliases feature flag.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 1,
+   "tokens": 147,
+   "wall_ms": 713.2,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe",
+   "query": "Made admin use boolean icons for related BooleanFields in list_display.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 11,
+   "tokens": 4085,
+   "wall_ms": 736.8,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3",
+   "query": "Observed prepared argument in UUIDField.get_db_prep_value().",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 1,
+   "tokens": 305,
+   "wall_ms": 715.5,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "0ed8d4e7d1029e1283b04f70d51d2af96ad85d6a",
+   "query": "Made assertContains and assertNotContains idempotent for streaming responses.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 157,
+   "wall_ms": 722.3,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "d7bf84324fb4b0789302bd0624697ba973dd7140",
+   "query": "Handled coalescing JSON-primitive strings and JSON values on Oracle.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 1,
+   "tokens": 98,
+   "wall_ms": 725.4,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "6c95af5c9d294a20d09f080d7c144e3b7362d65f",
+   "query": "Fixed ValueError when `query_params` and `follow` are used on test client.",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 2,
+   "tokens": 1050,
+   "wall_ms": 759.1,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  },
+  {
+   "qid": "7cb2221e9267dec3f1cf7c88b8686d38fd956639",
+   "query": "Encapsulated loop logic to avoid leaking module-level variables.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 1764,
+   "wall_ms": 718.6,
+   "mode": "hybrid BM25+vector",
+   "error": null
+  }
+ ],
+ "kind": "bundle",
+ "run": {
+  "026b005f3dc43a98557ce5a546b5e4938d06fed1": {
+   "django/utils/deprecation.py": 1.0
+  },
+  "52abe52bec23df6523aff492364f4f1b049c9572": {
+   "django/utils/deprecation.py": 1.0
+  },
+  "0751d5fed159fd9ff7edba522ece13c8c9d2a0d0": {
+   "django/db/models/lookups.py": 1.0
+  },
+  "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6": {
+   "django/core/serializers/xml_serializer.py": 1.0,
+   "django/contrib/gis/serializers/geojson.py": 0.16666666666666666,
+   "django/core/serializers/jsonl.py": 0.14285714285714285,
+   "django/core/serializers/pyyaml.py": 0.125,
+   "django/core/serializers/json.py": 0.1111111111111111,
+   "django/core/serializers/python.py": 0.1,
+   "tests/serializers/tests.py": 0.09090909090909091
+  },
+  "8d1c673466bcabff500edc6c7724e5a20f6df3de": {
+   "django/db/models/base.py": 1.0
+  },
+  "60a17fccf4f2fa31b823b0f938005897f2f3ef16": {
+   "django/db/models/fields/related_descriptors.py": 1.0,
+   "django/db/models/query.py": 0.5,
+   "django/db/models/fields/mixins.py": 0.3333333333333333,
+   "django/db/models/sql/query.py": 0.25,
+   "django/db/models/manager.py": 0.1111111111111111,
+   "django/db/models/fields/reverse_related.py": 0.058823529411764705
+  },
+  "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4": {
+   "django/db/migrations/state.py": 1.0,
+   "django/db/migrations/autodetector.py": 0.5,
+   "tests/migrations/test_autodetector.py": 0.16666666666666666
+  },
+  "fdfbb711e3dd52683ae633f568761efe2735d5f0": {
+   "django/views/generic/__init__.py": 1.0
+  },
+  "be6cf832293779d8aeaeddca8c47a37ba1530898": {
+   "django/db/models/lookups.py": 1.0
+  },
+  "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c": {
+   "django/db/backends/sqlite3/operations.py": 1.0
+  },
+  "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/expressions.py": 0.5
+  },
+  "812c08bd4e9da7b74ab9ee0db83da58a6da48d19": {
+   "django/db/models/lookups.py": 1.0
+  },
+  "99d56e5cf15839995f62f24294584f1e2976b1ea": {
+   "django/utils/html.py": 1.0,
+   "django/template/defaultfilters.py": 0.5,
+   "tests/utils_tests/test_safestring.py": 0.3333333333333333,
+   "django/utils/safestring.py": 0.25,
+   "tests/template_tests/filter_tests/test_escapejs.py": 0.2
+  },
+  "c6be0bf3bb744d234947cefd6def9f31d9655800": {
+   "django/db/models/fields/generated.py": 1.0,
+   "django/db/models/sql/query.py": 0.5
+  },
+  "082b3df4067c3899dd4d57e8c2eca5baea9d07bb": {
+   "tests/admin_changelist/tests.py": 1.0,
+   "django/test/testcases.py": 0.5
+  },
+  "6df8fe3bc1879265958b8e59c637a4145995e93c": {
+   "tests/admin_views/tests.py": 1.0,
+   "django/contrib/admin/views/main.py": 0.5
+  },
+  "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9": {
+   "tests/admin_views/tests.py": 1.0,
+   "django/test/testcases.py": 0.5
+  },
+  "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb": {
+   "django/template/smartif.py": 1.0
+  },
+  "89e82866dc2746383c336c7b10e050b9da3ae1ef": {
+   "tests/model_formsets_regress/tests.py": 1.0,
+   "django/db/models/query.py": 0.5,
+   "django/forms/models.py": 0.3333333333333333,
+   "django/test/testcases.py": 0.25,
+   "django/db/models/sql/query.py": 0.14285714285714285,
+   "django/forms/formsets.py": 0.07692307692307693
+  },
+  "8f52e9199b260cdacc5ad372692cddf2dcf76558": {
+   "django/db/migrations/questioner.py": 1.0
+  },
+  "6baaf6a87706265446c4c7f2e3b96e3c49385b27": {
+   "django/http/request.py": 1.0
+  },
+  "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5": {
+   "django/db/models/fields/related.py": 1.0,
+   "django/db/models/base.py": 0.5
+  },
+  "47511a21026cdd721d8fbf8571cc079bc38bb46d": {
+   "django/contrib/admin/utils.py": 1.0,
+   "tests/admin_utils/tests.py": 0.5,
+   "tests/postgres_tests/test_array.py": 0.09090909090909091,
+   "django/contrib/admin/helpers.py": 0.07692307692307693,
+   "django/contrib/admin/templatetags/admin_list.py": 0.07142857142857142,
+   "django/utils/datastructures.py": 0.05555555555555555,
+   "django/utils/html.py": 0.05263157894736842,
+   "django/utils/hashable.py": 0.05,
+   "django/contrib/auth/__init__.py": 0.047619047619047616,
+   "django/utils/formats.py": 0.045454545454545456,
+   "django/contrib/auth/templatetags/auth.py": 0.041666666666666664,
+   "django/utils/timezone.py": 0.04
+  },
+  "27137e655e442e81095f1f8f77ff3870d9fdf169": {
+   "django/utils/translation/__init__.py": 1.0,
+   "django/utils/formats.py": 0.5,
+   "django/views/i18n.py": 0.3333333333333333,
+   "tests/i18n/tests.py": 0.2
+  },
+  "5637bec7a033d67407694316bdda74304449488e": {
+   "django/utils/timezone.py": 1.0,
+   "django/utils/dateparse.py": 0.5,
+   "tests/syndication_tests/feeds.py": 0.3333333333333333,
+   "tests/model_regress/tests.py": 0.25,
+   "tests/template_tests/filter_tests/timezone_utils.py": 0.2,
+   "tests/utils_tests/test_dateformat.py": 0.16666666666666666,
+   "tests/humanize_tests/tests.py": 0.14285714285714285,
+   "tests/utils_tests/test_timezone.py": 0.125,
+   "tests/template_tests/filter_tests/test_date.py": 0.1111111111111111,
+   "tests/template_tests/filter_tests/test_time.py": 0.1,
+   "tests/utils_tests/test_dateparse.py": 0.09090909090909091,
+   "tests/forms_tests/field_tests/test_datetimefield.py": 0.08333333333333333,
+   "tests/migrations/test_writer.py": 0.07142857142857142,
+   "tests/utils_tests/test_timesince.py": 0.0625,
+   "tests/file_storage/tests.py": 0.05555555555555555,
+   "tests/utils_tests/test_feedgenerator.py": 0.05,
+   "django/db/backends/base/base.py": 0.047619047619047616
+  },
+  "60121939f6b225c7a719dd561e372e1d8e5e2c4a": {
+   "django/db/models/fields/__init__.py": 1.0,
+   "django/contrib/gis/gdal/field.py": 0.14285714285714285,
+   "django/forms/fields.py": 0.125
+  },
+  "ea303dee45f4b703b31f73ceb235f11742d3c518": {
+   "django/contrib/gis/db/backends/mysql/schema.py": 1.0
+  },
+  "9465349120ef8a0b0689e12bcbfd05f3d173ebdf": {
+   "django/db/backends/base/schema.py": 1.0,
+   "django/db/backends/sqlite3/schema.py": 0.5,
+   "django/db/backends/mysql/schema.py": 0.3333333333333333,
+   "django/db/models/sql/query.py": 0.14285714285714285
+  },
+  "ca14173f968cf36115f22d6c6785f738de4391ed": {
+   "django/urls/utils.py": 1.0,
+   "tests/urlpatterns/tests.py": 0.5,
+   "django/core/management/commands/listurls.py": 0.3333333333333333,
+   "django/contrib/admindocs/views.py": 0.25,
+   "django/utils/copy.py": 0.08333333333333333
+  },
+  "c9ff757a55392b1f50968eb89fe775f6155168d8": {
+   "django/db/models/fields/__init__.py": 1.0
+  },
+  "92e1d9e3619ae5274a64b38f26177064486892f2": {
+   "django/contrib/admin/templatetags/admin_filters.py": 1.0,
+   "tests/admin_views/test_templatetags.py": 0.5,
+   "django/utils/safestring.py": 0.07142857142857142,
+   "django/utils/translation/__init__.py": 0.06666666666666667,
+   "django/template/defaultfilters.py": 0.058823529411764705
+  },
+  "92470ad3742524902b29769d2c822dbe791630db": {
+   "tests/admin_changelist/tests.py": 1.0,
+   "django/test/testcases.py": 0.5
+  },
+  "c2517faff335f683e1cbe55d9844910b3fb40670": {
+   "django/utils/http.py": 1.0,
+   "tests/utils_tests/test_http.py": 0.5,
+   "django/http/response.py": 0.3333333333333333,
+   "django/utils/copy.py": 0.25
+  },
+  "8a162076e1988ddf9453edfb8329d5df1573dc38": {
+   "scripts/pr_quality/check_pr.py": 1.0,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.5,
+   "django/template/defaultfilters.py": 0.07142857142857142
+  },
+  "2a5da9d00555beef8e5f6307cfcbfc029d45491e": {
+   "django/core/management/commands/inspectdb.py": 1.0,
+   "django/template/defaultfilters.py": 0.3333333333333333,
+   "django/utils/copy.py": 0.25
+  },
+  "d8cedcab5241725003eef059dd76c533f24c5430": {
+   "tests/inspectdb/tests.py": 1.0,
+   "django/core/management/__init__.py": 0.5,
+   "django/contrib/gis/gdal/raster/band.py": 0.3333333333333333,
+   "django/utils/copy.py": 0.25,
+   "django/utils/datastructures.py": 0.2,
+   "django/core/management/base.py": 0.16666666666666666,
+   "django/apps/registry.py": 0.09090909090909091,
+   "django/template/loader_tags.py": 0.05555555555555555
+  },
+  "76e1bca1311ae7073a1fa4add6f9d19d709f0f09": {
+   "django/contrib/gis/db/backends/postgis/schema.py": 1.0,
+   "django/template/loader_tags.py": 0.25,
+   "django/utils/safestring.py": 0.16666666666666666,
+   "django/db/backends/base/schema.py": 0.14285714285714285,
+   "django/db/backends/utils.py": 0.1
+  },
+  "274df4df0bca7fcfb5c1c1d49567f770df147eeb": {
+   "django/db/models/fields/__init__.py": 1.0
+  },
+  "a486b48d4ea0d34babe58cae215b2123748aacbd": {
+   "django/contrib/sessions/backends/cached_db.py": 1.0,
+   "django/template/loader_tags.py": 0.3333333333333333,
+   "django/utils/safestring.py": 0.25
+  },
+  "2e48636c54910e435eb31e1b7d8a8089c84233ad": {
+   "django/db/models/fields/__init__.py": 1.0,
+   "django/template/defaultfilters.py": 0.2,
+   "django/utils/formats.py": 0.125,
+   "django/utils/timezone.py": 0.1111111111111111,
+   "django/utils/dateformat.py": 0.1,
+   "django/utils/copy.py": 0.08333333333333333
+  },
+  "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c": {
+   "django/db/transaction.py": 1.0,
+   "tests/handlers/tests.py": 0.3333333333333333
+  },
+  "7b8504eaabea6c70195baa3c02155c24a6e270c6": {
+   "django/db/migrations/recorder.py": 1.0,
+   "django/db/models/base.py": 0.3333333333333333,
+   "tests/check_framework/test_model_field_deprecation.py": 0.25,
+   "django/contrib/admin/migrations/0002_logentry_remove_auto_add.py": 0.14285714285714285,
+   "django/contrib/admin/migrations/0003_logentry_add_action_flag_choices.py": 0.125,
+   "django/contrib/admin/migrations/0001_initial.py": 0.1111111111111111,
+   "django/contrib/auth/migrations/0003_alter_user_email_max_length.py": 0.1
+  },
+  "7ab2d803533dd3ffe310055414ad584cfbbf0bea": {
+   "django/http/multipartparser.py": 1.0,
+   "django/utils/encoding.py": 0.3333333333333333
+  },
+  "5d489a52c3c604018c786f11d45453eb75fa24b3": {
+   "django/contrib/gis/gdal/error.py": 1.0,
+   "django/contrib/gis/gdal/prototypes/errcheck.py": 0.5,
+   "django/utils/dateformat.py": 0.14285714285714285,
+   "django/contrib/gis/gdal/prototypes/generation.py": 0.125
+  },
+  "6ca2bbe2efce21010eff48f1f36a3f621d698ed8": {
+   "django/contrib/gis/gdal/raster/source.py": 1.0,
+   "django/utils/encoding.py": 0.5
+  },
+  "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1": {
+   "django/middleware/csrf.py": 1.0,
+   "django/utils/cache.py": 0.3333333333333333,
+   "django/http/response.py": 0.25,
+   "django/template/defaultfilters.py": 0.2,
+   "django/utils/http.py": 0.16666666666666666
+  },
+  "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c": {
+   "django/db/models/fields/json.py": 1.0
+  },
+  "356e5b0f5ddb473eec3ed96d8ad9a37f3f8585eb": {
+   "django/utils/crypto.py": 1.0,
+   "django/contrib/auth/hashers.py": 0.5,
+   "tests/utils_tests/test_crypto.py": 0.3333333333333333,
+   "django/utils/encoding.py": 0.16666666666666666
+  },
+  "d058058976496cedf3f36fa303a0327af38cdeaa": {
+   "django/core/cache/backends/filebased.py": 1.0,
+   "tests/responses/test_fileresponse.py": 0.3333333333333333,
+   "django/core/cache/backends/base.py": 0.16666666666666666
+  },
+  "8acd000725838f73c5e6781114f11866f6674c46": {
+   "django/core/cache/utils.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/templatetags/cache.py": 0.1111111111111111
+  },
+  "65acb3cc2e76c238f5aee38d22626d92171a2f7c": {
+   "django/utils/cache.py": 1.0,
+   "django/views/decorators/vary.py": 0.5,
+   "tests/cache/tests.py": 0.3333333333333333,
+   "django/middleware/csrf.py": 0.1111111111111111,
+   "django/middleware/cache.py": 0.1,
+   "django/middleware/locale.py": 0.09090909090909091,
+   "django/middleware/gzip.py": 0.08333333333333333,
+   "django/http/response.py": 0.07692307692307693,
+   "django/template/defaultfilters.py": 0.07142857142857142,
+   "tests/decorators/test_vary.py": 0.06666666666666667
+  },
+  "56050acb96abc7ac2079d83ffdd232056732bb47": {
+   "django/views/decorators/debug.py": 1.0,
+   "tests/view_tests/tests/test_debug.py": 0.5
+  },
+  "99a14b6be85793f3371779cd9bf6fb9d9247f475": {
+   "django/core/checks/mail.py": 1.0,
+   "tests/check_framework/test_mail.py": 0.5
+  },
+  "189c2d2ce58482db5c09d8b1e1464d1456dc9bab": {
+   "django/core/serializers/jsonl.py": 1.0
+  },
+  "77d0c9d549a8d95156c833eceb6275d9b7317d4e": {
+   "django/contrib/admin/options.py": 1.0,
+   "django/contrib/admin/filters.py": 0.5,
+   "django/contrib/admin/templatetags/admin_list.py": 0.3333333333333333,
+   "django/contrib/admin/helpers.py": 0.25,
+   "django/utils/safestring.py": 0.16666666666666666
+  },
+  "ca5746b8680a5e7e14014d365c0610f825df1dae": {
+   "django/db/models/query.py": 1.0,
+   "tests/async/test_async_queryset.py": 0.5,
+   "django/utils/warnings.py": 0.16666666666666666
+  },
+  "09434486302078c3649e034dfa74cf3f102db20b": {
+   "django/core/mail/backends/smtp.py": 1.0,
+   "tests/mail/test_backends.py": 0.3333333333333333,
+   "django/utils/encoding.py": 0.25,
+   "django/utils/datastructures.py": 0.2
+  },
+  "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c": {
+   "django/db/migrations/operations/models.py": 1.0,
+   "django/db/migrations/autodetector.py": 0.5,
+   "tests/migrations/test_optimizer.py": 0.25
+  },
+  "14c66825e0088b7e08fe5d108fa293bd31722c39": {
+   "django/core/management/commands/sendtestemail.py": 1.0,
+   "django/core/management/base.py": 0.25
+  },
+  "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e": {
+   "django/contrib/admin/options.py": 1.0,
+   "django/contrib/gis/geos/mutable_list.py": 0.25,
+   "django/forms/models.py": 0.2,
+   "django/template/loader_tags.py": 0.16666666666666666,
+   "django/utils/translation/__init__.py": 0.14285714285714285,
+   "django/utils/text.py": 0.125,
+   "django/contrib/admin/utils.py": 0.1111111111111111,
+   "django/utils/safestring.py": 0.045454545454545456
+  },
+  "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1": {
+   "django/contrib/auth/backends.py": 1.0
+  },
+  "c6f81b383251dc9fd0918b4ba040c993444b931e": {
+   "django/core/management/commands/sqlmigrate.py": 1.0,
+   "django/apps/registry.py": 0.5,
+   "django/db/migrations/loader.py": 0.3333333333333333,
+   "django/contrib/gis/geos/mutable_list.py": 0.16666666666666666,
+   "django/db/backends/base/base.py": 0.14285714285714285,
+   "django/db/migrations/migration.py": 0.1111111111111111,
+   "django/db/migrations/graph.py": 0.08333333333333333,
+   "django/db/transaction.py": 0.07692307692307693
+  },
+  "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c": {
+   "django/template/context_processors.py": 1.0
+  },
+  "f970a98e464320c09dde8d45009eadfb4d038a57": {
+   "django/utils/warnings.py": 1.0,
+   "tests/utils_tests/test_warnings.py": 0.5,
+   "django/utils/deprecation.py": 0.25,
+   "django/utils/crypto.py": 0.14285714285714285,
+   "django/db/models/sql/query.py": 0.125,
+   "django/core/signing.py": 0.1111111111111111,
+   "django/db/models/query.py": 0.1,
+   "django/utils/log.py": 0.08333333333333333,
+   "django/db/transaction.py": 0.07692307692307693,
+   "django/db/models/fields/json.py": 0.07142857142857142,
+   "django/contrib/admin/options.py": 0.06666666666666667
+  },
+  "867c7c0451f2e67e715da5b55b5bf6696747fdc3": {
+   "django/core/cache/backends/db.py": 1.0,
+   "django/db/backends/base/base.py": 0.14285714285714285
+  },
+  "46c5e76f0bcc76bfce19ad7ba07f716fc653a822": {
+   "django/utils/_os.py": 1.0,
+   "django/template/backends/base.py": 0.5,
+   "django/core/files/storage/filesystem.py": 0.3333333333333333,
+   "django/template/loaders/filesystem.py": 0.25,
+   "django/core/files/storage/memory.py": 0.2,
+   "django/views/static.py": 0.16666666666666666,
+   "django/contrib/staticfiles/finders.py": 0.14285714285714285,
+   "django/core/management/templates.py": 0.125,
+   "django/contrib/admindocs/views.py": 0.1111111111111111,
+   "tests/utils_tests/test_os_utils.py": 0.1,
+   "django/test/testcases.py": 0.058823529411764705,
+   "django/template/backends/dummy.py": 0.037037037037037035,
+   "tests/admin_scripts/tests.py": 0.03571428571428571,
+   "tests/file_storage/tests.py": 0.025
+  },
+  "142b881cecaddc334cabec139e701c0e4b9798da": {
+   "django/middleware/cache.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/middleware/__init__.py": 0.1111111111111111
+  },
+  "71af23d1f4678c4bf052e051d72e8928e1697de3": {
+   "django/db/backends/base/introspection.py": 1.0,
+   "tests/schema/tests.py": 0.25,
+   "tests/introspection/tests.py": 0.2,
+   "tests/backends/sqlite/test_introspection.py": 0.16666666666666666,
+   "django/core/management/commands/inspectdb.py": 0.125,
+   "django/db/backends/mysql/base.py": 0.1111111111111111,
+   "django/db/backends/sqlite3/base.py": 0.1,
+   "django/db/backends/sqlite3/introspection.py": 0.09090909090909091
+  },
+  "a7a57a21a8cf42ecc767c204f7939ad4419ae25f": {
+   "django/core/cache/backends/locmem.py": 1.0,
+   "django/http/request.py": 0.3333333333333333,
+   "django/template/loader_tags.py": 0.16666666666666666,
+   "django/utils/safestring.py": 0.1
+  },
+  "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56": {
+   "django/db/backends/sqlite3/operations.py": 1.0
+  },
+  "42aa0b3364d312e7c6472258d8b0e9c0277fbf22": {
+   "django/utils/cache.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/middleware/cache.py": 0.125,
+   "django/http/response.py": 0.1111111111111111,
+   "django/template/defaultfilters.py": 0.1,
+   "django/utils/http.py": 0.09090909090909091
+  },
+  "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9": {
+   "django/contrib/auth/context_processors.py": 1.0
+  },
+  "d618d7ae4fec727d5b582bd24f803c28d17bf7cd": {
+   "django/middleware/cache.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/middleware/__init__.py": 0.1111111111111111
+  },
+  "df887f50198593a0e5b4638bfddbbd43a30fd276": {
+   "django/core/mail/backends/smtp.py": 1.0
+  },
+  "672cfaa53c72dd67fb54ecbdd904ea364d2951c4": {
+   "scripts/pr_quality/check_pr.py": 1.0,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.5
+  },
+  "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540": {
+   "django/http/request.py": 1.0,
+   "tests/responses/test_fileresponse.py": 0.5
+  },
+  "22d25eff1510eb157be3ef02984869b1309ec15d": {
+   "django/urls/utils.py": 1.0,
+   "tests/urlpatterns/tests.py": 0.5,
+   "django/core/management/commands/listurls.py": 0.3333333333333333,
+   "django/contrib/admindocs/views.py": 0.25,
+   "django/utils/copy.py": 0.09090909090909091
+  },
+  "ea9742c6d02edf64fc0969f21506f2048c976051": {
+   "django/utils/duration.py": 1.0,
+   "tests/utils_tests/test_duration.py": 0.5,
+   "django/db/backends/sqlite3/_functions.py": 0.3333333333333333,
+   "django/db/backends/base/operations.py": 0.25
+  },
+  "6e15ac8066312328de279e3e072667416c205bfc": {
+   "django/http/response.py": 1.0,
+   "django/utils/datastructures.py": 0.5
+  },
+  "f57a90073920f1c34096d062e151a7bd79065f01": {
+   "django/utils/deprecation.py": 1.0
+  },
+  "a53e02af6d7a07d0367b534f7107a0e2a37e3d34": {
+   "django/contrib/auth/forms.py": 1.0,
+   "django/forms/forms.py": 0.14285714285714285,
+   "tests/forms_tests/field_tests/__init__.py": 0.125,
+   "tests/auth_tests/test_forms.py": 0.1111111111111111,
+   "tests/admin_views/forms.py": 0.1,
+   "tests/admin_views/tests.py": 0.09090909090909091
+  },
+  "53645750412efa1e9013004040db328bd515e0f1": {
+   "django/http/response.py": 1.0
+  },
+  "bc9bed573ce39c3b739a4a3b7848816d464b6bdc": {
+   "tests/generic_inline_admin/models.py": 1.0,
+   "django/db/models/base.py": 0.3333333333333333,
+   "tests/check_framework/test_model_field_deprecation.py": 0.25
+  },
+  "e78a46a8fb291a11a31b6938b5089db1058f3925": {
+   "django/contrib/auth/hashers.py": 1.0,
+   "tests/auth_tests/test_hashers.py": 0.5
+  },
+  "20960df455fffd73d556a5ed92cdf6832c23e65f": {
+   "django/db/transaction.py": 1.0,
+   "tests/transactions/tests.py": 0.3333333333333333
+  },
+  "9b4433948714d5c43bab96b08bb6618c22512000": {
+   "django/utils/timezone.py": 1.0,
+   "django/utils/dateparse.py": 0.5,
+   "tests/syndication_tests/feeds.py": 0.3333333333333333,
+   "tests/model_regress/tests.py": 0.25,
+   "tests/template_tests/filter_tests/timezone_utils.py": 0.2,
+   "tests/utils_tests/test_dateformat.py": 0.16666666666666666,
+   "tests/humanize_tests/tests.py": 0.14285714285714285,
+   "tests/utils_tests/test_timezone.py": 0.125,
+   "tests/template_tests/filter_tests/test_date.py": 0.1111111111111111,
+   "tests/template_tests/filter_tests/test_time.py": 0.1,
+   "tests/utils_tests/test_dateparse.py": 0.09090909090909091,
+   "tests/forms_tests/field_tests/test_datetimefield.py": 0.08333333333333333,
+   "tests/migrations/test_writer.py": 0.07142857142857142,
+   "tests/utils_tests/test_timesince.py": 0.0625,
+   "tests/file_storage/tests.py": 0.05555555555555555,
+   "tests/utils_tests/test_feedgenerator.py": 0.05,
+   "django/db/backends/base/base.py": 0.047619047619047616
+  },
+  "8fd29079ed1253f0cd88ccf330de30271a5d15e4": {
+   "django/contrib/admin/options.py": 1.0
+  },
+  "7c125f6a6660a70a0568448b2e40db273a456479": {
+   "django/contrib/admin/forms.py": 1.0,
+   "django/contrib/auth/forms.py": 0.5,
+   "tests/auth_tests/test_forms.py": 0.3333333333333333,
+   "tests/admin_views/forms.py": 0.25,
+   "tests/admin_views/tests.py": 0.2
+  },
+  "fbe902d4a4b8b9dcb371509b25ba8feff3852e64": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333
+  },
+  "6bbe2656e1e89a03d1ae8f2cea7bdd2a027f0665": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333
+  },
+  "0e1d950fbb44878f6972a0e5730f69f98caf468e": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333
+  },
+  "da6567da7ea0e844c9a880e02c7b34e1a184edf8": {
+   "django/views/generic/base.py": 1.0,
+   "tests/generic_views/test_base.py": 0.5,
+   "tests/urlpatterns_reverse/views.py": 0.1111111111111111
+  },
+  "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f": {
+   "django/core/mail/backends/smtp.py": 1.0,
+   "django/core/mail/backends/base.py": 0.16666666666666666,
+   "tests/mail/test_backends.py": 0.14285714285714285
+  },
+  "ed5486376989c08b34cc62e7c8ba4a07bd60047d": {
+   "django/db/migrations/autodetector.py": 1.0,
+   "tests/migrations/test_autodetector.py": 0.2,
+   "django/contrib/gis/geos/mutable_list.py": 0.06666666666666667
+  },
+  "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e": {
+   "django/db/migrations/loader.py": 1.0,
+   "django/db/migrations/executor.py": 0.3333333333333333,
+   "django/core/management/commands/makemigrations.py": 0.2,
+   "django/core/management/commands/migrate.py": 0.16666666666666666,
+   "tests/migrations/test_loader.py": 0.14285714285714285,
+   "tests/migrations/test_executor.py": 0.1111111111111111
+  },
+  "335c6d0129400eda792f3bec5c71bb28af5e5d37": {
+   "django/contrib/auth/password_validation.py": 1.0
+  },
+  "2314cdf1ff860058a6579bb9f9bac1253fc9ab43": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333
+  },
+  "9c655e98006dec4f4fd47a84c254f36404d631e4": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333
+  },
+  "cb192dbb191525550f90d7cb9cff756f57e86aec": {
+   "django/utils/deprecation.py": 1.0
+  },
+  "0c634de4e6950ec6fb83ab420b4af9c645b28acd": {
+   "django/contrib/admin/checks.py": 1.0
+  },
+  "e7f539f813bd56a71ca3c1fbf379f47691002086": {
+   "django/utils/inspect.py": 1.0,
+   "django/template/library.py": 0.5,
+   "django/template/base.py": 0.2,
+   "django/contrib/admin/templatetags/base.py": 0.16666666666666666,
+   "tests/template_tests/test_custom.py": 0.1111111111111111,
+   "tests/template_tests/test_library.py": 0.0625
+  },
+  "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e": {
+   "django/db/migrations/operations/fields.py": 1.0,
+   "django/db/migrations/autodetector.py": 0.5,
+   "tests/migrations/test_optimizer.py": 0.2
+  },
+  "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe": {
+   "django/forms/formsets.py": 1.0
+  },
+  "f25ad7c086eb694372a8ef08cb713556bcb366a2": {
+   "django/core/checks/files.py": 1.0,
+   "tests/check_framework/test_files.py": 0.5
+  },
+  "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd": {
+   "django/contrib/auth/hashers.py": 1.0
+  },
+  "75bb46cc454fdef0585f0a460f36f579b59f0356": {
+   "scripts/pr_quality/check_pr.py": 1.0,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.5
+  },
+  "57b23d15259c32dba80bb093645242f1b3b25365": {
+   "django/utils/http.py": 1.0,
+   "django/contrib/auth/views.py": 0.5,
+   "tests/utils_tests/test_http.py": 0.3333333333333333,
+   "django/template/defaultfilters.py": 0.25
+  },
+  "c79bdfc1351ef2a2ad95df36241a74c736ef20a1": {
+   "django/utils/cache.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/views/decorators/vary.py": 0.25,
+   "django/middleware/cache.py": 0.125,
+   "django/middleware/gzip.py": 0.1111111111111111,
+   "django/middleware/csrf.py": 0.1,
+   "django/contrib/sessions/middleware.py": 0.09090909090909091,
+   "django/middleware/locale.py": 0.08333333333333333,
+   "django/utils/http.py": 0.07142857142857142,
+   "django/http/response.py": 0.06666666666666667,
+   "django/template/defaultfilters.py": 0.0625,
+   "tests/decorators/test_vary.py": 0.058823529411764705
+  },
+  "7f6e9b55130d5158804c0acbc0b24ccb7422ed82": {
+   "django/utils/cache.py": 1.0,
+   "tests/cache/tests.py": 0.5,
+   "django/middleware/cache.py": 0.125,
+   "django/http/response.py": 0.1111111111111111,
+   "django/template/defaultfilters.py": 0.1,
+   "django/utils/http.py": 0.09090909090909091
+  },
+  "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a": {
+   "django/core/signing.py": 1.0,
+   "tests/signing/tests.py": 0.5,
+   "django/utils/crypto.py": 0.16666666666666666,
+   "django/utils/warnings.py": 0.14285714285714285,
+   "django/utils/encoding.py": 0.09090909090909091
+  },
+  "920b43eb5b40190bb2dbee00773e17307bc699d8": {
+   "django/utils/deprecation.py": 1.0
+  },
+  "12dcba45cb0d3bcf735621c3b2175fdee08308d8": {
+   "django/contrib/auth/middleware.py": 1.0,
+   "tests/auth_tests/test_remote_user.py": 0.5
+  },
+  "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f": {
+   "django/db/backends/postgresql/base.py": 1.0
+  },
+  "8c8b833d32c02d3ae6f43b04bb1e45968796b402": {
+   "django/tasks/base.py": 1.0,
+   "django/tasks/backends/dummy.py": 0.5,
+   "django/tasks/backends/immediate.py": 0.3333333333333333
+  },
+  "3f912ee4189602b4df121c0dc0428673fda5c253": {
+   "django/db/models/fields/__init__.py": 1.0,
+   "tests/model_fields/test_filepathfield.py": 0.5,
+   "django/contrib/gis/gdal/field.py": 0.125,
+   "django/forms/fields.py": 0.1111111111111111,
+   "tests/model_fields/tests.py": 0.09090909090909091
+  },
+  "60a9c70496e5d7b971928ce3da5b47c8836a4def": {
+   "django/contrib/flatpages/forms.py": 1.0
+  },
+  "5b3cfce51770f46c6dc100e9be7f199a37176762": {
+   "django/contrib/admin/checks.py": 1.0
+  },
+  "5d911f2d2fecc703be91b2b9b28acc59d34b35f3": {
+   "django/db/models/fields/tuple_lookups.py": 1.0,
+   "django/template/loader_tags.py": 0.5,
+   "django/db/models/lookups.py": 0.3333333333333333,
+   "django/utils/safestring.py": 0.14285714285714285
+  },
+  "fb292a549371a7c011c25b1a10fe5d25c579814a": {
+   "django/db/models/query_utils.py": 1.0,
+   "django/template/loader_tags.py": 0.3333333333333333,
+   "django/utils/safestring.py": 0.25
+  },
+  "c63591d4da533944af31ccb46a77eb221dbdba0a": {
+   "django/contrib/auth/__init__.py": 1.0,
+   "django/contrib/auth/backends.py": 0.5
+  },
+  "526b548cfb9c8a02ea2b7ae064ef3b795305d51a": {
+   "django/views/decorators/debug.py": 1.0
+  },
+  "ad073338d02fce884301d159f30eaf17c7f2d246": {
+   "tests/test_client_regress/tests.py": 1.0
+  },
+  "61a62be313e395ce1265132bfc99f51476fb3c95": {
+   "django/db/models/constraints.py": 1.0,
+   "tests/auth_tests/test_checks.py": 0.5,
+   "tests/constraints/tests.py": 0.25
+  },
+  "dc467fdc3b5744cec71fab876c23a14013e2510b": {
+   "django/http/request.py": 1.0,
+   "django/core/handlers/asgi.py": 0.5,
+   "django/core/handlers/wsgi.py": 0.3333333333333333,
+   "django/utils/http.py": 0.25,
+   "django/template/defaultfilters.py": 0.2,
+   "django/utils/copy.py": 0.16666666666666666,
+   "django/contrib/admin/utils.py": 0.14285714285714285
+  },
+  "84db026228413dda4cd195464554d51c0b208e32": {
+   "django/contrib/admin/options.py": 1.0,
+   "django/contrib/auth/__init__.py": 0.2,
+   "django/forms/models.py": 0.16666666666666666,
+   "django/forms/formsets.py": 0.125
+  },
+  "673fa46d8063577c92cfab3a73a28e9406372e33": {
+   "scripts/pr_quality/check_pr.py": 1.0,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.5
+  },
+  "a284a49153f005f2a7af087025e5112ba06cbd5f": {
+   "django/db/models/sql/query.py": 1.0
+  },
+  "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f": {
+   "django/contrib/sites/checks.py": 1.0,
+   "tests/sites_tests/tests.py": 0.5
+  },
+  "820c7d3248af6afbdf3390c97b29e41ba126a421": {
+   "django/db/models/fields/related_descriptors.py": 1.0,
+   "django/db/models/query.py": 0.5,
+   "django/contrib/gis/geos/mutable_list.py": 0.3333333333333333
+  },
+  "3157285e27a426530ef571855e0e29c317e210df": {
+   "django/core/files/base.py": 1.0
+  },
+  "280256499c5b2d636949f3c8cb52159a8e4c26bb": {
+   "django/db/models/sql/where.py": 1.0
+  },
+  "e2abe321a6f1370e05c1a89a742125c9eafcac8c": {
+   "django/contrib/auth/models.py": 1.0
+  },
+  "7e9885f99cee771b51692fadc5592bdbf19641aa": {
+   "django/http/multipartparser.py": 1.0,
+   "tests/file_uploads/tests.py": 0.5,
+   "tests/requests_tests/tests.py": 0.1
+  },
+  "6afe7ce93964f56e33a29d477c269436f9b60cbf": {
+   "django/contrib/admin/exceptions.py": 1.0,
+   "django/contrib/admin/views/main.py": 0.5,
+   "django/core/exceptions.py": 0.3333333333333333
+  },
+  "caf90a971f09323775ed0cacf94eadaf39d040e0": {
+   "django/core/handlers/asgi.py": 1.0,
+   "django/test/client.py": 0.5,
+   "tests/asgi/tests.py": 0.25,
+   "django/http/request.py": 0.1
+  },
+  "33bfc66add643f49d466c5a646989ad91677753d": {
+   "django/core/serializers/xml_serializer.py": 1.0,
+   "django/contrib/gis/serializers/geojson.py": 0.16666666666666666,
+   "django/core/serializers/jsonl.py": 0.14285714285714285,
+   "django/core/serializers/pyyaml.py": 0.125,
+   "django/core/serializers/json.py": 0.1111111111111111,
+   "django/core/serializers/python.py": 0.1,
+   "tests/serializers/tests.py": 0.09090909090909091
+  },
+  "3b161e60964aff99eddcd2627a486d81c1836b3a": {
+   "django/db/models/sql/query.py": 1.0,
+   "django/db/models/query_utils.py": 0.25,
+   "django/db/models/query.py": 0.2
+  },
+  "fcf916884d25ed430bd7cedaea2b10035c2aa3b6": {
+   "django/db/models/fields/related.py": 1.0
+  },
+  "cec10f992be8eed5ed90506375ae5794cbb7069e": {
+   "django/contrib/admin/checks.py": 1.0
+  },
+  "856c915326768962806705ca7733e4abbb8f794f": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/expressions.py": 0.5
+  },
+  "8b7ea2bcdd7297941ca6beb72d93b9568e187349": {
+   "django/forms/models.py": 1.0,
+   "django/forms/forms.py": 0.2,
+   "django/contrib/gis/geos/mutable_list.py": 0.16666666666666666
+  },
+  "386257b33eb2a925cecc1a12ba5e7dd694617186": {
+   "django/db/models/expressions.py": 1.0
+  },
+  "2d7f899deb2e3e58438a0703d6c3be4227641239": {
+   "django/utils/log.py": 1.0,
+   "django/test/signals.py": 0.5,
+   "django/__init__.py": 0.3333333333333333,
+   "django/utils/module_loading.py": 0.25,
+   "tests/logging_tests/tests.py": 0.2,
+   "django/core/asgi.py": 0.16666666666666666,
+   "tests/apps/tests.py": 0.14285714285714285,
+   "django/core/wsgi.py": 0.125,
+   "tests/runtests.py": 0.1111111111111111,
+   "django/core/management/__init__.py": 0.1,
+   "django/core/management/templates.py": 0.09090909090909091,
+   "django/test/runner.py": 0.08333333333333333,
+   "scripts/check_migrations.py": 0.07692307692307693,
+   "scripts/manage_translations.py": 0.07142857142857142,
+   "django/core/servers/basehttp.py": 0.0625,
+   "tests/asgi/tests.py": 0.04,
+   "tests/wsgi/tests.py": 0.02127659574468085
+  },
+  "5146449a38222dc74f8f1ba88a7a7ef681e93101": {
+   "django/db/backends/postgresql/features.py": 1.0
+  },
+  "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe": {
+   "django/contrib/admin/templatetags/admin_list.py": 1.0,
+   "django/contrib/admin/utils.py": 0.5,
+   "django/contrib/admin/helpers.py": 0.3333333333333333,
+   "django/utils/html.py": 0.2,
+   "django/templatetags/static.py": 0.16666666666666666,
+   "tests/admin_utils/tests.py": 0.14285714285714285,
+   "django/contrib/admin/options.py": 0.07692307692307693,
+   "django/contrib/admin/templatetags/admin_filters.py": 0.05,
+   "tests/admin_views/tests.py": 0.029411764705882353,
+   "tests/postgres_tests/test_array.py": 0.02857142857142857,
+   "django/utils/safestring.py": 0.02702702702702703
+  },
+  "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3": {
+   "django/db/models/fields/__init__.py": 1.0
+  },
+  "0ed8d4e7d1029e1283b04f70d51d2af96ad85d6a": {
+   "django/http/response.py": 1.0
+  },
+  "d7bf84324fb4b0789302bd0624697ba973dd7140": {
+   "django/db/backends/oracle/features.py": 1.0
+  },
+  "6c95af5c9d294a20d09f080d7c144e3b7362d65f": {
+   "django/db/backends/oracle/base.py": 1.0,
+   "django/http/request.py": 0.25
+  },
+  "7cb2221e9267dec3f1cf7c88b8686d38fd956639": {
+   "django/utils/inspect.py": 1.0,
+   "tests/utils_tests/test_inspect.py": 0.5,
+   "django/tasks/backends/base.py": 0.1111111111111111,
+   "django/tasks/backends/dummy.py": 0.09090909090909091,
+   "django/tasks/backends/immediate.py": 0.08333333333333333,
+   "django/tasks/base.py": 0.07692307692307693,
+   "tests/tasks/test_custom_backend.py": 0.07142857142857142,
+   "tests/tasks/test_dummy_backend.py": 0.06666666666666667,
+   "tests/tasks/test_immediate_backend.py": 0.0625
+  }
+ }
+}

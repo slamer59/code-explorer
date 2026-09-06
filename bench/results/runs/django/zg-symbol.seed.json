@@ -1,0 +1,2967 @@
+{
+ "tool": "zg-symbol",
+ "corpus": "django",
+ "repo": "django",
+ "k": 10,
+ "n_queries": 150,
+ "expands": false,
+ "index_ms": 2244.6,
+ "provenance": {
+  "utc": "2026-09-06T11:01:41+00:00",
+  "tool_sha": "13f0bbf9",
+  "tool_dirty": true,
+  "corpus_sha": "b3f4d83a",
+  "host": "fedora5.home",
+  "cpus": 16,
+  "python": "3.12.13",
+  "platform": "Linux-7.1.13-200.fc44.x86_64-x86_64-with-glibc2.43"
+ },
+ "per_query": [
+  {
+   "qid": "026b005f3dc43a98557ce5a546b5e4938d06fed1",
+   "query": "Updated deprecation docs for calendar-based warning names.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 340,
+   "wall_ms": 1144.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "52abe52bec23df6523aff492364f4f1b049c9572",
+   "query": "Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+   "n_relevant": 6,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 306,
+   "wall_ms": 1156.5,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "0751d5fed159fd9ff7edba522ece13c8c9d2a0d0",
+   "query": "Prevented consumption of rhs iterators in annotation lookups.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 277,
+   "wall_ms": 1157.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6",
+   "query": "Used _is_pk_set() in the XML serializer.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 303,
+   "wall_ms": 1172.5,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8d1c673466bcabff500edc6c7724e5a20f6df3de",
+   "query": "Used _is_pk_set() in Model.__eq__.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 247,
+   "wall_ms": 1167.6,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "60a17fccf4f2fa31b823b0f938005897f2f3ef16",
+   "query": "Preserved parent instance hints on custom Prefetch querysets.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 379,
+   "wall_ms": 1165.7,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4",
+   "query": "Made .values() and .order_by() resolve FilteredRelation aliases correctly.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 301,
+   "wall_ms": 1151.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "fdfbb711e3dd52683ae633f568761efe2735d5f0",
+   "query": "Included the invalid view type in path()/re_path() error.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 301,
+   "wall_ms": 1173.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "be6cf832293779d8aeaeddca8c47a37ba1530898",
+   "query": "Allowed transforms in order_by() after alias().",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 321,
+   "wall_ms": 1153.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c",
+   "query": "Fixed #37275, Refs #24920 -- Fixed SQLite DecimalField conversion without precision.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 370,
+   "wall_ms": 1168.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea",
+   "query": "Made QuerySet.totally_ordered understand aliases to pure Col/ColPairs.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 330,
+   "wall_ms": 1169.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "812c08bd4e9da7b74ab9ee0db83da58a6da48d19",
+   "query": "Allowed F() expressions on the RHS of CompositePK lookups.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 273,
+   "wall_ms": 1159.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "99d56e5cf15839995f62f24294584f1e2976b1ea",
+   "query": "Restored rendering of html-safe strings in form media.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 310,
+   "wall_ms": 1153.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "c6be0bf3bb744d234947cefd6def9f31d9655800",
+   "query": "Added fields.E323 for models referenced by ManyToManyFields.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 350,
+   "wall_ms": 1153.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "082b3df4067c3899dd4d57e8c2eca5baea9d07bb",
+   "query": "Fixed incorrect values for second-degree relations in ModelAdmin.list_display.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 313,
+   "wall_ms": 1157.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6df8fe3bc1879265958b8e59c637a4145995e93c",
+   "query": "Tested FK values with __html__() in ModelAdmin.list_display.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 329,
+   "wall_ms": 1148.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9",
+   "query": "Handled further malformed _source_model values in admin popups.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 334,
+   "wall_ms": 1173.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb",
+   "query": "Fixed #37257, Refs #35738 -- Prevented double-dot deprecation warnings for template literals.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 383,
+   "wall_ms": 1152.9,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "89e82866dc2746383c336c7b10e050b9da3ae1ef",
+   "query": "Omitted inlines without add permission on save-as-new.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 314,
+   "wall_ms": 1150.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8f52e9199b260cdacc5ad372692cddf2dcf76558",
+   "query": "Skipped questioner for field changes on unmanaged models.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 389,
+   "wall_ms": 1161.1,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "6baaf6a87706265446c4c7f2e3b96e3c49385b27",
+   "query": "Asserted exact HttpResponse types in tests.",
+   "n_relevant": 4,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 321,
+   "wall_ms": 1171.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5",
+   "query": "Cleared stale db_default when pk comes from related object.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 384,
+   "wall_ms": 1159.2,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "47511a21026cdd721d8fbf8571cc079bc38bb46d",
+   "query": "Fixed CVE-2026-15920 -- Made display_for_field() validate URLs before rendering admin links.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 328,
+   "wall_ms": 1149.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "27137e655e442e81095f1f8f77ff3870d9fdf169",
+   "query": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 297,
+   "wall_ms": 1151.0,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "5637bec7a033d67407694316bdda74304449488e",
+   "query": "Fixed incomplete mocking in SQLiteInMemoryTestDbs.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 328,
+   "wall_ms": 1152.2,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "60121939f6b225c7a719dd561e372e1d8e5e2c4a",
+   "query": "Preserved milliseconds in DataSource time fields.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 327,
+   "wall_ms": 1171.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ea303dee45f4b703b31f73ceb235f11742d3c518",
+   "query": "Allowed altering spatial indexes on RasterField.",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 2,
+   "tokens": 524,
+   "wall_ms": 1148.4,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "9465349120ef8a0b0689e12bcbfd05f3d173ebdf",
+   "query": "Prevented fallback to python default for a pk with a db_default.",
+   "n_relevant": 3,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 279,
+   "wall_ms": 1156.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ca14173f968cf36115f22d6c6785f738de4391ed",
+   "query": "Fixed simplify_regex() with multiple unnamed groups.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 283,
+   "wall_ms": 1174.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "c9ff757a55392b1f50968eb89fe775f6155168d8",
+   "query": "Fixed bulk_create() for late-saved related primary keys.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 301,
+   "wall_ms": 1166.5,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "92e1d9e3619ae5274a64b38f26177064486892f2",
+   "query": "Prevented sort controls for unordered __str__ admin columns.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 287,
+   "wall_ms": 1155.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "92470ad3742524902b29769d2c822dbe791630db",
+   "query": "Fixed a crash for second-degree relations in ModelAdmin.list_display.",
+   "n_relevant": 4,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 270,
+   "wall_ms": 1173.6,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "c2517faff335f683e1cbe55d9844910b3fb40670",
+   "query": "Fixed content_disposition_header() quoting of filenames ending with newlines.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 340,
+   "wall_ms": 1155.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8a162076e1988ddf9453edfb8329d5df1573dc38",
+   "query": "Improved wording in PR quality check messages.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 302,
+   "wall_ms": 1160.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "2a5da9d00555beef8e5f6307cfcbfc029d45491e",
+   "query": "Used normalized field names for composite pks in inspectdb.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 323,
+   "wall_ms": 1160.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "d8cedcab5241725003eef059dd76c533f24c5430",
+   "query": "Escaped introspection error comments in inspectdb.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 286,
+   "wall_ms": 1158.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "76e1bca1311ae7073a1fa4add6f9d19d709f0f09",
+   "query": "Restored missing Index options in PostGISSchemaEditor._create_spatial_index_sql().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 390,
+   "wall_ms": 1160.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "274df4df0bca7fcfb5c1c1d49567f770df147eeb",
+   "query": "Clarified pull request instructions and adjusted error messages.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 273,
+   "wall_ms": 1165.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a486b48d4ea0d34babe58cae215b2123748aacbd",
+   "query": "Logged cached_db session cache delete failures.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 302,
+   "wall_ms": 1138.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "2e48636c54910e435eb31e1b7d8a8089c84233ad",
+   "query": "Fixed #37187, #37190 -- Pointed ModelAdmin warnings to the deprecated code.",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 321,
+   "wall_ms": 1162.0,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c",
+   "query": "Avoided mutating original view in non_atomic_requests().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 305,
+   "wall_ms": 1163.9,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7b8504eaabea6c70195baa3c02155c24a6e270c6",
+   "query": "Made migrations track all changes to unmanaged models.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 284,
+   "wall_ms": 1140.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7ab2d803533dd3ffe310055414ad584cfbbf0bea",
+   "query": "Handled fields and files with the same name in encode_multipart().",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 319,
+   "wall_ms": 1163.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "5d489a52c3c604018c786f11d45453eb75fa24b3",
+   "query": "Skipped GC specific tests when GIL disabled.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 377,
+   "wall_ms": 1154.4,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6ca2bbe2efce21010eff48f1f36a3f621d698ed8",
+   "query": "Fixed CVE-2026-53877 -- Prevented heap buffer over-read when creating GDALRaster from bytes.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 312,
+   "wall_ms": 1338.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1",
+   "query": "Fixed CVE-2026-48588 -- Prevented caching of responses that set cookies and vary on Cookie.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 353,
+   "wall_ms": 1173.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c",
+   "query": "Updated JSONField has_changed method to check for disabled status.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 280,
+   "wall_ms": 1164.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "356e5b0f5ddb473eec3ed96d8ad9a37f3f8585eb",
+   "query": "Allowed non-UTF-8 bytes passwords in the PBKDF2 and MD5 password hashers.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 381,
+   "wall_ms": 1151.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "d058058976496cedf3f36fa303a0327af38cdeaa",
+   "query": "Prevented ValueError in FileBasedCache.touch() for expired keys.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 362,
+   "wall_ms": 1152.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8acd000725838f73c5e6781114f11866f6674c46",
+   "query": "Used netstring delimiter between vary on arguments for cached template fragments.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 344,
+   "wall_ms": 1147.7,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "65acb3cc2e76c238f5aee38d22626d92171a2f7c",
+   "query": "Used netstring delimiter between vary on headers for cached pages.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 336,
+   "wall_ms": 1169.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "56050acb96abc7ac2079d83ffdd232056732bb47",
+   "query": "Applied the no-argument form of sensitive_post_parameters to MultiValueDict.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 330,
+   "wall_ms": 1167.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "99a14b6be85793f3371779cd9bf6fb9d9247f475",
+   "query": "Warned via system check on missing \"default\" entry in MAILERS setting.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 333,
+   "wall_ms": 1160.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "189c2d2ce58482db5c09d8b1e1464d1456dc9bab",
+   "query": "Supported subclasses\u2019 _get_lines() in jsonl Deserializer.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 298,
+   "wall_ms": 1177.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "77d0c9d549a8d95156c833eceb6275d9b7317d4e",
+   "query": "Made admin display database defaults as empty values.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 285,
+   "wall_ms": 1158.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ca5746b8680a5e7e14014d365c0610f825df1dae",
+   "query": "Added missing chunk_size=None check to QuerySet.aiterator().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 307,
+   "wall_ms": 1160.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "09434486302078c3649e034dfa74cf3f102db20b",
+   "query": "Raised ValueError when Bcc is used in EmailMessage headers.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 300,
+   "wall_ms": 1152.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c",
+   "query": "Avoided crash in CreateModel with unique_together and AlterUniqueTogether.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 362,
+   "wall_ms": 1147.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "14c66825e0088b7e08fe5d108fa293bd31722c39",
+   "query": "Added --using option to sendtestemail command.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 269,
+   "wall_ms": 1148.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e",
+   "query": "Made GenericInlineModelAdmin.get_formset() use get_exclude().",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 353,
+   "wall_ms": 1178.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1",
+   "query": "Skipped backends not implementing (a)get_user() in (a)force_login().",
+   "n_relevant": 3,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 301,
+   "wall_ms": 1174.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "c6f81b383251dc9fd0918b4ba040c993444b931e",
+   "query": "Fixed sqlmigrate crash for RenameModel with a self-referential foreign key.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 354,
+   "wall_ms": 1161.9,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c",
+   "query": "Returned NotImplemented in Media.__add__ for non-Media RHS.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 242,
+   "wall_ms": 1210.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "f970a98e464320c09dde8d45009eadfb4d038a57",
+   "query": "Moved django_file_prefixes() to django.utils.warnings.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 333,
+   "wall_ms": 1167.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "867c7c0451f2e67e715da5b55b5bf6696747fdc3",
+   "query": "Skipped DB cache deletion when culling offset is zero.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 354,
+   "wall_ms": 1152.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "46c5e76f0bcc76bfce19ad7ba07f716fc653a822",
+   "query": "Used safe_join() on downloaded template archive.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 321,
+   "wall_ms": 1170.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "142b881cecaddc334cabec139e701c0e4b9798da",
+   "query": "Refs #36560, CVE-2026-35193 -- Replaced substring check on cache-control directives in UpdateCacheMiddleware.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 338,
+   "wall_ms": 1157.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "71af23d1f4678c4bf052e051d72e8928e1697de3",
+   "query": "Fixed rendering empty values for models with db_default on primary key.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 313,
+   "wall_ms": 1165.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a7a57a21a8cf42ecc767c204f7939ad4419ae25f",
+   "query": "Optimized cull frequency for DBCache.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 315,
+   "wall_ms": 1163.9,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56",
+   "query": "Restored exact boolean lookup against literals on SQLite.",
+   "n_relevant": 6,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 317,
+   "wall_ms": 1166.1,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "42aa0b3364d312e7c6472258d8b0e9c0277fbf22",
+   "query": "Fixed CVE-2026-48587 -- Ignored whitespace padding when checking Vary header values.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 316,
+   "wall_ms": 1163.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9",
+   "query": "Fixed CVE-2026-35193 -- Varied on Authorization when caching non-public responses.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 356,
+   "wall_ms": 1149.3,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "d618d7ae4fec727d5b582bd24f803c28d17bf7cd",
+   "query": "Fixed CVE-2026-8404 -- Used Cache-Control directives case-insensitively in UpdateCacheMiddleware.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 364,
+   "wall_ms": 1153.2,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "df887f50198593a0e5b4638bfddbbd43a30fd276",
+   "query": "Fixed CVE-2026-7666 -- Delayed setting SMTP connection until fully configured.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 310,
+   "wall_ms": 1142.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "672cfaa53c72dd67fb54ecbdd904ea364d2951c4",
+   "query": "Made PR quality check require tickets for new contributors.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 267,
+   "wall_ms": 1168.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540",
+   "query": "Made HttpRequest.body handle malformed CONTENT_LENGTH.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 300,
+   "wall_ms": 1153.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "22d25eff1510eb157be3ef02984869b1309ec15d",
+   "query": "Handled escaped literals in simplify_regex().",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 289,
+   "wall_ms": 1157.7,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ea9742c6d02edf64fc0969f21506f2048c976051",
+   "query": "Made DjangoJSONEncoder consistently omit .000 microseconds.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 291,
+   "wall_ms": 1158.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6e15ac8066312328de279e3e072667416c205bfc",
+   "query": "Deprecated the safe parameter of JSONResponse.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 296,
+   "wall_ms": 1155.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "f57a90073920f1c34096d062e151a7bd79065f01",
+   "query": "Removed integer pk assumption in AdminCustomQuerysetTest.",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 354,
+   "wall_ms": 1166.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a53e02af6d7a07d0367b534f7107a0e2a37e3d34",
+   "query": "Used ModelAdmin.get_queryset() for change form actions.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 309,
+   "wall_ms": 1169.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "53645750412efa1e9013004040db328bd515e0f1",
+   "query": "Prevented control characters in HttpResponse reason_phrase.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 302,
+   "wall_ms": 1149.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "bc9bed573ce39c3b739a4a3b7848816d464b6bdc",
+   "query": "Included attributes in media object equality.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 308,
+   "wall_ms": 1158.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "e78a46a8fb291a11a31b6938b5089db1058f3925",
+   "query": "Increased the default PBKDF2 iterations for Django 6.2.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 318,
+   "wall_ms": 1147.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "20960df455fffd73d556a5ed92cdf6832c23e65f",
+   "query": "Renamed savepoint() to savepoint_create().",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 306,
+   "wall_ms": 1166.8,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "9b4433948714d5c43bab96b08bb6618c22512000",
+   "query": "Fixed regression in CSPSeleniumTestCase.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 264,
+   "wall_ms": 1157.0,
+   "mode": "fts,vector",
+   "error": null
+  },
+  {
+   "qid": "8fd29079ed1253f0cd88ccf330de30271a5d15e4",
+   "query": "Aligned admin change form and list minimum permission to run action.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 293,
+   "wall_ms": 1175.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7c125f6a6660a70a0568448b2e40db273a456479",
+   "query": "Disallowed admin change form actions on different objects.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 347,
+   "wall_ms": 1175.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "fbe902d4a4b8b9dcb371509b25ba8feff3852e64",
+   "query": "Removed compilation-time order clearing on combined queries on Oracle.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 359,
+   "wall_ms": 1163.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6bbe2656e1e89a03d1ae8f2cea7bdd2a027f0665",
+   "query": "Reverted \"Refs #36938 -- Tolerated unnecessary ordering in compound queries on SQLite.\"",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 342,
+   "wall_ms": 1163.5,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "0e1d950fbb44878f6972a0e5730f69f98caf468e",
+   "query": "Made Query.clear_ordering() clear ordering on combined queries also.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 336,
+   "wall_ms": 1168.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "da6567da7ea0e844c9a880e02c7b34e1a184edf8",
+   "query": "Added preserve_request support to RedirectView.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 320,
+   "wall_ms": 1151.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f",
+   "query": "Updated SMTP EmailBackend tests for Python 3.15.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 338,
+   "wall_ms": 1159.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ed5486376989c08b34cc62e7c8ba4a07bd60047d",
+   "query": "Fixed #37092, Refs #35870 -- Added missing deprecation warnings for USE_BLANK_CHOICE_DASH.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 360,
+   "wall_ms": 1156.0,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e",
+   "query": "Replaced \"Go\" with \"Run\" in list_editable alert message.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 350,
+   "wall_ms": 1162.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "335c6d0129400eda792f3bec5c71bb28af5e5d37",
+   "query": "Checked maximum redirect lengths against percent-encoded URLs.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 344,
+   "wall_ms": 1166.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "2314cdf1ff860058a6579bb9f9bac1253fc9ab43",
+   "query": "Tolerated unnecessary ordering in compound queries on SQLite.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 368,
+   "wall_ms": 1162.9,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "9c655e98006dec4f4fd47a84c254f36404d631e4",
+   "query": "Removed unnecessary ordering from compound queries.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 350,
+   "wall_ms": 1155.4,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "cb192dbb191525550f90d7cb9cff756f57e86aec",
+   "query": "Removed hardcoded pks in AdminViewPermissionsTest.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 386,
+   "wall_ms": 1155.2,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "0c634de4e6950ec6fb83ab420b4af9c645b28acd",
+   "query": "Made ModelAdmin.list_select_related = False more efficient.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 324,
+   "wall_ms": 1148.5,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "e7f539f813bd56a71ca3c1fbf379f47691002086",
+   "query": "Refs #36712, #36664 -- Used annotation_format parameter of getfullargspec() on Python 3.15.",
+   "n_relevant": 4,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 376,
+   "wall_ms": 1164.4,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e",
+   "query": "Propagated AlterField through attname-based to_field references.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 396,
+   "wall_ms": 1173.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe",
+   "query": "Cleaned up logging and middleware tests.",
+   "n_relevant": 4,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 377,
+   "wall_ms": 1149.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "f25ad7c086eb694372a8ef08cb713556bcb366a2",
+   "query": "Added error for missing EMAIL_FILE_PATH setting.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 321,
+   "wall_ms": 1175.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd",
+   "query": "Added sync_to_async() to dummy password hasher path.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 339,
+   "wall_ms": 1144.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "75bb46cc454fdef0585f0a460f36f579b59f0356",
+   "query": "Replaced old PR quality comments when writing new ones.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 354,
+   "wall_ms": 1163.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "57b23d15259c32dba80bb093645242f1b3b25365",
+   "query": "Added validate=True to base64.b64decode() calls.",
+   "n_relevant": 7,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 308,
+   "wall_ms": 1149.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "c79bdfc1351ef2a2ad95df36241a74c736ef20a1",
+   "query": "Fixed CVE-2026-6907 -- Prevented caching of requests when Vary header contains an asterisk.",
+   "n_relevant": 2,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 295,
+   "wall_ms": 1173.5,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7f6e9b55130d5158804c0acbc0b24ccb7422ed82",
+   "query": "Fixed CVE-2026-35192 -- Ensured Vary header is sent when setting session cookie with SESSION_SAVE_EVERY_REQUEST=True.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 395,
+   "wall_ms": 1165.2,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a",
+   "query": "Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+   "n_relevant": 4,
+   "n_seed": 9,
+   "n_bundle": 9,
+   "tokens": 300,
+   "wall_ms": 1161.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "920b43eb5b40190bb2dbee00773e17307bc699d8",
+   "query": "Removed hardcoded pks in annotations and delete_regress tests.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 392,
+   "wall_ms": 1189.3,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "12dcba45cb0d3bcf735621c3b2175fdee08308d8",
+   "query": "Made RemoteUserMiddleware ImproperlyConfigured error message handle subclasses.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 345,
+   "wall_ms": 1183.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f",
+   "query": "Allowed overriding the PostgreSQL pool's \"check\" callable.",
+   "n_relevant": 2,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 278,
+   "wall_ms": 1163.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8c8b833d32c02d3ae6f43b04bb1e45968796b402",
+   "query": "Allowed Task and TaskResult to be pickled.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 274,
+   "wall_ms": 1171.4,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "3f912ee4189602b4df121c0dc0428673fda5c253",
+   "query": "Extracted set_choices() method from FilePathField.__init__().",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 287,
+   "wall_ms": 1167.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "60a9c70496e5d7b971928ce3da5b47c8836a4def",
+   "query": "Added trailing slash in django_file_prefixes().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 312,
+   "wall_ms": 1169.2,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "5b3cfce51770f46c6dc100e9be7f199a37176762",
+   "query": "Fixed ModelAdmin.list_editable form submission for non-editable instances.",
+   "n_relevant": 3,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 353,
+   "wall_ms": 1176.2,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "5d911f2d2fecc703be91b2b9b28acc59d34b35f3",
+   "query": "Deprecated double-dot variable lookups.",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 287,
+   "wall_ms": 1167.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "fb292a549371a7c011c25b1a10fe5d25c579814a",
+   "query": "Added connector validation to Q.create().",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 267,
+   "wall_ms": 1164.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "c63591d4da533944af31ccb46a77eb221dbdba0a",
+   "query": "Centralized auth timing attack mitigations.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 345,
+   "wall_ms": 1174.6,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "526b548cfb9c8a02ea2b7ae064ef3b795305d51a",
+   "query": "Marked authenticate() with @sensitive_variables() decorator.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 338,
+   "wall_ms": 1159.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "ad073338d02fce884301d159f30eaf17c7f2d246",
+   "query": "Reverted inadvertent changes to PK formatting in tests.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 384,
+   "wall_ms": 1161.3,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "61a62be313e395ce1265132bfc99f51476fb3c95",
+   "query": "Adjusted UniqueConstraint handling of UNKNOWN condition.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 388,
+   "wall_ms": 1166.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "dc467fdc3b5744cec71fab876c23a14013e2510b",
+   "query": "Raised BadRequest for invalid encodings in Content-Type headers.",
+   "n_relevant": 4,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 309,
+   "wall_ms": 1170.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "84db026228413dda4cd195464554d51c0b208e32",
+   "query": "Excluded fields by per-object permissions for ModelAdmin.list_editable.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 339,
+   "wall_ms": 1161.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "673fa46d8063577c92cfab3a73a28e9406372e33",
+   "query": "Allowed Ready for checkin Trac status in PR checks.",
+   "n_relevant": 2,
+   "n_seed": 3,
+   "n_bundle": 3,
+   "tokens": 358,
+   "wall_ms": 1150.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "a284a49153f005f2a7af087025e5112ba06cbd5f",
+   "query": "Fixed crash in Query.orderby_issubset_groupby for descending and random order_by strings.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 339,
+   "wall_ms": 1154.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f",
+   "query": "Made SITE_ID system check validation use Site._meta.pk.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 262,
+   "wall_ms": 1186.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "820c7d3248af6afbdf3390c97b29e41ba126a421",
+   "query": "Added missing flat=True arg in DeferredAttribute.fetch_many().",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 316,
+   "wall_ms": 1179.7,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "3157285e27a426530ef571855e0e29c317e210df",
+   "query": "Made base File objects truthy by default.",
+   "n_relevant": 4,
+   "n_seed": 10,
+   "n_bundle": 10,
+   "tokens": 294,
+   "wall_ms": 1179.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "280256499c5b2d636949f3c8cb52159a8e4c26bb",
+   "query": "Refs CVE-2026-4292 -- Isolated new test in AdminViewListEditable.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 269,
+   "wall_ms": 1192.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "e2abe321a6f1370e05c1a89a742125c9eafcac8c",
+   "query": "Added Permission.user_perm_str property.",
+   "n_relevant": 2,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 354,
+   "wall_ms": 1151.8,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7e9885f99cee771b51692fadc5592bdbf19641aa",
+   "query": "Fixed CVE-2026-33033 -- Mitigated potential DoS in MultiPartParser.",
+   "n_relevant": 2,
+   "n_seed": 2,
+   "n_bundle": 2,
+   "tokens": 316,
+   "wall_ms": 1166.6,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6afe7ce93964f56e33a29d477c269436f9b60cbf",
+   "query": "Fixed CVE-2026-4292 -- Disallowed instance creation via ModelAdmin.list_editable.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 325,
+   "wall_ms": 1178.0,
+   "mode": "fts,fts+vector,vector",
+   "error": null
+  },
+  {
+   "qid": "caf90a971f09323775ed0cacf94eadaf39d040e0",
+   "query": "Fixed CVE-2026-3902 -- Ignored headers with underscores in ASGIRequest.",
+   "n_relevant": 3,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 342,
+   "wall_ms": 1165.0,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "33bfc66add643f49d466c5a646989ad91677753d",
+   "query": "Made XML serializer put each ManyToManyField object on its own line.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 292,
+   "wall_ms": 1168.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "3b161e60964aff99eddcd2627a486d81c1836b3a",
+   "query": "Avoided propagating invalid arguments from When() to Q().",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 305,
+   "wall_ms": 1174.0,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "fcf916884d25ed430bd7cedaea2b10035c2aa3b6",
+   "query": "Made fields.E348 check detect further clashes between managers and related_names.",
+   "n_relevant": 2,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 356,
+   "wall_ms": 1186.1,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "cec10f992be8eed5ed90506375ae5794cbb7069e",
+   "query": "Fixed handling of __in lookups with None in exclude().",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 279,
+   "wall_ms": 1151.3,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "856c915326768962806705ca7733e4abbb8f794f",
+   "query": "Used QuerySet.totally_ordered in BaseModelFormSet.get_queryset() for stable ordering.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 278,
+   "wall_ms": 1166.6,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "8b7ea2bcdd7297941ca6beb72d93b9568e187349",
+   "query": "Maintained error message determinism in MultipleChoiceField.validate().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 281,
+   "wall_ms": 1166.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "386257b33eb2a925cecc1a12ba5e7dd694617186",
+   "query": "Prevented crash in JSONField numeric lookups with expressions.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 294,
+   "wall_ms": 1161.9,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "2d7f899deb2e3e58438a0703d6c3be4227641239",
+   "query": "Reloaded logging config when logging settings are changed in tests.",
+   "n_relevant": 2,
+   "n_seed": 7,
+   "n_bundle": 7,
+   "tokens": 302,
+   "wall_ms": 1166.2,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "5146449a38222dc74f8f1ba88a7a7ef681e93101",
+   "query": "Removed unnecessary prohibits_dollar_signs_in_column_aliases feature flag.",
+   "n_relevant": 3,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 325,
+   "wall_ms": 1167.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe",
+   "query": "Made admin use boolean icons for related BooleanFields in list_display.",
+   "n_relevant": 3,
+   "n_seed": 5,
+   "n_bundle": 5,
+   "tokens": 373,
+   "wall_ms": 1148.1,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3",
+   "query": "Observed prepared argument in UUIDField.get_db_prep_value().",
+   "n_relevant": 2,
+   "n_seed": 4,
+   "n_bundle": 4,
+   "tokens": 374,
+   "wall_ms": 1161.3,
+   "mode": "fts+vector",
+   "error": null
+  },
+  {
+   "qid": "0ed8d4e7d1029e1283b04f70d51d2af96ad85d6a",
+   "query": "Made assertContains and assertNotContains idempotent for streaming responses.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 317,
+   "wall_ms": 1153.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "d7bf84324fb4b0789302bd0624697ba973dd7140",
+   "query": "Handled coalescing JSON-primitive strings and JSON values on Oracle.",
+   "n_relevant": 3,
+   "n_seed": 8,
+   "n_bundle": 8,
+   "tokens": 343,
+   "wall_ms": 1158.7,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "6c95af5c9d294a20d09f080d7c144e3b7362d65f",
+   "query": "Fixed ValueError when `query_params` and `follow` are used on test client.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 352,
+   "wall_ms": 1164.6,
+   "mode": "fts,fts+vector",
+   "error": null
+  },
+  {
+   "qid": "7cb2221e9267dec3f1cf7c88b8686d38fd956639",
+   "query": "Encapsulated loop logic to avoid leaking module-level variables.",
+   "n_relevant": 2,
+   "n_seed": 6,
+   "n_bundle": 6,
+   "tokens": 335,
+   "wall_ms": 1145.8,
+   "mode": "fts+vector",
+   "error": null
+  }
+ ],
+ "kind": "seed",
+ "run": {
+  "026b005f3dc43a98557ce5a546b5e4938d06fed1": {
+   "django/contrib/messages/api.py": 1.0,
+   "django/utils/deprecation.py": 0.5,
+   "django/db/models/enums.py": 0.3333333333333333,
+   "docs/internals/contributing/writing-code/submitting-patches.txt": 0.14285714285714285,
+   "tests/admin_widgets/tests.py": 0.125,
+   "README.rst": 0.1111111111111111,
+   "docs/internals/release-process.txt": 0.1
+  },
+  "52abe52bec23df6523aff492364f4f1b049c9572": {
+   "django/utils/deprecation.py": 1.0,
+   "django/http/response.py": 0.3333333333333333,
+   "django/db/models/query.py": 0.25,
+   "tests/db_functions/datetime/test_extract_trunc.py": 0.2,
+   "tests/httpwrappers/tests.py": 0.125,
+   "django/db/models/functions/datetime.py": 0.1111111111111111,
+   "tests/async/test_async_queryset.py": 0.1
+  },
+  "0751d5fed159fd9ff7edba522ece13c8c9d2a0d0": {
+   "django/contrib/admin/filters.py": 1.0,
+   "tests/admin_filters/tests.py": 0.5,
+   "tests/admin_changelist/admin.py": 0.2
+  },
+  "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6": {
+   "django/db/models/base.py": 1.0,
+   "tests/serializers/test_xml.py": 0.5,
+   "tests/serializers/tests.py": 0.3333333333333333,
+   "django/core/serializers/__init__.py": 0.1111111111111111
+  },
+  "8d1c673466bcabff500edc6c7724e5a20f6df3de": {
+   "django/db/models/base.py": 1.0,
+   "django/utils/choices.py": 0.25,
+   "tests/auth_tests/test_context_processors.py": 0.2,
+   "django/utils/version.py": 0.16666666666666666,
+   "django/core/validators.py": 0.14285714285714285,
+   "django/db/migrations/graph.py": 0.125,
+   "django/db/migrations/state.py": 0.1111111111111111,
+   "django/utils/datastructures.py": 0.1
+  },
+  "60a17fccf4f2fa31b823b0f938005897f2f3ef16": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/fields/related_descriptors.py": 0.5,
+   "django/contrib/contenttypes/fields.py": 0.2,
+   "tests/one_to_one/tests.py": 0.16666666666666666,
+   "tests/many_to_one/tests.py": 0.125,
+   "tests/many_to_many/tests.py": 0.1111111111111111
+  },
+  "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4": {
+   "django/db/models/query_utils.py": 1.0,
+   "django/urls/base.py": 0.5,
+   "django/db/models/sql/query.py": 0.3333333333333333,
+   "django/core/files/storage/memory.py": 0.25,
+   "django/template/base.py": 0.2,
+   "django/urls/resolvers.py": 0.16666666666666666,
+   "django/db/models/query.py": 0.14285714285714285,
+   "django/contrib/sessions/backends/base.py": 0.1111111111111111,
+   "tests/ordering/tests.py": 0.1
+  },
+  "fdfbb711e3dd52683ae633f568761efe2735d5f0": {
+   "django/forms/widgets.py": 1.0,
+   "django/core/files/storage/base.py": 0.5,
+   "django/contrib/staticfiles/storage.py": 0.3333333333333333,
+   "django/core/management/commands/makemessages.py": 0.25,
+   "django/db/migrations/writer.py": 0.16666666666666666,
+   "tests/staticfiles_tests/storage.py": 0.14285714285714285,
+   "tests/test_utils/tests.py": 0.125,
+   "django/db/models/fields/files.py": 0.1111111111111111,
+   "django/core/files/storage/filesystem.py": 0.1
+  },
+  "be6cf832293779d8aeaeddca8c47a37ba1530898": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/sql/query.py": 0.3333333333333333,
+   "django/db/models/sql/compiler.py": 0.25,
+   "tests/annotations/tests.py": 0.16666666666666666,
+   "tests/db_functions/json/test_json_object.py": 0.125
+  },
+  "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c": {
+   "django/db/models/fields/__init__.py": 1.0,
+   "django/forms/fields.py": 0.5,
+   "django/contrib/gis/geos/prototypes/io.py": 0.3333333333333333,
+   "django/contrib/gis/gdal/field.py": 0.25,
+   "django/db/backends/oracle/base.py": 0.2,
+   "docs/ref/models/fields.txt": 0.14285714285714285,
+   "tests/model_fields/test_decimalfield.py": 0.1
+  },
+  "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea": {
+   "django/db/models/query.py": 1.0,
+   "django/db/models/expressions.py": 0.3333333333333333,
+   "tests/model_formsets/tests.py": 0.25,
+   "django/db/models/sql/query.py": 0.14285714285714285,
+   "django/db/models/sql/compiler.py": 0.125,
+   "django/forms/models.py": 0.1
+  },
+  "812c08bd4e9da7b74ab9ee0db83da58a6da48d19": {
+   "django/db/models/expressions.py": 1.0,
+   "tests/admin_filters/tests.py": 0.5,
+   "django/contrib/admin/filters.py": 0.25,
+   "tests/admin_changelist/admin.py": 0.125
+  },
+  "99d56e5cf15839995f62f24294584f1e2976b1ea": {
+   "django/forms/forms.py": 1.0,
+   "django/contrib/admin/helpers.py": 0.5,
+   "django/template/context_processors.py": 0.3333333333333333,
+   "django/template/defaultfilters.py": 0.25,
+   "django/forms/formsets.py": 0.16666666666666666,
+   "docs/ref/unicode.txt": 0.14285714285714285,
+   "django/contrib/admin/options.py": 0.125,
+   "django/contrib/postgres/forms/array.py": 0.1111111111111111,
+   "django/contrib/admin/widgets.py": 0.1
+  },
+  "c6be0bf3bb744d234947cefd6def9f31d9655800": {
+   "django/db/models/options.py": 1.0,
+   "django/contrib/admin/helpers.py": 0.5,
+   "django/contrib/gis/gdal/feature.py": 0.3333333333333333,
+   "django/contrib/gis/gdal/layer.py": 0.25,
+   "django/db/models/fields/composite.py": 0.2,
+   "tests/model_forms/tests.py": 0.14285714285714285,
+   "django/db/models/fields/related.py": 0.125,
+   "tests/invalid_models_tests/test_relative_fields.py": 0.1111111111111111,
+   "django/db/migrations/autodetector.py": 0.1
+  },
+  "082b3df4067c3899dd4d57e8c2eca5baea9d07bb": {
+   "django/contrib/admin/options.py": 1.0,
+   "django/utils/datastructures.py": 0.5,
+   "django/db/migrations/state.py": 0.3333333333333333,
+   "django/db/models/enums.py": 0.25,
+   "tests/admin_views/admin.py": 0.2,
+   "docs/ref/contrib/admin/index.txt": 0.14285714285714285,
+   "tests/modeladmin/test_checks.py": 0.125,
+   "django/contrib/sessions/backends/base.py": 0.1111111111111111,
+   "django/db/models/query.py": 0.1
+  },
+  "6df8fe3bc1879265958b8e59c637a4145995e93c": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/modeladmin/test_checks.py": 0.5,
+   "django/utils/datastructures.py": 0.2,
+   "tests/admin_views/admin.py": 0.16666666666666666,
+   "docs/ref/contrib/admin/index.txt": 0.1
+  },
+  "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9": {
+   "django/db/models/enums.py": 1.0,
+   "django/utils/datastructures.py": 0.5,
+   "django/contrib/sessions/backends/base.py": 0.3333333333333333,
+   "django/db/models/query.py": 0.25,
+   "django/contrib/admin/options.py": 0.2,
+   "tests/admin_views/tests.py": 0.16666666666666666,
+   "django/contrib/admin/views/autocomplete.py": 0.14285714285714285,
+   "tests/admin_views/test_actions.py": 0.1
+  },
+  "b5388a3a80cafcce2e34196d8e81cf5b48eb33bb": {
+   "docs/internals/release-process.txt": 1.0,
+   "tests/template_tests/syntax_tests/test_basic.py": 0.5,
+   "scripts/tests.py": 0.25,
+   "docs/howto/upgrade-version.txt": 0.1111111111111111,
+   "docs/internals/contributing/writing-code/submitting-patches.txt": 0.1
+  },
+  "89e82866dc2746383c336c7b10e050b9da3ae1ef": {
+   "django/db/models/base.py": 1.0,
+   "django/forms/models.py": 0.5,
+   "django/core/serializers/base.py": 0.3333333333333333,
+   "django/contrib/sessions/backends/base.py": 0.25,
+   "django/contrib/gis/utils/layermapping.py": 0.16666666666666666,
+   "tests/save_delete_hooks/models.py": 0.14285714285714285,
+   "django/contrib/sessions/backends/db.py": 0.125,
+   "tests/serializers/models/data.py": 0.1111111111111111,
+   "django/core/files/storage/base.py": 0.1
+  },
+  "8f52e9199b260cdacc5ad372692cddf2dcf76558": {
+   "django/db/migrations/autodetector.py": 1.0,
+   "django/db/models/fields/related_descriptors.py": 0.5,
+   "django/db/models/expressions.py": 0.3333333333333333,
+   "tests/foreign_object/models/empty_join.py": 0.25,
+   "tests/migrations/test_autodetector.py": 0.125,
+   "django/db/migrations/state.py": 0.1
+  },
+  "6baaf6a87706265446c4c7f2e3b96e3c49385b27": {
+   "django/http/response.py": 1.0,
+   "docs/ref/request-response.txt": 0.5,
+   "docs/releases/1.8.txt": 0.3333333333333333,
+   "tests/httpwrappers/tests.py": 0.25,
+   "tests/auth_tests/test_decorators.py": 0.2,
+   "tests/responses/tests.py": 0.16666666666666666,
+   "tests/handlers/tests.py": 0.14285714285714285,
+   "tests/middleware_exceptions/views.py": 0.125,
+   "docs/topics/http/views.txt": 0.1111111111111111
+  },
+  "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5": {
+   "tests/field_defaults/tests.py": 1.0,
+   "tests/delete/tests.py": 0.3333333333333333,
+   "tests/custom_managers/tests.py": 0.16666666666666666,
+   "docs/ref/models/instances.txt": 0.125,
+   "django/forms/models.py": 0.1
+  },
+  "47511a21026cdd721d8fbf8571cc079bc38bb46d": {
+   "django/contrib/admin/utils.py": 1.0,
+   "django/contrib/postgres/fields/array.py": 0.5,
+   "django/forms/models.py": 0.3333333333333333,
+   "django/db/models/fields/related.py": 0.25,
+   "django/db/models/fields/__init__.py": 0.2,
+   "django/contrib/postgres/constraints.py": 0.16666666666666666,
+   "django/contrib/postgres/forms/array.py": 0.14285714285714285,
+   "django/db/models/constraints.py": 0.125,
+   "django/forms/fields.py": 0.1111111111111111,
+   "django/contrib/postgres/fields/hstore.py": 0.1
+  },
+  "27137e655e442e81095f1f8f77ff3870d9fdf169": {
+   "django/utils/translation/trans_real.py": 1.0,
+   "django/utils/translation/__init__.py": 0.5,
+   "django/utils/translation/trans_null.py": 0.3333333333333333,
+   "docs/releases/security.txt": 0.25
+  },
+  "5637bec7a033d67407694316bdda74304449488e": {
+   "tests/test_runner/tests.py": 1.0,
+   "tests/utils_tests/test_html.py": 0.3333333333333333,
+   "django/contrib/auth/tokens.py": 0.2,
+   "django/db/backends/sqlite3/features.py": 0.16666666666666666,
+   "tests/backends/sqlite/test_operations.py": 0.14285714285714285,
+   "django/core/servers/basehttp.py": 0.125,
+   "docs/releases/5.2.1.txt": 0.1111111111111111
+  },
+  "60121939f6b225c7a719dd561e372e1d8e5e2c4a": {
+   "tests/gis_tests/gdal_tests/test_ds.py": 1.0,
+   "django/template/defaultfilters.py": 0.5,
+   "django/contrib/gis/gdal/datasource.py": 0.3333333333333333,
+   "django/contrib/gis/gdal/feature.py": 0.25,
+   "django/contrib/gis/gdal/layer.py": 0.2,
+   "django/db/models/fields/composite.py": 0.16666666666666666,
+   "django/db/models/options.py": 0.14285714285714285,
+   "django/contrib/admin/helpers.py": 0.125,
+   "docs/ref/models/querysets.txt": 0.1
+  },
+  "ea303dee45f4b703b31f73ceb235f11742d3c518": {
+   "django/contrib/gis/db/models/fields.py": 1.0,
+   "tests/gis_tests/gis_migrations/test_operations.py": 0.5
+  },
+  "9465349120ef8a0b0689e12bcbfd05f3d173ebdf": {
+   "django/core/management/commands/shell.py": 1.0,
+   "django/contrib/messages/storage/cookie.py": 0.5,
+   "django/core/mail/handler.py": 0.3333333333333333,
+   "django/template/defaultfilters.py": 0.25,
+   "tests/model_fields/models.py": 0.2,
+   "django/core/serializers/json.py": 0.16666666666666666,
+   "django/utils/dateformat.py": 0.14285714285714285,
+   "tests/dispatch/tests.py": 0.125,
+   "tests/delete/tests.py": 0.1111111111111111,
+   "django/utils/translation/trans_real.py": 0.1
+  },
+  "ca14173f968cf36115f22d6c6785f738de4391ed": {
+   "django/urls/utils.py": 1.0,
+   "django/contrib/auth/models.py": 0.5,
+   "tests/urlpatterns/tests.py": 0.3333333333333333,
+   "django/urls/resolvers.py": 0.25,
+   "django/forms/fields.py": 0.2,
+   "docs/releases/1.6.1.txt": 0.14285714285714285,
+   "tests/backends/base/test_operations.py": 0.125,
+   "tests/urlpatterns_reverse/test_localeregexdescriptor.py": 0.1111111111111111,
+   "django/utils/regex_helper.py": 0.1
+  },
+  "c9ff757a55392b1f50968eb89fe775f6155168d8": {
+   "django/db/models/query.py": 1.0,
+   "django/contrib/sessions/backends/base.py": 0.5,
+   "django/utils/translation/trans_real.py": 0.3333333333333333,
+   "django/test/utils.py": 0.25,
+   "tests/model_fields/test_uuid.py": 0.16666666666666666,
+   "django/core/management/commands/dumpdata.py": 0.14285714285714285,
+   "tests/composite_pk/test_update.py": 0.125,
+   "docs/topics/serialization.txt": 0.1111111111111111
+  },
+  "92e1d9e3619ae5274a64b38f26177064486892f2": {
+   "django/db/backends/ddl_references.py": 1.0,
+   "django/db/models/query.py": 0.3333333333333333,
+   "tests/admin_utils/models.py": 0.25,
+   "tests/admin_views/models.py": 0.2,
+   "django/test/html.py": 0.125,
+   "django/contrib/gis/geos/mutable_list.py": 0.1111111111111111,
+   "tests/admin_views/tests.py": 0.1
+  },
+  "92470ad3742524902b29769d2c822dbe791630db": {
+   "django/contrib/admin/options.py": 1.0,
+   "django/db/migrations/state.py": 0.5,
+   "tests/admin_views/admin.py": 0.3333333333333333,
+   "django/utils/dateformat.py": 0.2,
+   "tests/dispatch/tests.py": 0.16666666666666666,
+   "docs/ref/contrib/admin/index.txt": 0.14285714285714285,
+   "tests/admin_ordering/tests.py": 0.125,
+   "docs/releases/6.1.1.txt": 0.1111111111111111,
+   "docs/releases/1.6.1.txt": 0.1
+  },
+  "c2517faff335f683e1cbe55d9844910b3fb40670": {
+   "django/utils/http.py": 1.0,
+   "tests/responses/test_fileresponse.py": 0.5,
+   "docs/ref/files/uploads.txt": 0.2,
+   "django/http/response.py": 0.16666666666666666,
+   "tests/file_uploads/tests.py": 0.125,
+   "django/core/management/templates.py": 0.1
+  },
+  "8a162076e1988ddf9453edfb8329d5df1573dc38": {
+   "django/urls/resolvers.py": 1.0,
+   "django/contrib/messages/context_processors.py": 0.5,
+   "django/http/request.py": 0.3333333333333333,
+   "django/db/models/fields/generated.py": 0.25,
+   "django/contrib/postgres/fields/array.py": 0.2,
+   "django/core/management/base.py": 0.16666666666666666,
+   "django/db/models/constraints.py": 0.14285714285714285,
+   "scripts/pr_quality/check_pr.py": 0.125,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.1111111111111111,
+   "django/contrib/postgres/constraints.py": 0.1
+  },
+  "2a5da9d00555beef8e5f6307cfcbfc029d45491e": {
+   "django/db/models/enums.py": 1.0,
+   "tests/foreign_object/models/empty_join.py": 0.5,
+   "django/db/models/fields/related_descriptors.py": 0.3333333333333333,
+   "django/db/models/expressions.py": 0.25,
+   "django/db/models/base.py": 0.2,
+   "tests/inspectdb/tests.py": 0.16666666666666666,
+   "django/db/models/query.py": 0.1111111111111111,
+   "django/db/models/options.py": 0.1
+  },
+  "d8cedcab5241725003eef059dd76c533f24c5430": {
+   "django/core/management/base.py": 1.0,
+   "tests/inspectdb/tests.py": 0.5,
+   "django/contrib/messages/api.py": 0.25,
+   "django/test/html.py": 0.2,
+   "django/template/base.py": 0.16666666666666666
+  },
+  "76e1bca1311ae7073a1fa4add6f9d19d709f0f09": {
+   "django/contrib/gis/db/backends/oracle/schema.py": 1.0,
+   "django/contrib/gis/db/backends/mysql/schema.py": 0.5,
+   "django/contrib/gis/db/backends/postgis/schema.py": 0.3333333333333333,
+   "django/db/models/indexes.py": 0.2
+  },
+  "274df4df0bca7fcfb5c1c1d49567f770df147eeb": {
+   "django/contrib/messages/context_processors.py": 1.0,
+   "django/contrib/messages/api.py": 0.5,
+   "django/core/management/base.py": 0.3333333333333333,
+   "django/core/exceptions.py": 0.25,
+   "django/test/client.py": 0.2,
+   "django/template/context_processors.py": 0.125,
+   "django/forms/models.py": 0.1
+  },
+  "a486b48d4ea0d34babe58cae215b2123748aacbd": {
+   "django/contrib/sessions/backends/cached_db.py": 1.0,
+   "django/contrib/sessions/backends/signed_cookies.py": 0.5,
+   "django/contrib/sessions/backends/cache.py": 0.3333333333333333,
+   "django/contrib/sessions/backends/db.py": 0.25,
+   "django/contrib/sessions/backends/base.py": 0.2,
+   "django/db/models/fields/files.py": 0.16666666666666666,
+   "tests/test_client_regress/session.py": 0.14285714285714285,
+   "docs/topics/http/sessions.txt": 0.125,
+   "django/middleware/cache.py": 0.1111111111111111
+  },
+  "2e48636c54910e435eb31e1b7d8a8089c84233ad": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/modeladmin/tests.py": 0.5,
+   "docs/releases/1.6.1.txt": 0.25,
+   "docs/ref/contrib/admin/actions.txt": 0.2,
+   "docs/internals/contributing/writing-code/submitting-patches.txt": 0.16666666666666666,
+   "tests/admin_ordering/tests.py": 0.14285714285714285,
+   "tests/admin_utils/admin.py": 0.125,
+   "tests/admin_views/admin.py": 0.1111111111111111,
+   "tests/deprecation/tests.py": 0.1
+  },
+  "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c": {
+   "django/db/transaction.py": 1.0,
+   "tests/urlpatterns_reverse/nonimported_module.py": 0.5,
+   "tests/handlers/tests.py": 0.3333333333333333,
+   "django/core/handlers/base.py": 0.25,
+   "docs/topics/db/transactions.txt": 0.125,
+   "tests/handlers/views.py": 0.1
+  },
+  "7b8504eaabea6c70195baa3c02155c24a6e270c6": {
+   "django/db/migrations/autodetector.py": 1.0,
+   "django/db/models/query.py": 0.5,
+   "django/db/models/manager.py": 0.3333333333333333,
+   "django/template/utils.py": 0.25,
+   "django/utils/connection.py": 0.2,
+   "docs/topics/migrations.txt": 0.16666666666666666,
+   "docs/ref/django-admin.txt": 0.125
+  },
+  "7ab2d803533dd3ffe310055414ad584cfbbf0bea": {
+   "django/test/client.py": 1.0,
+   "django/db/models/options.py": 0.5,
+   "django/contrib/gis/gdal/feature.py": 0.3333333333333333,
+   "django/contrib/gis/gdal/layer.py": 0.25,
+   "django/http/multipartparser.py": 0.2,
+   "django/db/models/fields/composite.py": 0.16666666666666666,
+   "django/contrib/admin/helpers.py": 0.14285714285714285,
+   "django/contrib/gis/gdal/datasource.py": 0.1111111111111111
+  },
+  "5d489a52c3c604018c786f11d45453eb75fa24b3": {
+   "tests/backends/base/test_base.py": 1.0,
+   "tests/test_utils/tests.py": 0.3333333333333333,
+   "tests/select_related/tests.py": 0.25,
+   "tests/model_regress/test_state.py": 0.14285714285714285,
+   "django/db/backends/base/creation.py": 0.1111111111111111
+  },
+  "6ca2bbe2efce21010eff48f1f36a3f621d698ed8": {
+   "django/contrib/gis/gdal/raster/source.py": 1.0,
+   "django/test/client.py": 0.5,
+   "django/contrib/gis/geos/prototypes/io.py": 0.3333333333333333,
+   "tests/gis_tests/gdal_tests/test_raster.py": 0.25,
+   "docs/ref/contrib/gis/gdal.txt": 0.16666666666666666,
+   "django/core/handlers/wsgi.py": 0.14285714285714285,
+   "django/contrib/gis/geos/io.py": 0.125,
+   "django/http/multipartparser.py": 0.1111111111111111
+  },
+  "6e365f8d01f2ba0bbd90968d76a42600fb8bc4b1": {
+   "django/core/cache/backends/base.py": 1.0,
+   "django/core/cache/backends/memcached.py": 0.5,
+   "django/core/cache/backends/db.py": 0.3333333333333333,
+   "django/core/cache/backends/redis.py": 0.25,
+   "django/core/cache/backends/locmem.py": 0.2,
+   "django/core/cache/backends/dummy.py": 0.16666666666666666,
+   "tests/cache/failing_cache.py": 0.125,
+   "django/core/cache/backends/filebased.py": 0.1111111111111111,
+   "tests/cache/tests.py": 0.1
+  },
+  "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c": {
+   "django/forms/fields.py": 1.0,
+   "django/contrib/postgres/fields/jsonb.py": 0.5,
+   "django/db/models/fields/json.py": 0.16666666666666666,
+   "django/forms/models.py": 0.1111111111111111
+  },
+  "356e5b0f5ddb473eec3ed96d8ad9a37f3f8585eb": {
+   "django/db/models/functions/text.py": 1.0,
+   "docs/topics/auth/passwords.txt": 0.5,
+   "tests/auth_tests/test_hashers.py": 0.16666666666666666,
+   "docs/releases/1.10.txt": 0.1
+  },
+  "d058058976496cedf3f36fa303a0327af38cdeaa": {
+   "django/core/cache/backends/filebased.py": 1.0,
+   "django/core/cache/backends/locmem.py": 0.3333333333333333,
+   "django/core/cache/backends/memcached.py": 0.25,
+   "django/core/cache/backends/db.py": 0.2,
+   "django/core/cache/backends/redis.py": 0.16666666666666666,
+   "django/core/cache/backends/base.py": 0.125,
+   "django/core/cache/backends/dummy.py": 0.1111111111111111
+  },
+  "8acd000725838f73c5e6781114f11866f6674c46": {
+   "django/core/cache/utils.py": 1.0,
+   "django/db/models/aggregates.py": 0.5,
+   "docs/topics/cache.txt": 0.25,
+   "django/contrib/postgres/aggregates/general.py": 0.14285714285714285,
+   "docs/topics/templates.txt": 0.125,
+   "django/template/loaders/cached.py": 0.1
+  },
+  "65acb3cc2e76c238f5aee38d22626d92171a2f7c": {
+   "django/http/request.py": 1.0,
+   "docs/topics/cache.txt": 0.5,
+   "django/utils/cache.py": 0.25,
+   "docs/ref/utils.txt": 0.16666666666666666,
+   "docs/topics/http/decorators.txt": 0.125,
+   "django/middleware/locale.py": 0.1111111111111111
+  },
+  "56050acb96abc7ac2079d83ffdd232056732bb47": {
+   "django/views/decorators/debug.py": 1.0,
+   "django/views/debug.py": 0.5,
+   "django/utils/datastructures.py": 0.25,
+   "tests/view_tests/tests/test_debug.py": 0.14285714285714285,
+   "django/http/multipartparser.py": 0.125,
+   "docs/howto/error-reporting.txt": 0.1111111111111111
+  },
+  "99a14b6be85793f3371779cd9bf6fb9d9247f475": {
+   "django/core/management/base.py": 1.0,
+   "django/contrib/admin/sites.py": 0.5,
+   "django/core/checks/mail.py": 0.3333333333333333,
+   "django/db/models/query_utils.py": 0.25,
+   "tests/check_framework/test_mail.py": 0.2,
+   "tests/test_runner/models.py": 0.16666666666666666,
+   "django/contrib/staticfiles/finders.py": 0.1111111111111111,
+   "django/db/models/fields/related.py": 0.1
+  },
+  "189c2d2ce58482db5c09d8b1e1464d1456dc9bab": {
+   "django/core/serializers/jsonl.py": 1.0,
+   "django/core/serializers/base.py": 0.5,
+   "django/contrib/gis/serializers/geojson.py": 0.3333333333333333,
+   "django/core/serializers/xml_serializer.py": 0.25,
+   "django/core/serializers/pyyaml.py": 0.16666666666666666,
+   "django/core/serializers/json.py": 0.14285714285714285,
+   "django/core/serializers/python.py": 0.125,
+   "django/db/models/query_utils.py": 0.1111111111111111,
+   "tests/serializers/test_jsonl.py": 0.1
+  },
+  "77d0c9d549a8d95156c833eceb6275d9b7317d4e": {
+   "django/contrib/admin/decorators.py": 1.0,
+   "django/template/smartif.py": 0.5,
+   "django/template/defaulttags.py": 0.3333333333333333,
+   "django/contrib/gis/gdal/geometries.py": 0.2,
+   "django/contrib/gis/geos/geometry.py": 0.16666666666666666,
+   "django/contrib/admin/utils.py": 0.14285714285714285,
+   "django/contrib/sessions/backends/base.py": 0.125,
+   "tests/admin_utils/tests.py": 0.1111111111111111,
+   "django/db/models/query.py": 0.1
+  },
+  "ca5746b8680a5e7e14014d365c0610f825df1dae": {
+   "django/db/models/query.py": 1.0,
+   "tests/async/test_async_queryset.py": 0.3333333333333333,
+   "django/core/management/commands/dumpdata.py": 0.14285714285714285,
+   "django/db/models/query_utils.py": 0.125
+  },
+  "09434486302078c3649e034dfa74cf3f102db20b": {
+   "django/core/mail/message.py": 1.0,
+   "tests/mail/tests.py": 0.5,
+   "django/http/request.py": 0.16666666666666666,
+   "docs/topics/email.txt": 0.1
+  },
+  "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c": {
+   "django/db/migrations/operations/models.py": 1.0,
+   "tests/custom_migration_operations/operations.py": 0.5,
+   "tests/migrations/test_operations.py": 0.25,
+   "django/db/migrations/autodetector.py": 0.2,
+   "tests/migrations/test_migrations_manual_porting/0003_third.py": 0.1111111111111111
+  },
+  "14c66825e0088b7e08fe5d108fa293bd31722c39": {
+   "django/db/models/query.py": 1.0,
+   "tests/mail/test_sendtestemail.py": 0.5,
+   "django/tasks/base.py": 0.14285714285714285
+  },
+  "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e": {
+   "django/contrib/contenttypes/admin.py": 1.0,
+   "django/contrib/admin/options.py": 0.3333333333333333,
+   "tests/generic_inline_admin/tests.py": 0.2
+  },
+  "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1": {
+   "django/test/client.py": 1.0,
+   "django/core/files/storage/handler.py": 0.5,
+   "django/contrib/auth/__init__.py": 0.3333333333333333,
+   "django/contrib/auth/middleware.py": 0.25,
+   "tests/test_client/tests.py": 0.2,
+   "django/contrib/auth/backends.py": 0.16666666666666666,
+   "tests/test_client_regress/auth_backends.py": 0.125,
+   "django/contrib/auth/forms.py": 0.1111111111111111,
+   "django/contrib/auth/views.py": 0.1
+  },
+  "c6f81b383251dc9fd0918b4ba040c993444b931e": {
+   "django/db/migrations/operations/models.py": 1.0,
+   "tests/migrations/test_operations.py": 0.5,
+   "django/utils/dateformat.py": 0.3333333333333333,
+   "tests/dispatch/tests.py": 0.25,
+   "docs/releases/1.8.2.txt": 0.16666666666666666,
+   "tests/migrations/test_optimizer.py": 0.14285714285714285,
+   "tests/migrations/test_commands.py": 0.125,
+   "django/db/migrations/autodetector.py": 0.1111111111111111
+  },
+  "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c": {
+   "django/forms/widgets.py": 1.0,
+   "django/utils/safestring.py": 0.3333333333333333,
+   "tests/admin_views/forms.py": 0.25,
+   "tests/admin_inlines/admin.py": 0.16666666666666666,
+   "tests/model_forms/tests.py": 0.14285714285714285,
+   "django/contrib/gis/geos/mutable_list.py": 0.125,
+   "django/template/context_processors.py": 0.1111111111111111,
+   "tests/generic_inline_admin/models.py": 0.1
+  },
+  "f970a98e464320c09dde8d45009eadfb4d038a57": {
+   "django/utils/warnings.py": 1.0,
+   "django/contrib/gis/gdal/geomtype.py": 0.5,
+   "tests/utils_tests/test_warnings.py": 0.3333333333333333,
+   "django/conf/__init__.py": 0.16666666666666666,
+   "docs/releases/1.7.txt": 0.125,
+   "docs/internals/contributing/writing-code/submitting-patches.txt": 0.1111111111111111,
+   "docs/releases/3.0.txt": 0.1
+  },
+  "867c7c0451f2e67e715da5b55b5bf6696747fdc3": {
+   "django/middleware/cache.py": 1.0,
+   "django/db/backends/base/operations.py": 0.3333333333333333,
+   "django/db/backends/oracle/operations.py": 0.25,
+   "tests/cache/tests.py": 0.2,
+   "docs/topics/cache.txt": 0.1
+  },
+  "46c5e76f0bcc76bfce19ad7ba07f716fc653a822": {
+   "django/utils/_os.py": 1.0,
+   "django/template/backends/base.py": 0.5,
+   "docs/ref/django-admin.txt": 0.3333333333333333,
+   "django/core/management/templates.py": 0.25,
+   "tests/admin_scripts/tests.py": 0.2,
+   "django/template/loaders/filesystem.py": 0.16666666666666666,
+   "docs/ref/templates/api.txt": 0.1111111111111111,
+   "django/contrib/flatpages/views.py": 0.1
+  },
+  "142b881cecaddc334cabec139e701c0e4b9798da": {
+   "django/middleware/cache.py": 1.0,
+   "django/db/models/indexes.py": 0.25,
+   "docs/topics/cache.txt": 0.2,
+   "django/contrib/admin/sites.py": 0.16666666666666666,
+   "django/db/models/query_utils.py": 0.14285714285714285,
+   "django/core/management/base.py": 0.125,
+   "django/db/models/fields/related.py": 0.1111111111111111
+  },
+  "71af23d1f4678c4bf052e051d72e8928e1697de3": {
+   "django/utils/datastructures.py": 1.0,
+   "django/db/models/enums.py": 0.5,
+   "django/contrib/gis/gdal/geometries.py": 0.3333333333333333,
+   "django/contrib/gis/geos/geometry.py": 0.25,
+   "django/contrib/sessions/backends/base.py": 0.2,
+   "django/db/models/query.py": 0.16666666666666666,
+   "docs/topics/db/models.txt": 0.14285714285714285,
+   "tests/basic/tests.py": 0.125,
+   "docs/ref/models/fields.txt": 0.1111111111111111,
+   "django/db/backends/base/schema.py": 0.1
+  },
+  "a7a57a21a8cf42ecc767c204f7939ad4419ae25f": {
+   "tests/cache/tests.py": 1.0,
+   "django/core/cache/backends/filebased.py": 0.16666666666666666,
+   "django/core/cache/backends/locmem.py": 0.14285714285714285,
+   "django/core/cache/backends/db.py": 0.1111111111111111
+  },
+  "4bbc27c8686f10f9556cef02dbfa9f5157fbcf56": {
+   "tests/admin_changelist/tests.py": 1.0,
+   "docs/ref/databases.txt": 0.5,
+   "django/db/models/lookups.py": 0.2,
+   "django/db/models/sql/query.py": 0.16666666666666666,
+   "tests/custom_lookups/tests.py": 0.1
+  },
+  "42aa0b3364d312e7c6472258d8b0e9c0277fbf22": {
+   "tests/auth_tests/test_remote_user.py": 1.0,
+   "django/contrib/sessions/backends/base.py": 0.5,
+   "django/db/models/query.py": 0.3333333333333333,
+   "django/db/models/enums.py": 0.25,
+   "django/utils/datastructures.py": 0.2,
+   "tests/cache/tests.py": 0.16666666666666666,
+   "django/utils/http.py": 0.1111111111111111
+  },
+  "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9": {
+   "tests/cache/tests.py": 1.0,
+   "docs/releases/security.txt": 0.5,
+   "docs/ref/csp.txt": 0.25,
+   "docs/topics/cache.txt": 0.2,
+   "django/middleware/cache.py": 0.1
+  },
+  "d618d7ae4fec727d5b582bd24f803c28d17bf7cd": {
+   "django/middleware/cache.py": 1.0,
+   "docs/topics/cache.txt": 0.5,
+   "docs/releases/security.txt": 0.3333333333333333,
+   "tests/cache/tests.py": 0.14285714285714285
+  },
+  "df887f50198593a0e5b4638bfddbbd43a30fd276": {
+   "django/core/mail/message.py": 1.0,
+   "django/conf/__init__.py": 0.5,
+   "docs/releases/security.txt": 0.25,
+   "docs/topics/email.txt": 0.16666666666666666
+  },
+  "672cfaa53c72dd67fb54ecbdd904ea364d2951c4": {
+   "django/http/request.py": 1.0,
+   "django/contrib/postgres/fields/array.py": 0.5,
+   "django/template/context.py": 0.3333333333333333,
+   "django/urls/resolvers.py": 0.25,
+   "django/db/models/constraints.py": 0.2,
+   "django/db/models/base.py": 0.16666666666666666,
+   "django/db/models/fields/__init__.py": 0.14285714285714285,
+   "django/template/backends/django.py": 0.125,
+   "django/contrib/postgres/constraints.py": 0.1111111111111111,
+   "django/db/models/fields/generated.py": 0.1
+  },
+  "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540": {
+   "django/http/request.py": 1.0,
+   "django/core/handlers/asgi.py": 0.3333333333333333,
+   "tests/asgi/tests.py": 0.25,
+   "tests/test_client_regress/views.py": 0.14285714285714285,
+   "django/contrib/contenttypes/management/commands/remove_stale_contenttypes.py": 0.125,
+   "django/core/servers/basehttp.py": 0.1111111111111111,
+   "django/core/management/commands/startapp.py": 0.1
+  },
+  "22d25eff1510eb157be3ef02984869b1309ec15d": {
+   "django/urls/utils.py": 1.0,
+   "tests/urlpatterns/tests.py": 0.5,
+   "django/forms/fields.py": 0.3333333333333333,
+   "docs/ref/templates/language.txt": 0.2,
+   "django/db/backends/mysql/operations.py": 0.16666666666666666,
+   "django/urls/resolvers.py": 0.14285714285714285,
+   "tests/migrations/test_writer.py": 0.125,
+   "django/utils/regex_helper.py": 0.1111111111111111
+  },
+  "ea9742c6d02edf64fc0969f21506f2048c976051": {
+   "django/core/serializers/json.py": 1.0,
+   "tests/serializers/test_json.py": 0.5,
+   "tests/model_fields/test_jsonfield.py": 0.3333333333333333,
+   "docs/releases/1.0.txt": 0.16666666666666666,
+   "tests/httpwrappers/tests.py": 0.14285714285714285,
+   "docs/releases/6.2.txt": 0.1111111111111111
+  },
+  "6e15ac8066312328de279e3e072667416c205bfc": {
+   "django/template/defaultfilters.py": 1.0,
+   "tests/httpwrappers/tests.py": 0.5,
+   "django/http/response.py": 0.25,
+   "docs/ref/request-response.txt": 0.2,
+   "docs/internals/security.txt": 0.1111111111111111,
+   "tests/admin_views/admin.py": 0.1
+  },
+  "f57a90073920f1c34096d062e151a7bd79065f01": {
+   "tests/admin_views/tests.py": 1.0,
+   "tests/prefetch_related/test_uuid.py": 0.5,
+   "tests/expressions/tests.py": 0.2,
+   "tests/expressions_case/tests.py": 0.14285714285714285
+  },
+  "a53e02af6d7a07d0367b534f7107a0e2a37e3d34": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/admin_views/tests.py": 0.3333333333333333,
+   "tests/admin_views/admin.py": 0.2,
+   "docs/ref/contrib/admin/actions.txt": 0.16666666666666666,
+   "django/views/generic/list.py": 0.14285714285714285,
+   "django/views/generic/detail.py": 0.1111111111111111
+  },
+  "53645750412efa1e9013004040db328bd515e0f1": {
+   "django/http/response.py": 1.0,
+   "django/utils/xmlutils.py": 0.3333333333333333,
+   "tests/responses/tests.py": 0.2,
+   "docs/ref/request-response.txt": 0.16666666666666666
+  },
+  "bc9bed573ce39c3b739a4a3b7848816d464b6bdc": {
+   "django/forms/forms.py": 1.0,
+   "django/contrib/admin/helpers.py": 0.5,
+   "django/template/context_processors.py": 0.25,
+   "django/forms/formsets.py": 0.16666666666666666,
+   "django/contrib/admin/options.py": 0.14285714285714285,
+   "django/contrib/postgres/forms/array.py": 0.125,
+   "tests/forms_tests/tests/test_media.py": 0.1111111111111111,
+   "django/contrib/admin/widgets.py": 0.1
+  },
+  "e78a46a8fb291a11a31b6938b5089db1058f3925": {
+   "django/template/defaultfilters.py": 1.0,
+   "django/core/mail/handler.py": 0.5,
+   "tests/model_fields/models.py": 0.3333333333333333,
+   "django/core/serializers/json.py": 0.25,
+   "django/contrib/messages/storage/cookie.py": 0.2,
+   "docs/releases/1.4.txt": 0.16666666666666666,
+   "docs/topics/auth/passwords.txt": 0.14285714285714285,
+   "django/contrib/auth/hashers.py": 0.1111111111111111,
+   "docs/internals/howto-release-django.txt": 0.1
+  },
+  "20960df455fffd73d556a5ed92cdf6832c23e65f": {
+   "django/db/transaction.py": 1.0,
+   "django/db/backends/base/base.py": 0.3333333333333333,
+   "docs/topics/db/transactions.txt": 0.25,
+   "django/db/backends/base/operations.py": 0.16666666666666666,
+   "tests/transactions/tests.py": 0.14285714285714285
+  },
+  "9b4433948714d5c43bab96b08bb6618c22512000": {
+   "docs/releases/2.2.2.txt": 1.0,
+   "tests/test_runner_apps/failures/tests_failures.py": 0.5,
+   "docs/releases/4.2.2.txt": 0.25,
+   "docs/releases/3.1.3.txt": 0.2,
+   "tests/tasks/test_tasks.py": 0.16666666666666666,
+   "docs/releases/4.2.8.txt": 0.14285714285714285,
+   "tests/test_runner_apps/sample/tests_sample.py": 0.125,
+   "docs/releases/4.1.1.txt": 0.1111111111111111,
+   "tests/middleware/test_csp.py": 0.1
+  },
+  "8fd29079ed1253f0cd88ccf330de30271a5d15e4": {
+   "docs/ref/contrib/admin/actions.txt": 1.0,
+   "django/contrib/admin/decorators.py": 0.5,
+   "django/contrib/staticfiles/finders.py": 0.3333333333333333,
+   "docs/_ext/djangodocs.py": 0.25,
+   "django/test/runner.py": 0.16666666666666666,
+   "django/core/management/commands/runserver.py": 0.14285714285714285,
+   "scripts/manage_translations.py": 0.125,
+   "django/utils/autoreload.py": 0.1111111111111111,
+   "scripts/archive_eol_stable_branches.py": 0.1
+  },
+  "7c125f6a6660a70a0568448b2e40db273a456479": {
+   "django/contrib/admin/sites.py": 1.0,
+   "docs/ref/contrib/admin/actions.txt": 0.5,
+   "tests/admin_views/test_actions.py": 0.25,
+   "django/contrib/admin/templatetags/admin_modify.py": 0.16666666666666666,
+   "docs/ref/contrib/admin/index.txt": 0.14285714285714285,
+   "django/contrib/admin/options.py": 0.125,
+   "docs/releases/6.1.txt": 0.1
+  },
+  "fbe902d4a4b8b9dcb371509b25ba8feff3852e64": {
+   "django/db/backends/base/base.py": 1.0,
+   "django/template/defaultfilters.py": 0.5,
+   "django/db/models/query.py": 0.3333333333333333,
+   "django/db/models/sql/query.py": 0.25,
+   "django/db/models/sql/compiler.py": 0.125,
+   "docs/ref/models/querysets.txt": 0.1
+  },
+  "6bbe2656e1e89a03d1ae8f2cea7bdd2a027f0665": {
+   "django/db/backends/base/base.py": 1.0,
+   "django/db/models/sql/compiler.py": 0.5,
+   "django/db/backends/base/features.py": 0.25,
+   "docs/releases/1.6.txt": 0.2,
+   "django/db/models/sql/query.py": 0.16666666666666666,
+   "docs/ref/databases.txt": 0.14285714285714285,
+   "django/db/models/query.py": 0.125
+  },
+  "0e1d950fbb44878f6972a0e5730f69f98caf468e": {
+   "django/db/models/sql/query.py": 1.0,
+   "django/db/models/query.py": 0.3333333333333333,
+   "tests/queries/tests.py": 0.16666666666666666,
+   "django/db/models/sql/compiler.py": 0.125,
+   "django/core/cache/backends/locmem.py": 0.1111111111111111
+  },
+  "da6567da7ea0e844c9a880e02c7b34e1a184edf8": {
+   "django/views/generic/base.py": 1.0,
+   "tests/generic_views/test_base.py": 0.5,
+   "tests/test_client_regress/urls.py": 0.3333333333333333,
+   "tests/test_client/urls.py": 0.14285714285714285,
+   "django/shortcuts.py": 0.125,
+   "docs/ref/class-based-views/base.txt": 0.1111111111111111,
+   "tests/urlpatterns_reverse/views.py": 0.1
+  },
+  "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f": {
+   "django/core/mail/backends/smtp.py": 1.0,
+   "django/core/mail/backends/dummy.py": 0.5,
+   "tests/mail/custombackend.py": 0.3333333333333333,
+   "django/core/mail/backends/locmem.py": 0.25,
+   "tests/mail/tests.py": 0.2,
+   "tests/mail/test_handler.py": 0.16666666666666666,
+   "tests/mail/test_backends.py": 0.14285714285714285,
+   "django/core/mail/backends/filebased.py": 0.1111111111111111
+  },
+  "ed5486376989c08b34cc62e7c8ba4a07bd60047d": {
+   "django/db/models/utils.py": 1.0,
+   "tests/forms_tests/tests/test_forms.py": 0.5,
+   "tests/deprecation/test_use_blank_choice_dash.py": 0.3333333333333333,
+   "django/conf/__init__.py": 0.2,
+   "docs/internals/release-process.txt": 0.16666666666666666,
+   "scripts/tests.py": 0.125,
+   "tests/admin_views/admin.py": 0.1
+  },
+  "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e": {
+   "django/core/mail/message.py": 1.0,
+   "django/contrib/admin/checks.py": 0.5,
+   "tests/admin_views/tests.py": 0.3333333333333333,
+   "tests/modeladmin/test_checks.py": 0.25,
+   "tests/admin_changelist/tests.py": 0.2
+  },
+  "335c6d0129400eda792f3bec5c71bb28af5e5d37": {
+   "django/shortcuts.py": 1.0,
+   "tests/logging_tests/views.py": 0.5,
+   "tests/httpwrappers/tests.py": 0.3333333333333333,
+   "tests/check_framework/test_urls.py": 0.2,
+   "tests/auth_tests/test_views.py": 0.16666666666666666,
+   "tests/view_tests/tests/test_specials.py": 0.1111111111111111,
+   "tests/admin_custom_urls/tests.py": 0.1
+  },
+  "2314cdf1ff860058a6579bb9f9bac1253fc9ab43": {
+   "django/db/backends/base/base.py": 1.0,
+   "django/db/models/sql/compiler.py": 0.5,
+   "django/db/models/sql/query.py": 0.25,
+   "django/db/models/query.py": 0.2,
+   "django/db/backends/base/features.py": 0.14285714285714285,
+   "docs/releases/1.6.txt": 0.125,
+   "docs/ref/databases.txt": 0.1
+  },
+  "9c655e98006dec4f4fd47a84c254f36404d631e4": {
+   "django/db/backends/base/base.py": 1.0,
+   "django/db/models/sql/compiler.py": 0.5,
+   "django/db/models/query.py": 0.25,
+   "django/db/models/sql/query.py": 0.2,
+   "tests/queries/tests.py": 0.14285714285714285,
+   "tests/queries/test_qs_combinators.py": 0.1
+  },
+  "cb192dbb191525550f90d7cb9cff756f57e86aec": {
+   "tests/admin_views/tests.py": 1.0,
+   "django/contrib/admin/options.py": 0.5,
+   "tests/migrations/test_autodetector.py": 0.25,
+   "tests/generic_relations_regress/tests.py": 0.2,
+   "tests/delete/tests.py": 0.16666666666666666,
+   "docs/releases/1.8.txt": 0.1111111111111111
+  },
+  "0c634de4e6950ec6fb83ab420b4af9c645b28acd": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/modeladmin/tests.py": 0.5,
+   "tests/admin_changelist/admin.py": 0.3333333333333333,
+   "tests/modeladmin/test_checks.py": 0.125
+  },
+  "e7f539f813bd56a71ca3c1fbf379f47691002086": {
+   "django/utils/inspect.py": 1.0,
+   "docs/topics/i18n/translation.txt": 0.25,
+   "tests/admin_views/test_templatetags.py": 0.2,
+   "tests/requirements/py3-free-threading.txt": 0.16666666666666666,
+   "django/template/defaultfilters.py": 0.14285714285714285,
+   "django/db/models/fields/__init__.py": 0.125,
+   "tests/mail/tests.py": 0.1111111111111111,
+   "docs/releases/1.3.txt": 0.1
+  },
+  "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e": {
+   "django/db/migrations/operations/fields.py": 1.0,
+   "django/db/models/fields/related_descriptors.py": 0.5,
+   "django/db/migrations/autodetector.py": 0.3333333333333333,
+   "django/db/models/query.py": 0.25,
+   "tests/migrations/test_optimizer.py": 0.16666666666666666,
+   "django/db/migrations/utils.py": 0.125,
+   "tests/migrations/test_operations.py": 0.1111111111111111
+  },
+  "21dcd9a94fb3e9edeec883d12cd1dcac5e773abe": {
+   "tests/middleware/test_security.py": 1.0,
+   "tests/logging_tests/tests.py": 0.5,
+   "tests/middleware_exceptions/tests.py": 0.3333333333333333,
+   "tests/handlers/tests.py": 0.16666666666666666,
+   "tests/runtests.py": 0.14285714285714285,
+   "tests/auth_tests/test_checks.py": 0.1111111111111111
+  },
+  "f25ad7c086eb694372a8ef08cb713556bcb366a2": {
+   "django/core/management/base.py": 1.0,
+   "tests/mail/test_backends.py": 0.5,
+   "django/contrib/messages/api.py": 0.3333333333333333,
+   "django/test/html.py": 0.25,
+   "django/template/base.py": 0.2,
+   "tests/staticfiles_tests/test_storage.py": 0.14285714285714285,
+   "django/core/mail/backends/filebased.py": 0.125,
+   "django/core/files/storage/memory.py": 0.1
+  },
+  "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd": {
+   "django/contrib/staticfiles/storage.py": 1.0,
+   "django/forms/widgets.py": 0.5,
+   "django/core/management/commands/makemessages.py": 0.3333333333333333,
+   "django/db/models/fields/files.py": 0.25,
+   "tests/auth_tests/test_hashers.py": 0.2,
+   "django/contrib/auth/hashers.py": 0.14285714285714285,
+   "django/db/migrations/writer.py": 0.125,
+   "tests/auth_tests/test_models.py": 0.1111111111111111,
+   "django/core/files/storage/memory.py": 0.1
+  },
+  "75bb46cc454fdef0585f0a460f36f579b59f0356": {
+   "django/http/request.py": 1.0,
+   "django/template/context.py": 0.5,
+   "scripts/pr_quality/check_pr.py": 0.3333333333333333,
+   "django/db/backends/base/schema.py": 0.2,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.16666666666666666,
+   "django/db/backends/mysql/schema.py": 0.125
+  },
+  "57b23d15259c32dba80bb093645242f1b3b25365": {
+   "django/db/models/constraints.py": 1.0,
+   "django/contrib/gis/gdal/srs.py": 0.5,
+   "django/contrib/postgres/forms/array.py": 0.3333333333333333,
+   "tests/urlpatterns/converters.py": 0.25,
+   "django/contrib/postgres/fields/array.py": 0.16666666666666666,
+   "django/contrib/postgres/constraints.py": 0.14285714285714285,
+   "django/core/signing.py": 0.125,
+   "django/db/models/fields/__init__.py": 0.1111111111111111
+  },
+  "c79bdfc1351ef2a2ad95df36241a74c736ef20a1": {
+   "tests/auth_tests/test_remote_user.py": 1.0,
+   "django/utils/regex_helper.py": 0.5,
+   "django/contrib/gis/gdal/geometries.py": 0.3333333333333333,
+   "django/contrib/gis/geos/prepared.py": 0.25,
+   "django/contrib/gis/geos/geometry.py": 0.2,
+   "django/db/models/query.py": 0.16666666666666666,
+   "django/utils/cache.py": 0.14285714285714285,
+   "docs/topics/cache.txt": 0.125,
+   "docs/ref/utils.txt": 0.1111111111111111
+  },
+  "7f6e9b55130d5158804c0acbc0b24ccb7422ed82": {
+   "django/test/client.py": 1.0,
+   "tests/wsgi/urls.py": 0.5,
+   "tests/auth_tests/test_remote_user.py": 0.3333333333333333,
+   "tests/sessions_tests/tests.py": 0.25,
+   "django/contrib/sessions/middleware.py": 0.16666666666666666,
+   "docs/topics/http/sessions.txt": 0.125,
+   "docs/ref/settings.txt": 0.1
+  },
+  "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a": {
+   "django/core/signing.py": 1.0,
+   "django/utils/crypto.py": 0.5,
+   "tests/utils_tests/test_crypto.py": 0.3333333333333333,
+   "tests/signing/tests.py": 0.25,
+   "django/contrib/messages/storage/cookie.py": 0.16666666666666666,
+   "django/core/serializers/json.py": 0.14285714285714285,
+   "django/template/defaultfilters.py": 0.125,
+   "django/core/mail/handler.py": 0.1111111111111111,
+   "tests/model_fields/models.py": 0.1
+  },
+  "920b43eb5b40190bb2dbee00773e17307bc699d8": {
+   "tests/generic_relations_regress/tests.py": 1.0,
+   "tests/delete/tests.py": 0.5,
+   "tests/delete_regress/tests.py": 0.2,
+   "tests/m2m_through_regress/tests.py": 0.14285714285714285,
+   "docs/internals/howto-release-django.txt": 0.1111111111111111
+  },
+  "12dcba45cb0d3bcf735621c3b2175fdee08308d8": {
+   "django/core/management/base.py": 1.0,
+   "django/core/management/commands/testserver.py": 0.3333333333333333,
+   "django/core/management/commands/dbshell.py": 0.25,
+   "django/core/exceptions.py": 0.2,
+   "django/contrib/messages/api.py": 0.16666666666666666,
+   "tests/admin_scripts/tests.py": 0.14285714285714285,
+   "tests/auth_tests/test_remote_user.py": 0.125
+  },
+  "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f": {
+   "django/db/backends/postgresql/base.py": 1.0,
+   "django/db/backends/oracle/base.py": 0.5,
+   "django/db/models/fields/__init__.py": 0.3333333333333333,
+   "django/db/models/indexes.py": 0.25,
+   "django/contrib/postgres/fields/array.py": 0.2,
+   "django/db/models/query_utils.py": 0.16666666666666666,
+   "django/db/models/constraints.py": 0.14285714285714285,
+   "django/urls/resolvers.py": 0.125,
+   "django/contrib/admin/sites.py": 0.1111111111111111,
+   "django/contrib/staticfiles/finders.py": 0.1
+  },
+  "8c8b833d32c02d3ae6f43b04bb1e45968796b402": {
+   "django/tasks/base.py": 1.0,
+   "docs/ref/tasks.txt": 0.3333333333333333,
+   "tests/tasks/test_tasks.py": 0.2,
+   "tests/queries/models.py": 0.16666666666666666,
+   "django/tasks/backends/immediate.py": 0.125,
+   "docs/topics/tasks.txt": 0.1111111111111111
+  },
+  "3f912ee4189602b4df121c0dc0428673fda5c253": {
+   "django/forms/fields.py": 1.0,
+   "django/forms/widgets.py": 0.3333333333333333,
+   "tests/forms_tests/field_tests/test_multivaluefield.py": 0.25,
+   "django/db/models/fields/related.py": 0.16666666666666666,
+   "tests/forms_tests/widget_tests/test_multiwidget.py": 0.14285714285714285,
+   "django/contrib/admin/widgets.py": 0.125,
+   "django/utils/choices.py": 0.1111111111111111,
+   "django/contrib/admin/filters.py": 0.1
+  },
+  "60a9c70496e5d7b971928ce3da5b47c8836a4def": {
+   "django/utils/warnings.py": 1.0,
+   "tests/utils_tests/test_warnings.py": 0.5,
+   "django/contrib/flatpages/forms.py": 0.3333333333333333,
+   "tests/flatpages_tests/test_forms.py": 0.2,
+   "docs/releases/1.3.txt": 0.16666666666666666,
+   "django/middleware/common.py": 0.1
+  },
+  "5b3cfce51770f46c6dc100e9be7f199a37176762": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/modeladmin/test_checks.py": 0.5,
+   "tests/admin_checks/tests.py": 0.3333333333333333,
+   "tests/admin_views/admin.py": 0.25,
+   "tests/model_forms/tests.py": 0.2,
+   "docs/ref/contrib/admin/index.txt": 0.1111111111111111
+  },
+  "5d911f2d2fecc703be91b2b9b28acc59d34b35f3": {
+   "django/contrib/admin/filters.py": 1.0,
+   "tests/admin_filters/tests.py": 0.5,
+   "tests/admin_changelist/admin.py": 0.125,
+   "tests/template_tests/syntax_tests/test_basic.py": 0.1111111111111111
+  },
+  "fb292a549371a7c011c25b1a10fe5d25c579814a": {
+   "django/db/models/query_utils.py": 1.0,
+   "django/utils/tree.py": 0.3333333333333333,
+   "tests/queries/test_q.py": 0.25,
+   "django/db/models/sql/query.py": 0.14285714285714285,
+   "django/contrib/sessions/backends/base.py": 0.125,
+   "django/contrib/sessions/backends/signed_cookies.py": 0.1111111111111111,
+   "django/contrib/sessions/backends/cache.py": 0.1
+  },
+  "c63591d4da533944af31ccb46a77eb221dbdba0a": {
+   "django/contrib/auth/context_processors.py": 1.0,
+   "django/contrib/auth/__init__.py": 0.5,
+   "django/contrib/auth/handlers/modwsgi.py": 0.25,
+   "tests/auth_tests/urls.py": 0.16666666666666666,
+   "docs/topics/auth/default.txt": 0.14285714285714285,
+   "django/core/mail/__init__.py": 0.125,
+   "tests/auth_tests/test_auth_backends.py": 0.1
+  },
+  "526b548cfb9c8a02ea2b7ae064ef3b795305d51a": {
+   "django/views/decorators/debug.py": 1.0,
+   "tests/auth_tests/test_auth_backends.py": 0.5,
+   "django/contrib/auth/backends.py": 0.25,
+   "django/contrib/auth/__init__.py": 0.2,
+   "tests/generic_views/test_base.py": 0.16666666666666666,
+   "tests/migrations/test_writer.py": 0.14285714285714285,
+   "tests/view_tests/tests/test_debug.py": 0.1111111111111111,
+   "docs/howto/error-reporting.txt": 0.1
+  },
+  "ad073338d02fce884301d159f30eaf17c7f2d246": {
+   "django/db/migrations/autodetector.py": 1.0,
+   "tests/composite_pk/test_filter.py": 0.5,
+   "tests/migrations/test_autodetector.py": 0.25,
+   "tests/get_or_create/tests.py": 0.2,
+   "docs/internals/contributing/committing-code.txt": 0.16666666666666666,
+   "tests/ordering/tests.py": 0.14285714285714285,
+   "tests/test_client_regress/tests.py": 0.125
+  },
+  "61a62be313e395ce1265132bfc99f51476fb3c95": {
+   "django/db/models/constraints.py": 1.0,
+   "docs/ref/models/constraints.txt": 0.5,
+   "tests/constraints/tests.py": 0.25,
+   "django/db/models/aggregates.py": 0.2,
+   "django/views/decorators/http.py": 0.125
+  },
+  "dc467fdc3b5744cec71fab876c23a14013e2510b": {
+   "django/core/exceptions.py": 1.0,
+   "django/http/request.py": 0.5,
+   "tests/requests_tests/tests.py": 0.3333333333333333,
+   "tests/test_utils/tests.py": 0.25,
+   "tests/generic_relations_regress/models.py": 0.14285714285714285
+  },
+  "84db026228413dda4cd195464554d51c0b208e32": {
+   "django/contrib/admin/options.py": 1.0,
+   "docs/ref/contrib/admin/index.txt": 0.5,
+   "django/db/models/options.py": 0.3333333333333333,
+   "tests/admin_views/admin.py": 0.25,
+   "tests/admin_checks/tests.py": 0.2,
+   "docs/topics/auth/default.txt": 0.14285714285714285,
+   "docs/topics/auth/customizing.txt": 0.1111111111111111,
+   "django/contrib/gis/gdal/feature.py": 0.1
+  },
+  "673fa46d8063577c92cfab3a73a28e9406372e33": {
+   "django/utils/version.py": 1.0,
+   "scripts/pr_quality/tests/test_check_pr.py": 0.5,
+   "scripts/pr_quality/check_pr.py": 0.14285714285714285
+  },
+  "a284a49153f005f2a7af087025e5112ba06cbd5f": {
+   "django/db/models/sql/query.py": 1.0,
+   "django/db/models/query.py": 0.3333333333333333,
+   "django/db/models/sql/compiler.py": 0.25,
+   "django/db/models/expressions.py": 0.2,
+   "django/template/defaultfilters.py": 0.14285714285714285,
+   "docs/releases/3.1.1.txt": 0.125,
+   "docs/ref/models/options.txt": 0.1
+  },
+  "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f": {
+   "django/contrib/sites/models.py": 1.0,
+   "django/contrib/sites/checks.py": 0.5,
+   "django/contrib/admin/checks.py": 0.3333333333333333,
+   "tests/sites_tests/tests.py": 0.25,
+   "tests/model_package/models/article.py": 0.2,
+   "tests/contenttypes_tests/models.py": 0.16666666666666666,
+   "tests/test_runner/models.py": 0.125,
+   "django/contrib/admin/sites.py": 0.1111111111111111
+  },
+  "820c7d3248af6afbdf3390c97b29e41ba126a421": {
+   "django/db/models/query_utils.py": 1.0,
+   "django/db/models/fields/related_descriptors.py": 0.5,
+   "django/contrib/contenttypes/fields.py": 0.3333333333333333,
+   "django/core/management/base.py": 0.16666666666666666,
+   "django/db/models/fetch_modes.py": 0.14285714285714285,
+   "django/utils/autoreload.py": 0.125,
+   "django/template/defaultfilters.py": 0.1111111111111111
+  },
+  "3157285e27a426530ef571855e0e29c317e210df": {
+   "django/core/files/base.py": 1.0,
+   "docs/topics/files.txt": 0.5,
+   "tests/delete_regress/models.py": 0.3333333333333333,
+   "django/template/defaultfilters.py": 0.25,
+   "django/core/mail/handler.py": 0.2,
+   "tests/model_fields/models.py": 0.16666666666666666,
+   "tests/test_utils/tests.py": 0.14285714285714285,
+   "django/contrib/messages/storage/cookie.py": 0.125,
+   "django/core/serializers/json.py": 0.1111111111111111,
+   "tests/file_storage/tests.py": 0.1
+  },
+  "280256499c5b2d636949f3c8cb52159a8e4c26bb": {
+   "tests/admin_views/tests.py": 1.0,
+   "django/template/context.py": 0.5,
+   "tests/utils_tests/test_duration.py": 0.3333333333333333,
+   "django/test/testcases.py": 0.2,
+   "tests/utils_tests/test_http.py": 0.16666666666666666,
+   "docs/releases/security.txt": 0.14285714285714285,
+   "tests/gis_tests/test_ptr.py": 0.125,
+   "tests/test_utils/test_transactiontestcase.py": 0.1
+  },
+  "e2abe321a6f1370e05c1a89a742125c9eafcac8c": {
+   "django/contrib/auth/models.py": 1.0,
+   "tests/auth_tests/test_models.py": 0.3333333333333333,
+   "django/contrib/auth/backends.py": 0.2,
+   "django/contrib/auth/decorators.py": 0.125,
+   "tests/auth_tests/test_auth_backends.py": 0.1
+  },
+  "7e9885f99cee771b51692fadc5592bdbf19641aa": {
+   "django/http/multipartparser.py": 1.0,
+   "docs/releases/security.txt": 0.5
+  },
+  "6afe7ce93964f56e33a29d477c269436f9b60cbf": {
+   "django/contrib/admin/options.py": 1.0,
+   "tests/admin_views/admin.py": 0.5,
+   "tests/modeladmin/test_checks.py": 0.25,
+   "docs/releases/security.txt": 0.2,
+   "tests/admin_ordering/tests.py": 0.14285714285714285,
+   "docs/releases/6.0.4.txt": 0.125,
+   "docs/releases/5.2.13.txt": 0.1
+  },
+  "caf90a971f09323775ed0cacf94eadaf39d040e0": {
+   "django/core/handlers/asgi.py": 1.0,
+   "django/http/request.py": 0.5,
+   "django/test/client.py": 0.3333333333333333,
+   "tests/asgi/tests.py": 0.25,
+   "django/core/servers/basehttp.py": 0.14285714285714285,
+   "docs/ref/request-response.txt": 0.125,
+   "tests/requests_tests/tests.py": 0.1
+  },
+  "33bfc66add643f49d466c5a646989ad91677753d": {
+   "django/db/models/fields/related.py": 1.0,
+   "django/test/client.py": 0.5,
+   "django/views/generic/edit.py": 0.3333333333333333,
+   "django/views/generic/base.py": 0.25,
+   "django/core/serializers/xml_serializer.py": 0.14285714285714285,
+   "tests/serializers/test_xml.py": 0.125
+  },
+  "3b161e60964aff99eddcd2627a486d81c1836b3a": {
+   "django/db/models/expressions.py": 1.0,
+   "tests/test_utils/tests.py": 0.5,
+   "django/db/models/query_utils.py": 0.3333333333333333,
+   "tests/expressions_case/tests.py": 0.2,
+   "tests/queries/test_q.py": 0.16666666666666666,
+   "docs/topics/db/queries.txt": 0.14285714285714285
+  },
+  "fcf916884d25ed430bd7cedaea2b10035c2aa3b6": {
+   "django/db/models/base.py": 1.0,
+   "django/db/models/fields/related.py": 0.5,
+   "django/db/models/fields/generated.py": 0.3333333333333333,
+   "django/db/models/constraints.py": 0.25,
+   "django/contrib/postgres/fields/array.py": 0.2,
+   "django/db/models/options.py": 0.16666666666666666,
+   "django/contrib/admin/checks.py": 0.1111111111111111,
+   "django/db/models/indexes.py": 0.1
+  },
+  "cec10f992be8eed5ed90506375ae5794cbb7069e": {
+   "django/contrib/admin/filters.py": 1.0,
+   "tests/admin_filters/tests.py": 0.5,
+   "django/db/models/query.py": 0.2,
+   "tests/admin_changelist/admin.py": 0.16666666666666666
+  },
+  "856c915326768962806705ca7733e4abbb8f794f": {
+   "django/forms/models.py": 1.0,
+   "django/views/generic/list.py": 0.3333333333333333,
+   "django/contrib/admin/options.py": 0.25,
+   "django/db/models/query.py": 0.2,
+   "tests/admin_views/admin.py": 0.14285714285714285,
+   "tests/managers_regress/models.py": 0.1111111111111111
+  },
+  "8b7ea2bcdd7297941ca6beb72d93b9568e187349": {
+   "django/forms/fields.py": 1.0,
+   "django/contrib/auth/password_validation.py": 0.3333333333333333,
+   "django/contrib/postgres/fields/array.py": 0.25,
+   "django/contrib/postgres/forms/array.py": 0.2
+  },
+  "386257b33eb2a925cecc1a12ba5e7dd694617186": {
+   "django/contrib/postgres/fields/jsonb.py": 1.0,
+   "django/forms/fields.py": 0.5,
+   "django/db/models/fields/json.py": 0.3333333333333333,
+   "django/contrib/admin/filters.py": 0.25,
+   "tests/admin_filters/tests.py": 0.2,
+   "tests/admin_changelist/admin.py": 0.125
+  },
+  "2d7f899deb2e3e58438a0703d6c3be4227641239": {
+   "django/test/testcases.py": 1.0,
+   "django/test/signals.py": 0.5,
+   "django/utils/connection.py": 0.3333333333333333,
+   "django/core/mail/handler.py": 0.25,
+   "tests/logging_tests/tests.py": 0.2,
+   "docs/topics/logging.txt": 0.16666666666666666,
+   "django/utils/log.py": 0.125
+  },
+  "5146449a38222dc74f8f1ba88a7a7ef681e93101": {
+   "django/utils/version.py": 1.0,
+   "django/db/models/sql/query.py": 0.5,
+   "tests/annotations/tests.py": 0.3333333333333333,
+   "django/db/models/fields/related.py": 0.1111111111111111
+  },
+  "4b2b4bf0ac2707dc9c4d51cabfa72168eaea95fe": {
+   "tests/admin_utils/tests.py": 1.0,
+   "tests/admin_views/tests.py": 0.5,
+   "tests/admin_changelist/tests.py": 0.25,
+   "django/contrib/admin/utils.py": 0.2,
+   "django/contrib/admin/checks.py": 0.1111111111111111
+  },
+  "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3": {
+   "tests/prefetch_related/models.py": 1.0,
+   "django/db/models/fields/__init__.py": 0.5,
+   "django/db/models/fields/related.py": 0.3333333333333333,
+   "django/contrib/postgres/fields/array.py": 0.2
+  },
+  "0ed8d4e7d1029e1283b04f70d51d2af96ad85d6a": {
+   "django/test/testcases.py": 1.0,
+   "tests/handlers/views.py": 0.5,
+   "tests/test_utils/tests.py": 0.3333333333333333,
+   "tests/test_client_regress/tests.py": 0.14285714285714285,
+   "tests/view_tests/tests/test_debug.py": 0.125,
+   "tests/admin_views/tests.py": 0.1111111111111111
+  },
+  "d7bf84324fb4b0789302bd0624697ba973dd7140": {
+   "django/utils/datastructures.py": 1.0,
+   "django/contrib/sessions/backends/base.py": 0.5,
+   "tests/model_fields/test_jsonfield.py": 0.3333333333333333,
+   "django/db/models/query.py": 0.25,
+   "django/db/models/enums.py": 0.2,
+   "django/db/models/fields/json.py": 0.16666666666666666,
+   "docs/ref/models/fields.txt": 0.14285714285714285,
+   "django/utils/json.py": 0.1
+  },
+  "6c95af5c9d294a20d09f080d7c144e3b7362d65f": {
+   "tests/gis_tests/test_ptr.py": 1.0,
+   "django/utils/autoreload.py": 0.5,
+   "docs/topics/testing/tools.txt": 0.3333333333333333,
+   "django/test/testcases.py": 0.16666666666666666,
+   "tests/template_tests/views.py": 0.1111111111111111,
+   "tests/test_utils/test_transactiontestcase.py": 0.1
+  },
+  "7cb2221e9267dec3f1cf7c88b8686d38fd956639": {
+   "django/template/defaulttags.py": 1.0,
+   "tests/utils_tests/test_inspect.py": 0.3333333333333333,
+   "django/test/runner.py": 0.16666666666666666,
+   "tests/queries/tests.py": 0.14285714285714285,
+   "docs/howto/error-reporting.txt": 0.125,
+   "django/utils/autoreload.py": 0.1
+  }
+ }
+}

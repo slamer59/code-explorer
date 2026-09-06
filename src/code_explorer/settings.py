@@ -12,7 +12,7 @@ you'd actually want to change it.
 """
 
 import os
-from typing import List
+from typing import List, Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,6 +26,29 @@ class Settings(BaseSettings):
     embedding_dimensions: int = 768
     embedding_timeout: float = 30.0
     embed_batch_size: int = 50
+
+    # What goes into search_text, the single field both BM25 and the vector
+    # index are built from (see graph/ingest.py's _derive_search_text).
+    #
+    # "skeleton" is the original: qualified name, the name and its split words,
+    # the signature, the first docstring line, and callee names -- a median of
+    # ~44 tokens, with the body never indexed. Measured against zvec-grep on
+    # django (bench/results/reports/django/), that is where the losses come
+    # from: 93% of the relevant symbols code-explorer failed to return were in
+    # the index, at median rank 179 of 200. A prose query cannot match a
+    # symbol whose relevance lives in what it does rather than what it is
+    # called, because what it does is not indexed.
+    #
+    # "body" appends the source, capped at search_text_body_chars. Both remain
+    # available: the skeleton is cheaper to build and to embed, and the choice
+    # is a measurable one rather than a belief -- see
+    # docs/explanation/gap-analysis-vs-zvec.md.
+    search_text_mode: Literal["skeleton", "body"] = "skeleton"
+    # Cap on appended body text. A long function embedded whole becomes one
+    # diluted vector, and an uncapped field also inflates the index; this
+    # bounds both. Chunking long bodies into several vectors is the better
+    # answer and is not implemented yet.
+    search_text_body_chars: int = 2000
 
     # LatticeDB write-transaction chunking (see graph/backends/lattice_backend.py).
     # Operations accumulated per streaming ingest batch before the writer

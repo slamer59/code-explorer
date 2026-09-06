@@ -40,6 +40,7 @@ from code_explorer.analyzer.export_parquet import (
     to_relative_path,
 )
 from code_explorer.analyzer.models import FileAnalysis, FunctionCall
+from code_explorer.settings import settings
 from code_explorer.graph.records import EdgeRecord, NodeRecord
 
 
@@ -101,6 +102,7 @@ def _derive_search_text(
     source_code: Optional[str],
     docstring: Optional[str],
     called_names: Optional[List[str]] = None,
+    mode: Optional[str] = None,
 ) -> str:
     """Build a compact, indexing-time BM25/vector text for a symbol.
 
@@ -138,6 +140,19 @@ def _derive_search_text(
         parts.append(docstring)
     if called_names:
         parts.append("calls: " + ", ".join(called_names))
+
+    # The body is appended, never substituted: the weighted-name prefix above
+    # is what keeps an identifier match above a prose match, and dropping it
+    # to make room would trade one failure mode for the other. See
+    # settings.search_text_mode.
+    if (mode or settings.search_text_mode) == "body" and source_code:
+        body = source_code.strip()
+        cap = settings.search_text_body_chars
+        if len(body) > cap:
+            # Truncate at a line boundary so the tail is not a half-token.
+            body = body[:cap].rsplit("\n", 1)[0]
+        parts.append(body)
+
     return "\n".join(p for p in parts if p)
 
 

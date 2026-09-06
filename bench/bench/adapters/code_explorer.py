@@ -31,7 +31,11 @@ class CodeExplorerAdapter(Adapter):
         self.clear()
         # code-explorer builds its index on first search; --reindex forces it
         # so the timed queries below never pay for the build.
-        runs = [["--reindex", "--no-context"], *(["--no-context", *g] for g in self.prepare)]
+        # query_flags go to the index runs too: some of them (--search-text)
+        # change what gets *written*, not how it is queried, and applying them
+        # only at query time would silently measure the default index.
+        runs = [["--reindex", "--no-context", *self.query_flags],
+                *(["--no-context", *self.query_flags, *g] for g in self.prepare)]
         for extra in runs:
             stdout, stderr, code, _ = self.run(
                 self._argv(*extra, "--json", "_bench_warmup_", str(self.corpus)),

@@ -31,6 +31,33 @@ notes = [
   "Returns whole symbols, and has a second expansion step, so its `bundle` row differs from its `seed` row.",
 ]
 
+# Priority 1 from docs/explanation/gap-analysis-vs-zvec.md: index the body,
+# not just the ~44-token skeleton. Entered as its own configuration rather
+# than flipped in place, so the claim "this helps" is a measured delta
+# against the rows above rather than a replacement nobody can check.
+[tool.code-explorer-body]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body"]
+reset = [".code-explorer/graph_vectors.sqlite"]
+notes = [
+  "Indexes Python only.",
+  "FTS/BM25 over name + signature + docstring + callee names + the source body (capped at 2,000 chars). No vector component.",
+  "Returns whole symbols, and has a second expansion step.",
+]
+
+[tool.code-explorer-body-hybrid]
+module = "code_explorer"
+command = ["uv", "run", "--project", "{repo}", "--python", "3.12", "code-explorer"]
+query_flags = ["--search-text", "body"]
+prepare = [["--semantic"]]
+embedding = "ollama/nomic-embed-text"
+notes = [
+  "Indexes Python only.",
+  "Hybrid: FTS/BM25 fused with a vector index, both built over the source body rather than the skeleton.",
+  "Returns whole symbols, and has a second expansion step.",
+]
+
 [tool.zg]
 module = "zg"
 command = ["zg"]

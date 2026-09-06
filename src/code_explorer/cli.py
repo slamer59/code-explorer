@@ -1231,6 +1231,20 @@ def _looks_like_exact_target(query: str) -> Optional[Tuple[str, str]]:
         "docs/explanation/source-of-truth-and-search-representations.md)."
     ),
 )
+@click.option(
+    "--search-text",
+    "search_text_mode",
+    type=click.Choice(["skeleton", "body"]),
+    default=None,
+    help=(
+        "What to index for BM25 and vectors. 'skeleton' (name, signature, "
+        "first docstring line, callee names -- ~44 tokens) or 'body' (the "
+        "same, plus the source). Only takes effect with --reindex, since it "
+        "changes what is stored. Defaults to CODE_EXPLORER_SEARCH_TEXT_MODE, "
+        "then to the built-in default; see "
+        "docs/explanation/gap-analysis-vs-zvec.md."
+    ),
+)
 def search(
     query: str,
     path: str,
@@ -1238,6 +1252,7 @@ def search(
     fuzzy: bool,
     semantic: bool,
     as_json: bool,
+    search_text_mode: Optional[str],
     no_context: bool,
     depth: int,
     budget: int,
@@ -1379,6 +1394,14 @@ def search(
     from .context import ContextAssembler, _estimate_tokens
     from .graph import DependencyGraph
     from .hybrid_search import demote_tests, reciprocal_rank_fusion
+
+    if search_text_mode is not None:
+        # Applied to the process-wide settings rather than threaded through
+        # ingest: _derive_search_text is called from three ingest paths
+        # (batch, streaming, incremental) and a parameter on each would be
+        # three chances to forget one. Only meaningful alongside --reindex,
+        # since it changes what gets written.
+        settings.search_text_mode = search_text_mode
 
     if as_json:
         # Everything human -- progress bars, timings, the ingest summary --

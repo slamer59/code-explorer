@@ -6,6 +6,28 @@ Generated 2026-09-06T13:52:48+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
 Tool at `a0d3b948` (dirty), corpus at `932838840b3`.
 
 
+## `delivered`, ground truth = code only
+
+The 195 queries whose answer set contains non-test files (code = « où est-ce implémenté ? »).
+
+```
+#    Model               Recall@1    Recall@5    Recall@10    MRR@10    NDCG@10
+---  ------------------  ----------  ----------  -----------  --------  ---------
+a    code-explorer-body  0.550ᵇ      0.779ᵇ      0.807ᵇ       0.673ᵇ    0.704ᵇ
+b    zg                  0.188       0.463       0.552        0.328     0.374
+```
+
+## `delivered`, ground truth = test only
+
+The 191 queries whose answer set contains non-test files (test = « qu'est-ce qui couvre ça ? »).
+
+```
+#    Model               Recall@1    Recall@5    Recall@10    MRR@10    NDCG@10
+---  ------------------  ----------  ----------  -----------  --------  ---------
+a    code-explorer-body  0.010       0.089       0.152        0.049     0.074
+b    zg                  0.168ᵃ      0.421ᵃ      0.522ᵃ       0.294ᵃ    0.344ᵃ
+```
+
 ## `delivered`
 
 ```

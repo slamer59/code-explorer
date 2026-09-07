@@ -44,8 +44,16 @@ _MISS = "__no_result__"
 
 
 def _padded(data: dict, qrels: Qrels, name: str) -> Run:
-    run = {qid: dict(docs) for qid, docs in data["run"].items()}
-    for qid in qrels.qrels:
+    """A Run covering exactly the qrels' queries -- no more, no fewer.
+
+    Padding alone is not enough once qrels can be a subset (code-only,
+    test-only): the run then carries queries the qrels no longer score, and
+    ranx refuses the pair. Restricting as well as padding keeps every
+    comparison over the same denominator.
+    """
+    wanted = set(qrels.qrels)
+    run = {qid: dict(docs) for qid, docs in data["run"].items() if qid in wanted}
+    for qid in wanted:
         run.setdefault(qid, {_MISS: 0.0})
     return Run(run, name=name)
 
@@ -172,7 +180,8 @@ def _unique_reach(qrels: Qrels, runs: dict, tools: list[str], kind: str) -> str:
     )
 
 
-def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str:
+def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int,
+                   cases_for_subset: list[dict] | None = None) -> str:
     tools = sorted({tool for tool, _ in runs})
     body = [
         f"# {corpus}: cross-tool summary", "",
@@ -183,6 +192,27 @@ def render_summary(corpus: str, runs: dict, qrels: Qrels, n_queries: int) -> str
     ]
     any_run = next(iter(runs.values()))
     body += [_provenance_block(any_run), ""]
+
+    # The split first, because the aggregate hides the finding: a query set
+    # mined from commits mixes two opposite questions, and averaging them
+    # rewards a tool for being mediocre at both.
+    for subset, question in (("code", "« où est-ce implémenté ? »"),
+                             ("test", "« qu'est-ce qui couvre ça ? »")):
+        sub_qrels = Qrels(build_qrels(cases_for_subset, "file", subset))
+        present = [(t, runs[(t, "delivered")]) for t in tools
+                   if (t, "delivered") in runs and runs[(t, "delivered")]["run"]]
+        if len(present) < 2:
+            continue
+        report = compare(
+            sub_qrels, [_padded(d, sub_qrels, t) for t, d in present],
+            METRICS, max_p=0.05,
+        )
+        body += [
+            f"## `delivered`, ground truth = {subset} only", "",
+            f"The {len(sub_qrels.qrels)} queries whose answer set contains "
+            f"non-test files ({subset} = {question}).", "",
+            "```", str(report).rstrip(), "```", "",
+        ]
 
     for kind in ("delivered", "seed", "bundle"):
         present = [(t, runs[(t, kind)]) for t in tools if (t, kind) in runs]
@@ -287,7 +317,8 @@ def main(corpora: tuple[str, ...]) -> None:
             if (tool, "seed") not in runs or (tool, "bundle") not in runs:
                 continue
             (out / f"{tool}.md").write_text(render_tool(corpus, tool, runs, qrels))
-        (out / "summary.md").write_text(render_summary(corpus, runs, qrels, n))
+        (out / "summary.md").write_text(
+            render_summary(corpus, runs, qrels, n, cases[:n]))
         click.echo(f"{corpus}: wrote {out}")
 
 

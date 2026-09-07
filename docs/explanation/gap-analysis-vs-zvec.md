@@ -221,6 +221,52 @@ Ce n'est pas un défaut de récupération, c'est un désaccord sur la question
 posée — et la vérité terrain minée depuis les commits répond toujours « les
 deux », donc elle ne peut pas trancher.
 
+## La vérité terrain étiquetée : la question était mal posée
+
+Un jeu de requêtes miné depuis des commits mélange **deux questions opposées**.
+« Où est-ce implémenté ? » et « Qu'est-ce qui couvre ça ? » ont des réponses
+différentes, et les moyenner récompense un outil médiocre aux deux.
+
+`qrels.build(..., subset="code"|"test")` les sépare. Aucun outil n'a été
+relancé : les runs enregistrés ont simplement été re-notés.
+
+**django — vérité terrain = code seul (133 requêtes)**
+
+```
+#  Model                          R@1      R@5      R@10     MRR@10
+a  code-explorer-body             0.517ᵇᵈ  0.788ᵇᵈ  0.798ᵇᵈ  0.668ᵇᵈ
+b  code-explorer-body-notestdemo  0.210    0.641    0.668    0.421
+c  code-explorer-body-hybrid      0.567ᵇᵈ  0.820ᵇᵈ  0.847ᵃᵇᵈ 0.723ᵃᵇᵈ
+d  zg                             0.216    0.606    0.646    0.403
+```
+
+**home-assistant — code seul (195 requêtes)**
+
+```
+a  code-explorer-body  0.550ᵇ  0.779ᵇ  0.807ᵇ  0.673ᵇ
+b  zg                  0.188   0.463   0.552   0.328
+```
+
+Sur la question que l'outil existe pour répondre, **code-explorer devance
+zvec-grep de façon significative sur les deux corpus** — 0,847 contre 0,646 et
+0,807 contre 0,552 en recall@10. L'égalité apparente des tableaux agrégés était
+un artefact de la moyenne.
+
+Et la rétrogradation des tests cesse d'être circulaire : la désactiver fait
+**chuter** le rappel sur le code de 0,798 à 0,668, c'est-à-dire au niveau de
+zvec-grep. Elle n'est pas un compromis discutable, elle est ce qui produit
+l'avance. Le gain spectaculaire qu'elle semblait coûter (0,586 → 0,692 en
+agrégé) était entièrement du rappel de tests.
+
+Symétriquement, sur la vérité terrain « tests seuls », zvec-grep gagne
+(0,651 contre 0,444 sur django ; 0,522 contre 0,152 sur home-assistant) —
+exactement le comportement que la rétrogradation décrit. Les deux outils
+répondent bien, à deux questions différentes.
+
+**Conséquence méthodologique :** toute conclusion tirée du tableau agrégé de ce
+document doit être relue à la lumière de cette section. Le rapport généré
+produit désormais les deux sous-ensembles avant l'agrégat.
+
 ## Remaining priorities
 
 1. ~~**Index the body.**~~ Done, and it worked — see above. The *chunked* half

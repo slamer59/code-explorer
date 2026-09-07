@@ -6,6 +6,46 @@ Generated 2026-09-06T13:22:17+00:00 on fedora5.home (16 CPUs, Python 3.12.13).
 Tool at `1df789e6` (dirty), corpus at `b3f4d83a`.
 
 
+## `delivered`, ground truth = code only
+
+The 133 queries whose answer set contains non-test files (code = « où est-ce implémenté ? »).
+
+```
+#    Model                          Recall@1       Recall@5      Recall@10      MRR@10          NDCG@10
+---  -----------------------------  -------------  ------------  -------------  --------------  --------------
+a    code-explorer                  0.314ᵉⁱʲ       0.615         0.668          0.480           0.512
+b    code-explorer-body             0.517ᵃᵉᶠᵍⁱʲᵏ   0.788ᵃᵉʰⁱʲᵏ   0.798ᵃᵉʰⁱʲᵏ    0.668ᵃᵉʰⁱʲᵏ     0.684ᵃᵉʰⁱʲᵏ
+c    code-explorer-body-d10         0.517ᵃᵉᶠᵍⁱʲᵏ   0.815ᵃᵉʰⁱʲᵏ   0.824ᵃᵉʰⁱʲᵏ    0.674ᵃᵉᶠʰⁱʲᵏ    0.696ᵃᵉʰⁱʲᵏ
+d    code-explorer-body-hybrid      0.567ᵃᵉᶠᵍʰⁱʲᵏ  0.820ᵃᵉᶠʰⁱʲᵏ  0.847ᵃᵇᵉʰⁱʲᵏ   0.723ᵃᵇᵉᶠᵍʰⁱʲᵏ  0.737ᵃᵇᵉᶠᵍʰⁱʲᵏ
+e    code-explorer-body-notestdemo  0.210          0.641         0.668          0.421           0.471
+f    code-explorer-body-potion      0.439ᵃᵉⁱʲ      0.767ᵃᵉʰⁱʲᵏ   0.814ᵃᵉʰⁱʲᵏ    0.616ᵃᵉⁱʲᵏ      0.653ᵃᵉⁱʲᵏ
+g    code-explorer-body-potion-d10  0.432ᵃᵉⁱʲ      0.809ᵃᵉʰⁱʲᵏ   0.855ᵃᵇᵉᶠʰⁱʲᵏ  0.624ᵃᵉⁱʲᵏ      0.670ᵃᵉʰⁱʲᵏ
+h    code-explorer-hybrid           0.429ᵃᵉⁱʲ      0.654         0.708          0.577ᵃᵉⁱʲᵏ      0.594ᵃᵉⁱʲ
+i    zg                             0.216          0.606         0.646          0.403           0.450
+j    zg-full                        0.216          0.606         0.646          0.403           0.450
+k    zg-symbol                      0.375ᵉⁱʲ       0.594         0.641          0.492ⁱʲ         0.517
+```
+
+## `delivered`, ground truth = test only
+
+The 145 queries whose answer set contains non-test files (test = « qu'est-ce qui couvre ça ? »).
+
+```
+#    Model                          Recall@1         Recall@5         Recall@10        MRR@10           NDCG@10
+---  -----------------------------  ---------------  ---------------  ---------------  ---------------  ---------------
+a    code-explorer                  0.028ᶜᵈᵍ         0.205ᵍ           0.435ᶜᵍ          0.139ᶜᵍ          0.199ᶜᵍ
+b    code-explorer-body             0.007            0.271ᵃᶜᵍ         0.444ᶜᵍ          0.120ᶜᵍ          0.193ᶜᵍ
+c    code-explorer-body-d10         0.003            0.167            0.347            0.078            0.138
+d    code-explorer-body-hybrid      0.003            0.344ᵃᶜᶠᵍ        0.497ᶜᶠᵍ         0.143ᵇᶜᶠᵍ        0.222ᶜᶠᵍ
+e    code-explorer-body-notestdemo  0.452ᵃᵇᶜᵈᶠᵍʰⁱʲᵏ  0.712ᵃᵇᶜᵈᶠᵍʰⁱʲᵏ  0.741ᵃᵇᶜᵈᶠᵍʰⁱʲᵏ  0.645ᵃᵇᶜᵈᶠᵍʰⁱʲᵏ  0.637ᵃᵇᶜᵈᶠᵍʰⁱʲᵏ
+f    code-explorer-body-potion      0.010            0.205ᵍ           0.412ᵍ           0.107ᶜᵍ          0.174ᶜᵍ
+g    code-explorer-body-potion-d10  0.003            0.129            0.299            0.074            0.123
+h    code-explorer-hybrid           0.017            0.367ᵃᵇᶜᶠᵍ       0.535ᵃᵇᶜᶠᵍ       0.170ᵃᵇᶜᵈᶠᵍ      0.248ᵃᵇᶜᶠᵍ
+i    zg                             0.295ᵃᵇᶜᵈᶠᵍʰᵏ    0.625ᵃᵇᶜᵈᶠᵍʰᵏ    0.651ᵃᵇᶜᵈᶠᵍʰᵏ    0.513ᵃᵇᶜᵈᶠᵍʰᵏ    0.513ᵃᵇᶜᵈᶠᵍʰᵏ
+j    zg-full                        0.295ᵃᵇᶜᵈᶠᵍʰᵏ    0.628ᵃᵇᶜᵈᶠᵍʰᵏ    0.651ᵃᵇᶜᵈᶠᵍʰᵏ    0.513ᵃᵇᶜᵈᶠᵍʰᵏ    0.514ᵃᵇᶜᵈᶠᵍʰᵏ
+k    zg-symbol                      0.054ᵇᶜᵈᶠᵍ       0.421ᵃᵇᶜᶠᵍ       0.520ᶜᶠᵍ         0.253ᵃᵇᶜᵈᶠᵍʰ     0.296ᵃᵇᶜᵈᶠᵍ
+```
+
 ## `delivered`
 
 ```

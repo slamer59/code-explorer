@@ -2,8 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Benchmarks](https://img.shields.io/badge/benchmarks-generated-brightgreen.svg)](bench/results/reports/)
 
-**Code Explorer** is a powerful Python code analyzer and dependency analysis tool with persistent graph storage using KuzuDB. Designed for developers who need to understand complex codebases, track dependencies, and perform impact analysis efficiently.
+**Code Explorer** is a powerful Python code analyzer and dependency analysis tool with persistent graph storage in SQLite (FTS5/BM25). Designed for developers who need to understand complex codebases, track dependencies, and perform impact analysis efficiently.
 
 ## Overview
 
@@ -17,6 +18,7 @@ Code Explorer is the best Python code analyzer for understanding large codebases
 - 💾 **Incremental Updates** - Only re-analyze changed files (10-100x faster)
 - 🎯 **AST-Based** - Accurate static code analysis without execution
 - 🔎 **Code Search** *(experimental)* - BM25/fuzzy/semantic search with an LLM-ready context bundle for the top hit (`code-explorer search "..."`)
+- 📏 **Measured, not asserted** - every retrieval claim below is reproducible from committed run files: see [benchmarks](#measured-against-other-retrieval-tools), the [harness](bench/), and the [generated reports](bench/results/reports/)
 
 ---
 
@@ -27,7 +29,7 @@ Code Explorer is the best Python code analyzer for understanding large codebases
 Code Explorer excels at analyzing complex Python codebases where understanding dependencies is critical:
 
 ✅ **Enterprise-Grade Performance** - Analyze 10,000+ file codebases in minutes
-✅ **Graph Database Backend** - KuzuDB provides lightning-fast relationship queries
+✅ **Graph Storage, No Server** - SQLite with FTS5/BM25 by default: no daemon, no native dependency, and faster to index than the alternatives measured below
 ✅ **Comprehensive Analysis** - Functions, classes, imports, decorators, variables, exceptions
 ✅ **Persistent Storage** - Results saved to disk for instant reuse
 ✅ **Command-Line First** - Perfect for CI/CD integration and automation
@@ -44,26 +46,82 @@ Code Explorer excels at analyzing complex Python codebases where understanding d
 
 ### Measured against other retrieval tools
 
-Those claims are the ones any tool makes about itself. The ones below are
-measured, against ground truth mined from a repository's own git history
-(the commit subject is the query, the files it touched are the answers) and
-scored with [`ranx`](https://github.com/AmenRa/ranx), including paired
-significance testing.
+The claims above are the ones any tool makes about itself. The ones below are
+measured — against ground truth mined from a repository's own git history (the
+commit subject is the query, the files it touched are the answers), scored with
+[`ranx`](https://github.com/AmenRa/ranx) with paired significance testing.
+
+Two corpora, 350 queries, versus [`zvec-grep`](https://github.com/zvec-ai/zvec-grep):
+
+| | index build | query | recall@10 |
+| --- | --- | --- | --- |
+| **django** — Code Explorer | **0.29 min** | **471 ms** | **0.798** |
+| django — zg | 0.40 min | 1,165 ms | 0.646 |
+| **home-assistant** (18,631 files) — Code Explorer | **1.51 min** | **1,083 ms** | **0.807** |
+| home-assistant — zg | 2.50 min | 5,838 ms | 0.552 |
+
+Faster to index, faster to query, and significantly better recall — in the
+default SQLite/BM25 mode, with no embeddings, no server and no native
+dependencies.
+
+**The caveat that makes those numbers honest.** A query set mined from commits
+mixes two opposite questions, because a commit that changes behaviour changes
+its tests. The table above scores *"where is this implemented?"*. On *"what
+covers this?"* **zg wins by as large a margin** (0.651 vs 0.444 on django;
+0.522 vs 0.152 on home-assistant) — a direct consequence of Code Explorer
+demoting test files so an implementation outranks its own tests. Averaged
+together the two cancel out and the tools look tied, which is what the
+aggregate tables in the reports show. Neither tool dominates; they answer
+different questions.
 
 The reports are **generated, never hand-edited**, and regenerate on every run:
 
 | File | What it holds |
 | ---- | ------------- |
-| [`bench/results/reports/django/summary.md`](bench/results/reports/django/summary.md) | Cross-tool table, what actually ran, complementarity, cost |
-| `bench/results/reports/django/<configuration>.md` | One report per tool configuration |
+| [`bench/results/reports/django/summary.md`](bench/results/reports/django/summary.md) | Cross-tool tables (code / test / aggregate), what actually ran, complementarity, cost |
+| [`bench/results/reports/home-assistant/summary.md`](bench/results/reports/home-assistant/summary.md) | The same, on a 7x larger corpus |
+| [`docs/explanation/gap-analysis-vs-zvec.md`](docs/explanation/gap-analysis-vs-zvec.md) | Where the gap was, what closed it, and what did not |
 | [`docs/explanation/benchmarking.md`](docs/explanation/benchmarking.md) | Why the harness is built this way |
-| [`docs/explanation/gap-analysis-vs-zvec.md`](docs/explanation/gap-analysis-vs-zvec.md) | Where Code Explorer loses, and what would close it |
+| [`docs/explanation/architecture-index-and-search.md`](docs/explanation/architecture-index-and-search.md) | The two pipelines, with the cost of each stage |
 
-The harness itself lives in [`bench/`](bench/) and is deliberately external:
-it never imports `code_explorer`, drives every tool as a subprocess, and
-compares each at its best configuration rather than at its default. It is
-free to report that Code Explorer loses — and on seed retrieval against
-`zg` (zvec-grep) on Django, it currently does.
+Reproducing them:
+
+```bash
+cd bench
+uv venv --python 3.12 && uv pip install -e .
+uv run python -m bench.runner --corpus django --index -k 10   # run every tool
+uv run python -m bench.report --corpus django                 # regenerate reports
+```
+
+### Backends: SQLite only
+
+`--backend` still accepts `kuzu` and `lattice`, and both are **obsolete**. They
+are kept so existing indexes remain readable, and neither is maintained or
+measured:
+
+| backend | status | why |
+| --- | --- | --- |
+| **sqlite** | **the only supported one** | FTS5/BM25, no server, no native dependency, and the fastest to index of the three |
+| `lattice` | obsolete | two verified LatticeDB 0.15.0 defects, one of which returns `[]` for any multi-term query where a term appears in more than one document — that breaks the primary use case |
+| `kuzu` | obsolete | predates the search index; `analyze` builds a second, disconnected graph with a naive call resolver (~5.5x spurious fan-out) that none of the retrieval work above applies to |
+
+Every benchmark in this README is SQLite. Do not read a number here as saying
+anything about the other two.
+
+The harness lives in [`bench/`](bench/) and is deliberately external: it never
+imports `code_explorer`, drives every tool as a subprocess, and compares each at
+its best configuration rather than at its default. Corpora are declared in
+[`bench/corpora.toml`](bench/corpora.toml), tool configurations in
+[`bench/adapters.toml`](bench/adapters.toml) — adding a third tool is one adapter
+file. Raw run files are committed under
+[`bench/results/runs/`](bench/results/runs/) so any result can be re-scored later
+under a metric nobody had thought of yet, and
+[`bench/analysis/`](bench/analysis/README.md) holds the one-off scripts behind
+every number quoted in the docs.
+
+It is free to report that Code Explorer loses — and it does, on the
+test-retrieval question above, and on several configurations we measured and
+then rejected.
 
 ---
 
@@ -425,8 +483,8 @@ code-explorer visualize utils.py --function calculate --max-depth 2
 #### `code-explorer search <query> [path]` *(experimental)*
 
 BM25/fuzzy/semantic code search with an LLM-ready context bundle (top hit +
-its direct callers/callees, source attached). Uses a separate **LatticeDB**
-index, not the KuzuDB database the other commands use — see
+its direct callers/callees, source attached). Uses the SQLite search index,
+not the legacy graph database the older commands use — see
 [docs/reference/cli-commands.md](docs/reference/cli-commands.md#search---find-code-by-keyword-or-meaning-experimental)
 for the full reference, including the `--semantic` mode's local-Ollama
 requirement.
@@ -524,7 +582,7 @@ CODE_EXPLORER_DEBUG=1 code-explorer analyze .
 
 ### Why Persistent Graph Storage?
 
-Traditional Python code analyzer tools re-parse the entire codebase on every run. Code Explorer uses KuzuDB for persistent graph storage, providing:
+Traditional Python code analyzer tools re-parse the entire codebase on every run. Code Explorer persists its graph in SQLite, providing:
 
 **Incremental Updates** - Only re-analyze changed files (10-100x faster for large codebases)
 **Complex Queries** - Cypher-like graph queries for sophisticated dependency analysis
@@ -561,7 +619,7 @@ This combination provides accurate dependency tracking without requiring code ex
 
 ### Graph Database Benefits
 
-KuzuDB (embedded graph database) provides:
+SQLite (embedded, no server) provides:
 
 **Cypher Query Language** - Powerful graph traversal for complex analysis
 **ACID Transactions** - Reliable data persistence
@@ -702,7 +760,7 @@ RETURN f.name, f.file;
 
 - Python 3.8 or higher
 - Dependencies: click, rich, astroid, kuzu, pandas
-- Docker (optional, for KuzuDB Explorer web UI)
+- Docker (optional, for the legacy KuzuDB Explorer web UI)
 - 4GB+ RAM recommended for large codebases
 - Disk space: ~100MB per 1000 files analyzed (with source code)
 

@@ -41,8 +41,10 @@ one these defaults were measured against:
 All fields live on the `Settings` class in `src/code_explorer/settings.py`,
 exposed as a ready-to-use singleton: `from code_explorer.settings import
 settings`. Every field is overridable via a `CODE_EXPLORER_`-prefixed
-environment variable, or a `.env` file in the current working directory
-(`pydantic-settings`'s built-in `env_file` support — no extra wiring).
+environment variable, or a `.code-explorer/.env` file in the current working
+directory (`pydantic-settings`'s built-in `env_file` support — no extra
+wiring). The dedicated path prevents Code Explorer from interpreting the host
+project's unrelated `.env` entries.
 
 | Setting | Env var | Default | Used by |
 |---|---|---|---|
@@ -66,7 +68,7 @@ var, pydantic-settings expects a JSON array, e.g.:
 export CODE_EXPLORER_DEFAULT_EXCLUDE_PATTERNS='["__pycache__", ".git", "vendor", "node_modules"]'
 ```
 
-Or via a `.env` file in the directory you run `code-explorer` from:
+Or via `.code-explorer/.env` in the directory you run `code-explorer` from:
 
 ```
 CODE_EXPLORER_OLLAMA_ENDPOINT=http://gpu-box.internal:11434
@@ -113,7 +115,8 @@ Performance](streaming-ingestion-performance.md) for the full evidence log.
 ## Deliberately not built
 
 Per the same "no speculative scope" discipline as the rest of this project:
-no YAML/TOML config file format (env vars + `.env` cover the actual need), no
+no YAML/TOML config file format (env vars + `.code-explorer/.env` cover the
+actual need), no
 per-repo config-file discovery, no CLI flags to override these (the existing
 `--exclude`/`--include` flags on `code-explorer analyze` are a separate,
 already-working mechanism for the full-analysis path and are untouched by

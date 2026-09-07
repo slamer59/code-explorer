@@ -4,8 +4,8 @@ Before this module, the values below were hardcoded module-level constants
 scattered across embeddings.py, graph/backends/lattice_backend.py, and
 graph/graph.py -- no single source of truth, no way to override any of them
 without editing source. This module collects them into one Settings class,
-overridable via CODE_EXPLORER_-prefixed env vars (or a .env file in the cwd)
-without changing any default behavior.
+overridable via CODE_EXPLORER_-prefixed env vars (or a
+.code-explorer/.env file in the cwd) without changing any default behavior.
 
 See docs/explanation/configuration.md for what each setting is for and when
 you'd actually want to change it.
@@ -18,7 +18,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="CODE_EXPLORER_", env_file=".env")
+    model_config = SettingsConfigDict(
+        env_prefix="CODE_EXPLORER_",
+        env_file=".code-explorer/.env",
+    )
 
     # Embedding generation (see embeddings.py).
     #

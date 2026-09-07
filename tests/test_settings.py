@@ -1,8 +1,8 @@
 """Tests for code_explorer.settings (centralized pydantic-settings config).
 
-Kept small (2 tests): defaults match the values previously hardcoded across
-embeddings.py/lattice_backend.py/graph.py, and an env var actually overrides
-a value -- not just that Settings() instantiates.
+Defaults match the values previously hardcoded across
+embeddings.py/lattice_backend.py/graph.py. Overrides are covered through both
+the process environment and Code Explorer's dedicated dotenv file.
 """
 
 import os
@@ -44,3 +44,15 @@ def test_settings_env_var_overrides_default(monkeypatch):
     assert s.embed_batch_size == 5
     assert s.ollama_endpoint == "http://example.internal:9999"
     assert s.analysis_workers == 4
+
+
+def test_settings_reads_dedicated_dotenv_not_project_dotenv(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("CODE_EXPLORER_EMBED_BATCH_SIZE=10\n")
+    config_dir = tmp_path / ".code-explorer"
+    config_dir.mkdir()
+    (config_dir / ".env").write_text("CODE_EXPLORER_EMBED_BATCH_SIZE=25\n")
+
+    s = Settings()
+
+    assert s.embed_batch_size == 25

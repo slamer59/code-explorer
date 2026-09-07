@@ -199,6 +199,28 @@ it properly needs ground truth that separates "the code that changed" from "the
 tests that changed with it" — which the miner could label, since it already
 knows which files a commit touched.
 
+## Où passe l'avantage restant de zvec-grep
+
+Mesuré par `bench/analysis/gap_decomposition.py`, sur les deux corpus :
+
+| corpus | fichiers pertinents que zg place devant nous | dont tests rétrogradés | dont code applicatif |
+|---|---|---|---|
+| django (top-5) | 75 | **68 (91 %)** | 7 |
+| home-assistant (top-10) | 98 | **91 (93 %)** | 7 |
+
+Sur 150 et 200 requêtes respectivement, l'écart de récupération sur le *code
+applicatif* est de sept fichiers. Tout le reste est constitué de fichiers de
+tests que `demote_tests` fait volontairement descendre.
+
+Le constat est donc indépendant du corpus, et `ground_truth_composition.py`
+montre pourquoi : la vérité terrain est à 56 % (django) et 50 %
+(home-assistant) composée de fichiers de tests, présents dans 97 % et 96 % des
+requêtes. Un commit qui change un comportement change ses tests.
+
+Ce n'est pas un défaut de récupération, c'est un désaccord sur la question
+posée — et la vérité terrain minée depuis les commits répond toujours « les
+deux », donc elle ne peut pas trancher.
+
 ## Remaining priorities
 
 1. ~~**Index the body.**~~ Done, and it worked — see above. The *chunked* half

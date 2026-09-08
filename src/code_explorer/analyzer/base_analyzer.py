@@ -60,6 +60,28 @@ def _is_git_toplevel(root_path: Path) -> bool:
         return False
 
 
+def _path_excluded(path: Path, patterns: List[str]) -> bool:
+    """True when `path` matches one of `patterns`.
+
+    A pattern with no path separator (the common case -- "venv", "dist",
+    "__pycache__") is matched against whole path segments, not as a raw
+    substring: substring matching made "venv" and "env" (both default
+    exclusions) inseparable, since "env" is a substring of "venv" -- removing
+    "venv" alone via `--include venv` left the directory excluded anyway
+    because "env" still matched it. A pattern that does contain a separator
+    (e.g. a user's `--exclude tests/fixtures`) keeps the old substring
+    behavior, since it's already naming a multi-segment path fragment.
+    """
+    parts = path.parts
+    for pattern in patterns:
+        if "/" in pattern or os.sep in pattern:
+            if pattern in str(path):
+                return True
+        elif pattern in parts:
+            return True
+    return False
+
+
 def discover_python_files(
     root_path: Path, exclude_patterns: Optional[List[str]] = None
 ) -> List[Path]:
@@ -112,7 +134,7 @@ def discover_python_files(
             for raw_path in completed.stdout.split(b"\0")
             if raw_path
             for path in [root_path / os.fsdecode(raw_path)]
-            if path.is_file() and not any(pattern in str(path) for pattern in patterns)
+            if path.is_file() and not _path_excluded(path, patterns)
         ]
 
     python_files: List[Path] = []
@@ -120,17 +142,13 @@ def discover_python_files(
         dirnames[:] = [
             dirname
             for dirname in dirnames
-            if not any(
-                pattern in str(Path(directory) / dirname) for pattern in patterns
-            )
+            if not _path_excluded(Path(directory) / dirname, patterns)
         ]
         python_files.extend(
             Path(directory) / filename
             for filename in filenames
             if filename.endswith(".py")
-            and not any(
-                pattern in str(Path(directory) / filename) for pattern in patterns
-            )
+            and not _path_excluded(Path(directory) / filename, patterns)
         )
     return python_files
 

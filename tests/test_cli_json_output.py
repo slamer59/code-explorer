@@ -70,3 +70,20 @@ def test_json_exposes_the_bundle_as_data(indexed_project):
         "file", "name", "section", "role", "distance", "abridged"
     }
     assert payload["context_tokens"] > 0
+
+
+def test_fuzzy_matches_a_misspelled_query(indexed_project):
+    """--fuzzy takes a different query path than BM25 -- typo tolerance."""
+    payload = _search(indexed_project, "--reindex", "--fuzzy", "procces")
+
+    assert any(hit["name"] == "process" for hit in payload["hits"])
+
+
+def test_no_context_skips_bundle_assembly_entirely(indexed_project):
+    """--no-context must short-circuit before ContextAssembler ever runs."""
+    payload = _search(indexed_project, "--reindex", "--no-context", "process")
+
+    assert payload["hits"]
+    assert payload["context"] is None
+    assert "seed" not in payload
+    assert "context_nodes" not in payload

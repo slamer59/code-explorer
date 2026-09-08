@@ -47,7 +47,7 @@ Code Explorer excels at analyzing complex Python codebases where understanding d
 ### Measured against other retrieval tools
 
 The claims above are the ones any tool makes about itself. The ones below are
-measured — against ground truth mined from a repository's own git history (the
+measured - against ground truth mined from a repository's own git history (the
 commit subject is the query, the files it touched are the answers), scored with
 [`ranx`](https://github.com/AmenRa/ranx) with paired significance testing.
 
@@ -55,12 +55,12 @@ Two corpora, 350 queries, versus [`zvec-grep`](https://github.com/zvec-ai/zvec-g
 
 | | index build | query | recall@10 |
 | --- | --- | --- | --- |
-| **django** — Code Explorer | **0.29 min** | **471 ms** | **0.798** |
-| django — zg | 0.40 min | 1,165 ms | 0.646 |
-| **home-assistant** (18,631 files) — Code Explorer | **1.51 min** | **1,083 ms** | **0.807** |
-| home-assistant — zg | 2.50 min | 5,838 ms | 0.552 |
+| **django** - Code Explorer | **0.29 min** | **471 ms** | **0.798** |
+| django - zg | 0.40 min | 1,165 ms | 0.646 |
+| **home-assistant** (18,631 files) - Code Explorer | **1.51 min** | **1,083 ms** | **0.807** |
+| home-assistant - zg | 2.50 min | 5,838 ms | 0.552 |
 
-Faster to index, faster to query, and significantly better recall — in the
+Faster to index, faster to query, and significantly better recall - in the
 default SQLite/BM25 mode, with no embeddings, no server and no native
 dependencies.
 
@@ -68,7 +68,7 @@ dependencies.
 mixes two opposite questions, because a commit that changes behaviour changes
 its tests. The table above scores *"where is this implemented?"*. On *"what
 covers this?"* **zg wins by as large a margin** (0.651 vs 0.444 on django;
-0.522 vs 0.152 on home-assistant) — a direct consequence of Code Explorer
+0.522 vs 0.152 on home-assistant) - a direct consequence of Code Explorer
 demoting test files so an implementation outranks its own tests. Averaged
 together the two cancel out and the tools look tied, which is what the
 aggregate tables in the reports show. Neither tool dominates; they answer
@@ -102,7 +102,7 @@ measured:
 | backend | status | why |
 | --- | --- | --- |
 | **sqlite** | **the only supported one** | FTS5/BM25, no server, no native dependency, and the fastest to index of the three |
-| `lattice` | obsolete | two verified LatticeDB 0.15.0 defects, one of which returns `[]` for any multi-term query where a term appears in more than one document — that breaks the primary use case |
+| `lattice` | obsolete | two verified LatticeDB 0.15.0 defects, one of which returns `[]` for any multi-term query where a term appears in more than one document - that breaks the primary use case |
 | `kuzu` | obsolete | predates the search index; `analyze` builds a second, disconnected graph with a naive call resolver (~5.5x spurious fan-out) that none of the retrieval work above applies to |
 
 Every benchmark in this README is SQLite. Do not read a number here as saying
@@ -112,14 +112,14 @@ The harness lives in [`bench/`](bench/) and is deliberately external: it never
 imports `code_explorer`, drives every tool as a subprocess, and compares each at
 its best configuration rather than at its default. Corpora are declared in
 [`bench/corpora.toml`](bench/corpora.toml), tool configurations in
-[`bench/adapters.toml`](bench/adapters.toml) — adding a third tool is one adapter
+[`bench/adapters.toml`](bench/adapters.toml) - adding a third tool is one adapter
 file. Raw run files are committed under
 [`bench/results/runs/`](bench/results/runs/) so any result can be re-scored later
 under a metric nobody had thought of yet, and
 [`bench/analysis/`](bench/analysis/README.md) holds the one-off scripts behind
 every number quoted in the docs.
 
-It is free to report that Code Explorer loses — and it does, on the
+It is free to report that Code Explorer loses - and it does, on the
 test-retrieval question above, and on several configurations we measured and
 then rejected.
 
@@ -255,14 +255,11 @@ code-explorer analyze ./src --refresh
 For projects with 10,000+ files or including virtual environments:
 
 ```bash
-# Use chunked processing for memory efficiency
-code-explorer analyze . --include .venv --chunk-size 25
+# Include a directory normally excluded by default
+code-explorer analyze . --include .venv
 
 # Increase parallel workers for faster processing
 code-explorer analyze . --workers 16
-
-# For very low RAM systems
-code-explorer analyze . --chunk-size 10
 ```
 
 ### How to Control Source Code Storage
@@ -270,14 +267,11 @@ code-explorer analyze . --chunk-size 10
 Manage database size by controlling source code storage:
 
 ```bash
-# Store full source code (default, larger database)
+# Don't store full source code (default, smaller database)
 code-explorer analyze ./src
 
-# Don't store source code (smaller database, faster)
-code-explorer analyze ./src --no-source
-
-# Store only first 10 lines (preview mode)
-code-explorer analyze ./src --source-lines 10
+# Store each function/class's full source_code as a graph property
+code-explorer analyze ./src --include-source
 ```
 
 ### How to Reset the Database
@@ -371,12 +365,10 @@ Analyzes Python files and builds the dependency graph.
 **Options:**
 - `--exclude PATTERN` - Exclude files/directories (can specify multiple times)
 - `--include PATTERN` - Override default exclusions (e.g., `--include .venv`)
-- `--workers N` - Number of parallel workers (default: 4)
+- `-w, --workers N` - Number of worker threads (default: auto-detect CPU count)
 - `--db-path PATH` - Custom database location (default: `.code-explorer/graph.db`)
-- `--refresh` - Force complete re-analysis (ignore cache)
-- `--chunk-size N` - Files per chunk for edge insertion (default: 25, lower = less RAM)
-- `--no-source` - Don't store function/class source code
-- `--source-lines N` - Store only first N lines of source
+- `--refresh` - Force complete re-analysis (clears existing database)
+- `--include-source` - Store each function/class's full source code as a graph property (opt-in, off by default)
 
 **Examples:**
 ```bash
@@ -389,8 +381,8 @@ code-explorer analyze . --exclude tests --exclude docs --workers 8
 # Analyze everything including virtual environment
 code-explorer analyze . --include .venv --include venv
 
-# Low memory system
-code-explorer analyze . --chunk-size 10
+# Keep full source code in the graph
+code-explorer analyze . --include-source
 ```
 
 #### `code-explorer stats`
@@ -484,7 +476,7 @@ code-explorer visualize utils.py --function calculate --max-depth 2
 
 BM25/fuzzy/semantic code search with an LLM-ready context bundle (top hit +
 its direct callers/callees, source attached). Uses the SQLite search index,
-not the legacy graph database the older commands use — see
+not the legacy graph database the older commands use - see
 [docs/reference/cli-commands.md](docs/reference/cli-commands.md#search---find-code-by-keyword-or-meaning-experimental)
 for the full reference, including the `--semantic` mode's local-Ollama
 requirement.
@@ -709,7 +701,7 @@ For enterprise-scale projects:
 
 ```bash
 # Maximum parallelization
-code-explorer analyze . --workers 32 --chunk-size 15
+code-explorer analyze . --workers 32
 
 # Analyze incrementally by directory
 code-explorer analyze ./src --db-path ./analysis/db
@@ -722,11 +714,9 @@ code-explorer analyze ./tests --db-path ./analysis/db
 Control memory usage for large analyses:
 
 ```bash
-# Reduce chunk size (uses less RAM but slower)
-code-explorer analyze . --chunk-size 10
-
-# Disable source code storage (smaller database)
-code-explorer analyze . --no-source
+# Source code is not stored by default (smaller database); only opt in
+# with --include-source if you need it
+code-explorer analyze .
 
 # Process in stages
 code-explorer analyze ./src  # First pass

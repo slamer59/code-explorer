@@ -162,37 +162,6 @@ class QueryOperations:
             )
             return [], []
 
-    def get_variable_usage(
-        self, file: str, var_name: str, definition_line: int
-    ) -> List[Tuple[str, str, int]]:
-        """Get functions that use the specified variable.
-
-        Args:
-            file: File where variable is defined
-            var_name: Variable name
-            definition_line: Line where variable is defined
-
-        Returns:
-            List of (file, function_name, usage_line) tuples
-        """
-        var_id = self._make_variable_id(file, var_name, definition_line)
-
-        try:
-            rows = self.backend.query(
-                """
-                MATCH (func:Function)-[r:REFERENCES]->(var:Variable {id: $var_id})
-                WHERE r.context = 'use'
-                RETURN func.file AS file, func.name AS name, r.line_number AS line_number
-            """,
-                {"var_id": var_id},
-            )
-            return [(row["file"], row["name"], row["line_number"]) for row in rows]
-        except Exception as e:
-            console.print(
-                f"[red]Error getting variable usage for {var_name} in {file}: {e}[/red]"
-            )
-            return []
-
     def get_function(self, file: str, name: str) -> Optional[FunctionNode]:
         """Get function node by file and name.
 

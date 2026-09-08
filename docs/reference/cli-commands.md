@@ -172,31 +172,6 @@ Upstream impact for 'process_data':
 
 ---
 
-## `trace` - Variable Data Flow
-
-Trace how a variable flows through the codebase.
-
-**Synopsis:**
-```bash
-code-explorer trace TARGET --variable NAME [OPTIONS]
-```
-
-**Common Usage:**
-```bash
-# Trace variable usage from specific line
-code-explorer trace src/module.py:42 --variable user_input
-
-# Trace with custom database
-code-explorer trace utils.py:15 --variable result --db-path /tmp/analysis.db
-```
-
-**Options:**
-- `TARGET` (required): Format `file.py:line_number`
-- `--variable NAME` (required): Variable name to trace
-- `--db-path PATH`: Database location
-
----
-
 ## `search` - Find Code by Keyword or Meaning (Experimental)
 
 Search function/class source code with BM25 lexical search, typo-tolerant fuzzy
@@ -206,8 +181,9 @@ attached). See
 [LatticeDB Migration](../explanation/latticedb-migration.md#1a-implementation-status)
 for the design behind this.
 
-> **Different database from every other command.** `analyze`/`impact`/`trace`/
-> `stats`/`visualize` all use the KuzuDB database at `.code-explorer/graph.db`.
+> **Different database from every other command.** `analyze`/`stats`/
+> `visualize` all use the KuzuDB database at `.code-explorer/graph.db`, and
+> `impact` has moved onto the search index instead (see below).
 > `search` builds its own **LatticeDB** index instead
 > (`.code-explorer/graph.lattice`, or `graph_vectors.lattice` for
 > `--semantic`, since vector dimensions are fixed when a LatticeDB index is

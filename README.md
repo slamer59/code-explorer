@@ -202,19 +202,7 @@ code-explorer impact src/module.py:my_function --downstream
 code-explorer impact src/module.py:my_function --depth 2
 ```
 
-**Step 4: Trace Variable Data Flow**
-
-Debug issues by tracking variable usage:
-
-```bash
-# Find where a variable is used across functions
-code-explorer trace src/module.py:42 --variable user_input
-
-# Track data flow through the application
-code-explorer trace src/processor.py:15 --variable result
-```
-
-**Step 5: Visualize Dependencies**
+**Step 4: Visualize Dependencies**
 
 Generate beautiful dependency graphs:
 
@@ -340,18 +328,6 @@ code-explorer stats --top 50 > complexity-report.txt
 # (add custom logic based on your thresholds)
 ```
 
-### How to Debug with Variable Tracing
-
-Track down data flow issues:
-
-```bash
-# Start at the error line
-code-explorer trace src/app.py:error_line --variable suspicious_var
-
-# Follow the trail backwards to find the source
-code-explorer trace src/input.py:45 --variable user_data
-```
-
 ---
 
 ## Reference
@@ -409,8 +385,8 @@ calls, with source attached. Same engine as `search` -- `search` finds the
 seed from a query, `impact` is handed the seed.
 
 Reads the index `search` builds (`.code-explorer/graph.lattice`), building
-or updating it as needed. `trace`, `stats` and `visualize` still read
-`analyze`'s separate Kuzu graph.
+or updating it as needed. `stats` and `visualize` still read `analyze`'s
+separate Kuzu graph.
 
 **Options:**
 - `--downstream` / `--upstream` - one direction only (default: both)
@@ -434,23 +410,6 @@ code-explorer impact main.py:run --depth 2 --budget 4000
 
 # Just the names -- no source reads at all
 code-explorer impact main.py:run --names-only
-```
-
-#### `code-explorer trace <file:line> --variable <name>`
-
-Traces variable data flow through the codebase.
-
-**Options:**
-- `--variable NAME` - Variable name to trace (required)
-- `--db-path PATH` - Custom database location
-
-**Examples:**
-```bash
-# Trace user input flow
-code-explorer trace app.py:45 --variable user_data
-
-# Track result variable through functions
-code-explorer trace processor.py:120 --variable result
 ```
 
 #### `code-explorer visualize <file:function>`
@@ -673,9 +632,6 @@ code-explorer impact services/core.py:main_handler
 ### Use Case 3: Bug Investigation
 
 ```bash
-# Trace where problematic data originates
-code-explorer trace app.py:error_line --variable suspicious_input
-
 # Find all functions that touch this problematic code
 code-explorer impact utils.py:buggy_function --downstream
 ```

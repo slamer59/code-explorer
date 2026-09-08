@@ -397,10 +397,6 @@ class DependencyGraph:
         -- see QueryOperations.get_callers_and_callees_with_lines."""
         return self.queries.get_callers_and_callees_with_lines(*args, **kwargs)
 
-    def get_variable_usage(self, *args, **kwargs) -> List[Tuple[str, str, int]]:
-        """Get functions that use the specified variable."""
-        return self.queries.get_variable_usage(*args, **kwargs)
-
     def get_function(self, *args, **kwargs) -> Optional[FunctionNode]:
         """Get function node by file and name."""
         return self.queries.get_function(*args, **kwargs)

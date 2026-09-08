@@ -111,16 +111,6 @@ Now you know:
 3. Run tests: `pytest tests/test_graph.py -k add_function`
 4. Re-analyze to update graph: `code-explorer analyze ./src --refresh`
 
-## Tracing Variable Data Flow
-
-Track how data flows through variables:
-
-```bash
-code-explorer trace src/code_explorer/cli.py:analyze --variable graph
-```
-
-This shows everywhere the `graph` variable is used in the `analyze` function.
-
 ## Depth Control
 
 Limit how deep to traverse:

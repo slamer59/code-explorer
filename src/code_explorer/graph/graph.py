@@ -504,6 +504,22 @@ class DependencyGraph:
 
         from code_explorer.graph.bulk_loader import load_from_parquet_sync
 
+        # load_from_parquet_sync opens its own kuzu.Database at the same
+        # db_path for the COPY FROM bulk load. Two live Database handles on
+        # one path in the same process corrupt Kuzu's internal state (surfaces
+        # as `IndexError: unordered_map::at` from kuzu's C++ layer) once any
+        # write has happened on this connection -- e.g. after `clear_all()`
+        # on --refresh. Close this connection first; nothing below this call
+        # in the `analyze` flow reads from `self.backend`/`self.conn` again.
+        # __init__ copied self.db/self.conn out of the backend as separate
+        # Python references, so backend.close() alone isn't enough -- drop
+        # these too or they keep the underlying kuzu objects (and the file
+        # lock) alive.
+        self.backend.close()
+        self.db = None
+        self.conn = None
+        self.schema_manager = None
+
         return load_from_parquet_sync(self.db_path, parquet_dir)
 
     def _export_results_to_parquet(

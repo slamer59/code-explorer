@@ -126,6 +126,19 @@ class KuzuBackend:
         self.schema_manager = SchemaManager(self.conn)
 
     def close(self) -> None:
+        # Dropping the Python references alone isn't enough to release the
+        # file lock -- kuzu's Connection/Database wrap native C++ objects
+        # with their own explicit close(), and other Python references (this
+        # backend's own QueryOperations/MutationOperations helpers, built
+        # from self.conn at open()) can keep them alive past this method
+        # regardless. Call close() on both explicitly so a caller that reopens
+        # the same db_path in-process (analyze --refresh's bulk-load path)
+        # doesn't hit kuzu's `IndexError: unordered_map::at` from two live
+        # Database handles on one path.
+        if self.conn is not None:
+            self.conn.close()
+        if self.db is not None:
+            self.db.close()
         self.conn = None
         self.db = None
         self.schema_manager = None

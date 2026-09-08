@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .base import Adapter, Hit, QueryResult
 from .code_explorer import CodeExplorerAdapter
+from .ripwire import RipwireAdapter
 from .zg import ZgAdapter
 
 #: Adapter classes by module name. Registry *keys* in adapters.toml are
@@ -14,6 +15,7 @@ ADAPTERS: dict[str, type[Adapter]] = {
     "code_explorer": CodeExplorerAdapter,
     "code-explorer": CodeExplorerAdapter,
     "zg": ZgAdapter,
+    "ripwire": RipwireAdapter,
 }
 
 

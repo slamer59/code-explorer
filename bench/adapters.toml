@@ -156,6 +156,21 @@ notes = [
 # At --preview none zg returns paths plus one line per hit -- a table of
 # contents, not the chapter -- so an agent must still open the files, which
 # is the loop this benchmark exists to price. This entry returns the source.
+# ripwire (github.com/redhat-et/ripwire): a Personalized-PageRank symbol
+# ranker over a tree-sitter call graph, driven through its own recommended
+# `--for=TASK` natural-language lens rather than its "debug" raw --query.
+[tool.ripwire]
+module = "ripwire"
+command = ["ripwire"]
+notes = [
+  "Indexes every supported language (22+, tree-sitter based), so it can reach relevant non-Python files code-explorer never sees -- same asymmetry as zg.",
+  "BM25 over a Personalized-PageRank-ranked symbol graph, name-exact or subtoken+body routed automatically per query; no vector component.",
+  "Returns individual symbols (function/class granularity), scored at file level like code-explorer.",
+  "--json never serves expanded bodies (bundle is always 'sigs' in that dialect), so it has no second expansion step -- its `bundle` row repeats its `seed` row, like zg.",
+  "No explicit result-count flag for --for; it fills its own ~7.5KB signature budget and this adapter truncates client-side to k.",
+  "No separate index-build step: each query cold-parses the corpus behind a warm-by-default per-root cache in the OS tmpdir, so the recorded wall_ms is steady-state per-query cost, not a build artifact.",
+]
+
 [tool.zg-full]
 module = "zg"
 command = ["zg"]

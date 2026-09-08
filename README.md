@@ -93,6 +93,65 @@ uv run python -m bench.runner --corpus django --index -k 10   # run every tool
 uv run python -m bench.report --corpus django                 # regenerate reports
 ```
 
+### Measured against ripwire
+
+Same harness, same two corpora, against
+[`ripwire`](https://github.com/redhat-et/ripwire) - a tree-sitter call-graph
+ranker over 22+ languages, queried through its own recommended `--for=TASK`
+lens:
+
+| | code recall@10 | test recall@10 | query | tokens |
+| --- | --- | --- | --- | --- |
+| **django** - Code Explorer (hybrid) | 0.847 | **0.497** | 727 ms | 2,201 |
+| django - ripwire | **0.862** | 0.094 | 578 ms | 3,294 |
+| django - zg | 0.646 | 0.651 | 1,165 ms | 344 |
+| **home-assistant** - Code Explorer (body) | 0.807 | **0.152** | 1,083 ms | 1,426 |
+| home-assistant - ripwire | **0.821** | 0.000 | 3,941 ms | 3,427 |
+| home-assistant - zg | 0.552 | 0.522 | 5,838 ms | 387 |
+
+On *"where is this implemented?"* ripwire edges out every configuration we
+measured, on both corpora - the best code-only recall@10 in either table,
+and it gets there indexing every language in the repo, not just Python.
+
+**The same caveat as above, sharper.** On *"what covers this?"* ripwire
+collapses to **0.094 on django and 0.000 on home-assistant** - it essentially
+never returns a test file, more aggressively than Code Explorer's own test
+demotion. Averaged together (the `delivered` metric in the reports) that
+puts ripwire mid-pack on both corpora, behind Code Explorer's hybrid/body
+configurations and behind zg - not because its retrieval is weaker, but
+because the average is exactly two questions and it only answers one of
+them. It also has no persistent index: every query cold-parses the corpus
+behind a per-root cache in the OS tmpdir, which is why its query cost rises
+with corpus size (578 ms on django, 3.9 s on the 7x-larger home-assistant)
+where Code Explorer's and zg's stay flat against a prebuilt index.
+
+Pick the tool for the question you're actually asking: ripwire for
+"where's the implementation", zg or Code Explorer's hybrid configuration
+when tests matter too, plain Code Explorer when query cost is the
+constraint. Full tables, complementarity (how much of what ripwire finds no
+other tool returns at any rank), and per-query detail are in the same
+generated reports linked above.
+
+**Capability map.** The numbers above are all retrieval - the one thing all
+three tools do. That is the whole job for two of them and a single verb out
+of many for the third:
+
+| Capability | Code Explorer | zg (zvec-grep) | ripwire |
+| --- | --- | --- | --- |
+| Language coverage | Python only | Every file type | 22+ languages (tree-sitter) |
+| Ranking method | BM25/FTS5, optionally fused with vector similarity (reciprocal rank fusion) | Hybrid FTS + vector by default | Personalized PageRank over a parsed call graph, BM25-routed by query shape |
+| Vector/semantic search | Optional (`--semantic`) | Yes, default-on | No |
+| Unit of retrieval | Whole symbols | Text chunks, no symbol identity | Individual symbols, graph-ranked |
+| Context expansion beyond seed hits | Yes - graph-hop expansion into a bundle | No | No (`--json`; its non-JSON dialect can inline top bodies, which is more detail, not more files) |
+| Persistent index | Yes, built once | Yes, built once | No - cold-parses per invocation behind a tmpdir cache |
+| Call-graph structural queries (callers, blast radius) | Yes - its original purpose | No | Yes (`--callers`, `--uses`, `--impact`, a small graph-query DSL) |
+| Code quality / architecture analysis | No | No | Yes - hotspots, complexity, clone detection, dependency-cycle/layering rules with CI gates |
+| Test-impact analysis | No | No | Yes (`--test-gate`) |
+| Stack-trace triage | No | No | Yes (`--from-trace`) |
+| Agent/MCP integration | No | No | Yes - `ripwire wrap <agent>`, MCP server mode, packaged agent skills |
+| Deployment | Python package | Native binary + local embedding runtime | Single static binary, zero runtime deps |
+| What the table above measures | Its whole job | Its whole job | One verb (`--for`) among many |
+
 ### Backends: SQLite only
 
 `--backend` still accepts `kuzu` and `lattice`, and both are **obsolete**. They

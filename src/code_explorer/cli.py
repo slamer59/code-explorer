@@ -155,16 +155,12 @@ def cli() -> None:
         -> progress bar, "Graph persisted to: PATH/.code-explorer/graph.db",
            then a Performance Metrics panel of per-stage timings
     \b
-      $ code-explorer trace module.py:42 --variable user_input
-        -> "Tracing 'user_input' from module.py:42" + a Direction|Location|Line
-           table, or "No data flow found."
-    \b
       $ code-explorer stats
         -> a Codebase Statistics panel (files, functions, classes, edges)
            and a Most-called functions table
     \b
       $ code-explorer visualize module.py --output graph.md
-        -> "Diagram saved to: graph.md", holding a Mermaid `graph TD` of
+        -> "Diagram saved to: graph.md", holding a Mermaid `graph TB` of
            caller/callee edges that GitHub and VS Code render inline
 
     Example:
@@ -1979,10 +1975,10 @@ def visualize(
     \b
       Diagram saved to: graph.md
     \b
-    The file holds a Mermaid `graph TD` diagram of caller/callee edges,
+    The file holds a Mermaid `graph TB` diagram of caller/callee edges,
     which GitHub and VS Code render inline:
     \b
-      graph TD
+      graph TB
           handle_request --> validate_token
           validate_token --> refresh_token
     \b
